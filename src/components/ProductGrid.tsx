@@ -34,7 +34,7 @@ const TEMP_PRODUCTS = [
 
 export const ProductGrid = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("");
 
   const filteredProducts = TEMP_PRODUCTS.filter((product) => {
@@ -42,7 +42,7 @@ export const ProductGrid = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesCategory =
-      !categoryFilter ||
+      categoryFilter === "all" ||
       product.categories.some((cat) =>
         cat.toLowerCase().includes(categoryFilter.toLowerCase())
       );
@@ -79,7 +79,7 @@ export const ProductGrid = () => {
             <SelectValue placeholder="Filter by category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             <SelectItem value="flower">Flower</SelectItem>
             <SelectItem value="edibles">Edibles</SelectItem>
             <SelectItem value="concentrates">Concentrates</SelectItem>
