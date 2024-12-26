@@ -8,44 +8,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Temporary product data
-const TEMP_PRODUCTS = [
-  {
-    id: 1,
-    name: "Purple Haze",
-    description: "A classic sativa-dominant hybrid with sweet and earthy notes",
-    image: "https://images.unsplash.com/photo-1603034203013-d532350372c6?q=80&w=1000",
-    categories: ["Flower", "Sativa"],
-    strain: "Sativa",
-    potency: "22%",
-  },
-  {
-    id: 2,
-    name: "OG Kush",
-    description: "Known for its potent effects and unique terpene profile",
-    image: "https://images.unsplash.com/photo-1603034203013-d532350372c6?q=80&w=1000",
-    categories: ["Flower", "Indica"],
-    strain: "Indica",
-    potency: "24%",
-  },
-  // Add more products as needed
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export const ProductGrid = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("");
 
-  const filteredProducts = TEMP_PRODUCTS.filter((product) => {
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*");
+      
+      if (error) {
+        console.error("Error fetching products:", error);
+        throw error;
+      }
+      
+      return data || [];
+    },
+  });
+
+  const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesCategory =
       categoryFilter === "all" ||
-      product.categories.some((cat) =>
-        cat.toLowerCase().includes(categoryFilter.toLowerCase())
-      );
+      (product.categories &&
+        product.categories.some((cat: string) =>
+          cat.toLowerCase().includes(categoryFilter.toLowerCase())
+        ));
     return matchesSearch && matchesCategory;
   });
 
@@ -64,6 +60,10 @@ export const ProductGrid = () => {
       );
     return 0;
   });
+
+  if (isLoading) {
+    return <div className="text-center py-8">Loading products...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -99,7 +99,16 @@ export const ProductGrid = () => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedProducts.map((product) => (
-          <ProductCard key={product.id} {...product} />
+          <ProductCard
+            key={product.id}
+            name={product.name}
+            description={product.description || ""}
+            image={product.image_url || ""}
+            video={product.video_url}
+            categories={product.categories || []}
+            strain={product.strain}
+            potency={product.potency}
+          />
         ))}
       </div>
     </div>
