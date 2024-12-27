@@ -66,7 +66,7 @@ export const ProductGrid = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-4">
         <Input
           placeholder="Search products..."
@@ -97,7 +97,7 @@ export const ProductGrid = () => {
           </SelectContent>
         </Select>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {sortedProducts.map((product) => (
           <ProductCard
             key={product.id}

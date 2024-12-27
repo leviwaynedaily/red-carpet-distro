@@ -51,37 +51,38 @@ export const ProductCard = ({
             <Button
               size="icon"
               variant="secondary"
-              className="absolute bottom-4 right-4 rounded-full"
+              className="absolute bottom-2 right-2 rounded-full w-6 h-6"
             >
-              <Play className="h-4 w-4" />
+              <Play className="h-3 w-3" />
             </Button>
           )}
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex flex-wrap gap-2 mb-4">
+        <CardContent className="p-3">
+          <div className="flex flex-wrap gap-1 mb-2">
             {categories.map((category) => (
-              <Badge key={category} variant="secondary">
+              <Badge key={category} variant="secondary" className="text-xs">
                 {category}
               </Badge>
             ))}
           </div>
-          <h3 className="text-lg font-semibold mb-2">{name}</h3>
-          <p className="text-sm text-gray-600 mb-4">{description}</p>
+          <h3 className="text-sm font-semibold mb-1 truncate">{name}</h3>
+          <p className="text-xs text-gray-600 line-clamp-2">{description}</p>
           {(strain || potency) && (
-            <div className="flex gap-4 text-sm text-gray-600">
+            <div className="flex gap-2 text-xs text-gray-600 mt-2">
               {strain && <span>Strain: {strain}</span>}
               {potency && <span>THC: {potency}</span>}
             </div>
           )}
         </CardContent>
-        <CardFooter className="p-6 pt-0">
+        <CardFooter className="p-3 pt-0">
           <Button
             variant="outline"
-            className="w-full"
+            size="sm"
+            className="w-full text-xs"
             onClick={() => window.open(image, '_blank')}
           >
-            <Download className="mr-2 h-4 w-4" />
-            Download Image
+            <Download className="mr-1 h-3 w-3" />
+            Download
           </Button>
         </CardFooter>
       </Card>
