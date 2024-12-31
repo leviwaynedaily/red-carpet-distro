@@ -27,6 +27,24 @@ export const Header = ({
   viewMode,
   onViewModeChange,
 }: HeaderProps) => {
+  const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
+
+  // Update tempSearchTerm when searchTerm prop changes
+  useEffect(() => {
+    setTempSearchTerm(searchTerm);
+  }, [searchTerm]);
+
+  const handleSearch = () => {
+    onSearchChange(tempSearchTerm);
+    console.log('Searching for:', tempSearchTerm);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50 right-0' : ''}`}>
       <div className="w-full">
@@ -41,7 +59,7 @@ export const Header = ({
             ) : null}
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={handleSearch}>
               <Search className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon">
@@ -80,8 +98,9 @@ export const Header = ({
                 </Select>
                 <Input
                   placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => onSearchChange(e.target.value)}
+                  value={tempSearchTerm}
+                  onChange={(e) => setTempSearchTerm(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   className="max-w-xs bg-white/80"
                 />
               </div>
