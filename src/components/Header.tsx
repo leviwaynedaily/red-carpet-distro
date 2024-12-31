@@ -28,9 +28,9 @@ export const Header = ({
   onViewModeChange,
 }: HeaderProps) => {
   return (
-    <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50' : ''}`}>
-      <div className="w-full px-4 md:px-8">
-        <div className="flex items-center justify-between py-4 bg-white">
+    <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50 right-0' : ''}`}>
+      <div className="w-full">
+        <div className="flex items-center justify-between py-4 bg-white px-4 md:px-8">
           <div className="flex items-center space-x-4">
             {isSticky ? (
               <img
@@ -54,7 +54,7 @@ export const Header = ({
         </div>
         {isSticky && (
           <div className="border-t border-gray-200/30 bg-white/10 backdrop-blur-sm">
-            <div className="flex items-center justify-between py-2">
+            <div className="flex items-center justify-between py-2 px-4 md:px-8">
               <div className="flex items-center space-x-4 overflow-x-auto">
                 <Select value={categoryFilter} onValueChange={onCategoryChange}>
                   <SelectTrigger className="w-[150px] bg-white/80">
