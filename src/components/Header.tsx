@@ -29,7 +29,7 @@ export const Header = ({
 }: HeaderProps) => {
   return (
     <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50' : ''}`}>
-      <div className="container mx-auto">
+      <div className="w-full px-4 md:px-8">
         <div className="flex items-center justify-between py-4 bg-white">
           <div className="flex items-center space-x-4">
             {isSticky ? (
