@@ -9,6 +9,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("");
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
 
   // Check if user is already verified
   useEffect(() => {
@@ -44,6 +45,8 @@ const Index = () => {
         onCategoryChange={setCategoryFilter}
         sortBy={sortBy}
         onSortChange={setSortBy}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
       <main className="container py-8">
         <header className={`text-center mb-12 ${isSticky ? 'mt-32' : ''}`}>
@@ -61,6 +64,7 @@ const Index = () => {
           searchTerm={searchTerm}
           categoryFilter={categoryFilter}
           sortBy={sortBy}
+          viewMode={viewMode}
         />
       </main>
       <footer className="bg-white border-t mt-12 py-8">

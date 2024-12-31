@@ -6,9 +6,10 @@ interface ProductGridProps {
   searchTerm: string;
   categoryFilter: string;
   sortBy: string;
+  viewMode: 'grid' | 'list' | 'compact';
 }
 
-export const ProductGrid = ({ searchTerm, categoryFilter, sortBy }: ProductGridProps) => {
+export const ProductGrid = ({ searchTerm, categoryFilter, sortBy, viewMode }: ProductGridProps) => {
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
@@ -58,8 +59,14 @@ export const ProductGrid = ({ searchTerm, categoryFilter, sortBy }: ProductGridP
     return <div className="text-center py-8">Loading products...</div>;
   }
 
+  const gridClasses = {
+    grid: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3",
+    list: "grid grid-cols-1 gap-4",
+    compact: "grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2"
+  };
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+    <div className={gridClasses[viewMode]}>
       {sortedProducts.map((product) => (
         <ProductCard
           key={product.id}
@@ -71,6 +78,7 @@ export const ProductGrid = ({ searchTerm, categoryFilter, sortBy }: ProductGridP
           categories={product.categories || []}
           strain={product.strain}
           potency={product.potency}
+          viewMode={viewMode}
         />
       ))}
     </div>
