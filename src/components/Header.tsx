@@ -24,8 +24,8 @@ export const Header = ({
   onSortChange,
 }: HeaderProps) => {
   return (
-    <header className={`w-full bg-white transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 shadow-md z-50' : ''}`}>
-      <div className="container mx-auto">
+    <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50' : ''}`}>
+      <div className="container mx-auto bg-white">
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="icon">
@@ -52,7 +52,7 @@ export const Header = ({
           </div>
         </div>
         {isSticky && (
-          <div className="border-t border-gray-200">
+          <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm">
             <div className="flex items-center space-x-4 py-2 overflow-x-auto">
               <Select value={categoryFilter} onValueChange={onCategoryChange}>
                 <SelectTrigger className="w-[150px]">
