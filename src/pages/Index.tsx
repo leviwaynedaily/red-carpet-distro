@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import { AgeVerification } from "@/components/AgeVerification";
 import { ProductGrid } from "@/components/ProductGrid";
+import { Header } from "@/components/Header";
 
 const Index = () => {
   const [isVerified, setIsVerified] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("");
 
   // Check if user is already verified
   useEffect(() => {
@@ -11,6 +16,16 @@ const Index = () => {
     if (verified === "true") {
       setIsVerified(true);
     }
+  }, []);
+
+  // Handle sticky header
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleVerification = () => {
@@ -21,8 +36,17 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {!isVerified && <AgeVerification onVerified={handleVerification} />}
+      <Header
+        isSticky={isSticky}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        categoryFilter={categoryFilter}
+        onCategoryChange={setCategoryFilter}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
       <main className="container py-8">
-        <header className="text-center mb-12">
+        <header className={`text-center mb-12 ${isSticky ? 'mt-32' : ''}`}>
           <img
             src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
             alt="Palmtree Smokes"
@@ -33,7 +57,11 @@ const Index = () => {
             Browse our carefully curated selection below.
           </p>
         </header>
-        <ProductGrid />
+        <ProductGrid
+          searchTerm={searchTerm}
+          categoryFilter={categoryFilter}
+          sortBy={sortBy}
+        />
       </main>
       <footer className="bg-white border-t mt-12 py-8">
         <div className="container text-center text-sm text-gray-600">
