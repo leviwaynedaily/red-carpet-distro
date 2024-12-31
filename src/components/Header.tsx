@@ -34,16 +34,15 @@ export const Header = ({
     setTempSearchTerm(searchTerm);
   }, [searchTerm]);
 
-  const handleSearch = () => {
-    onSearchChange(tempSearchTerm);
-    console.log('Searching for:', tempSearchTerm);
-  };
+  // Update search results as user types
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      onSearchChange(tempSearchTerm);
+      console.log('Searching for:', tempSearchTerm);
+    }, 300); // Add a small delay to prevent too many updates
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
+    return () => clearTimeout(timeoutId);
+  }, [tempSearchTerm, onSearchChange]);
 
   return (
     <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50 right-0' : ''}`}>
@@ -59,7 +58,7 @@ export const Header = ({
             ) : null}
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" onClick={handleSearch}>
+            <Button variant="ghost" size="icon">
               <Search className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon">
@@ -100,7 +99,6 @@ export const Header = ({
                   placeholder="Search products..."
                   value={tempSearchTerm}
                   onChange={(e) => setTempSearchTerm(e.target.value)}
-                  onKeyPress={handleKeyPress}
                   className="max-w-xs bg-white/80"
                 />
               </div>
