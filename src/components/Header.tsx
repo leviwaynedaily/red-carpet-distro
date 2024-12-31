@@ -94,7 +94,7 @@ export const Header = ({
                   variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                   size="icon"
                   onClick={() => onViewModeChange('grid')}
-                  className="bg-white/80"
+                  className={`${viewMode === 'grid' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
                 >
                   <Grid className="h-4 w-4" />
                 </Button>
@@ -102,7 +102,7 @@ export const Header = ({
                   variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                   size="icon"
                   onClick={() => onViewModeChange('list')}
-                  className="bg-white/80"
+                  className={`${viewMode === 'list' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -110,7 +110,7 @@ export const Header = ({
                   variant={viewMode === 'compact' ? 'secondary' : 'ghost'}
                   size="icon"
                   onClick={() => onViewModeChange('compact')}
-                  className="bg-white/80"
+                  className={`${viewMode === 'compact' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
                 >
                   <LayoutGrid className="h-4 w-4" />
                 </Button>
