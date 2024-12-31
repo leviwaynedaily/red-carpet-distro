@@ -29,8 +29,8 @@ export const Header = ({
 }: HeaderProps) => {
   return (
     <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50' : ''}`}>
-      <div className="container mx-auto bg-white">
-        <div className="flex items-center justify-between py-4">
+      <div className="container mx-auto">
+        <div className="flex items-center justify-between py-4 bg-white">
           <div className="flex items-center space-x-4">
             {isSticky ? (
               <img
@@ -53,11 +53,11 @@ export const Header = ({
           </div>
         </div>
         {isSticky && (
-          <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+          <div className="border-t border-gray-200/30 bg-white/10 backdrop-blur-sm">
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center space-x-4 overflow-x-auto">
                 <Select value={categoryFilter} onValueChange={onCategoryChange}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-[150px] bg-white/80">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -68,7 +68,7 @@ export const Header = ({
                   </SelectContent>
                 </Select>
                 <Select value={sortBy} onValueChange={onSortChange}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-[150px] bg-white/80">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -82,7 +82,7 @@ export const Header = ({
                   placeholder="Search products..."
                   value={searchTerm}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="max-w-xs"
+                  className="max-w-xs bg-white/80"
                 />
               </div>
               <div className="flex items-center space-x-2 ml-4">
@@ -90,6 +90,7 @@ export const Header = ({
                   variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                   size="icon"
                   onClick={() => onViewModeChange('grid')}
+                  className="bg-white/80"
                 >
                   <Grid className="h-4 w-4" />
                 </Button>
@@ -97,6 +98,7 @@ export const Header = ({
                   variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                   size="icon"
                   onClick={() => onViewModeChange('list')}
+                  className="bg-white/80"
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -104,6 +106,7 @@ export const Header = ({
                   variant={viewMode === 'compact' ? 'secondary' : 'ghost'}
                   size="icon"
                   onClick={() => onViewModeChange('compact')}
+                  className="bg-white/80"
                 >
                   <LayoutGrid className="h-4 w-4" />
                 </Button>
