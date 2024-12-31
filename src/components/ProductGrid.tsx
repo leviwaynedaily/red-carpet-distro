@@ -6,7 +6,7 @@ interface ProductGridProps {
   searchTerm: string;
   categoryFilter: string;
   sortBy: string;
-  viewMode: 'grid' | 'list' | 'compact';
+  viewMode: 'small' | 'medium' | 'large';
 }
 
 export const ProductGrid = ({ searchTerm, categoryFilter, sortBy, viewMode }: ProductGridProps) => {
@@ -60,9 +60,9 @@ export const ProductGrid = ({ searchTerm, categoryFilter, sortBy, viewMode }: Pr
   }
 
   const gridClasses = {
-    grid: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3",
-    list: "grid grid-cols-1 gap-4",
-    compact: "grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2"
+    small: "grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2",
+    medium: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3",
+    large: "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
   };
 
   return (

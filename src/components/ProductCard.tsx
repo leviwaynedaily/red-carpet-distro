@@ -15,7 +15,7 @@ interface ProductCardProps {
   categories: string[];
   strain?: string;
   potency?: string;
-  viewMode: 'grid' | 'list' | 'compact';
+  viewMode: 'small' | 'medium' | 'large';
 }
 
 export const ProductCard = ({
@@ -45,21 +45,21 @@ export const ProductCard = ({
   };
 
   const cardClasses = {
-    grid: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer",
-    list: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer flex",
-    compact: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer"
+    small: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer",
+    medium: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer",
+    large: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer"
   };
 
   const imageClasses = {
-    grid: "w-full h-full object-cover",
-    list: "w-48 h-48 object-cover",
-    compact: "w-full h-full object-cover"
+    small: "w-full h-full object-cover",
+    medium: "w-full h-full object-cover",
+    large: "w-full h-full object-cover"
   };
 
   const contentClasses = {
-    grid: "p-3",
-    list: "p-4 flex-1",
-    compact: "p-2"
+    small: "p-2",
+    medium: "p-3",
+    large: "p-4"
   };
 
   return (
@@ -147,4 +147,3 @@ export const ProductCard = ({
       </Dialog>
     </>
   );
-};

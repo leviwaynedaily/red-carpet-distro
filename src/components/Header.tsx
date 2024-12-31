@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Grid, List, LayoutGrid } from "lucide-react";
+import { Grid3X3, Grid2X2, Square } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface HeaderProps {
@@ -12,8 +12,8 @@ interface HeaderProps {
   onCategoryChange: (value: string) => void;
   sortBy: string;
   onSortChange: (value: string) => void;
-  viewMode: 'grid' | 'list' | 'compact';
-  onViewModeChange: (mode: 'grid' | 'list' | 'compact') => void;
+  viewMode: 'small' | 'medium' | 'large';
+  onViewModeChange: (mode: 'small' | 'medium' | 'large') => void;
 }
 
 export const Header = ({
@@ -91,28 +91,28 @@ export const Header = ({
               </div>
               <div className="flex items-center space-x-2 ml-4">
                 <Button
-                  variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                  variant={viewMode === 'small' ? 'secondary' : 'ghost'}
                   size="icon"
-                  onClick={() => onViewModeChange('grid')}
-                  className={`${viewMode === 'grid' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
+                  onClick={() => onViewModeChange('small')}
+                  className={`${viewMode === 'small' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
                 >
-                  <Grid className="h-4 w-4" />
+                  <Grid3X3 className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                  variant={viewMode === 'medium' ? 'secondary' : 'ghost'}
                   size="icon"
-                  onClick={() => onViewModeChange('list')}
-                  className={`${viewMode === 'list' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
+                  onClick={() => onViewModeChange('medium')}
+                  className={`${viewMode === 'medium' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
                 >
-                  <List className="h-4 w-4" />
+                  <Grid2X2 className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant={viewMode === 'compact' ? 'secondary' : 'ghost'}
+                  variant={viewMode === 'large' ? 'secondary' : 'ghost'}
                   size="icon"
-                  onClick={() => onViewModeChange('compact')}
-                  className={`${viewMode === 'compact' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
+                  onClick={() => onViewModeChange('large')}
+                  className={`${viewMode === 'large' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
                 >
-                  <LayoutGrid className="h-4 w-4" />
+                  <Square className="h-4 w-4" />
                 </Button>
               </div>
             </div>
