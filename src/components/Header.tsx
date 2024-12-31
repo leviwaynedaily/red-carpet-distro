@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Grid, List, LayoutGrid, Search, ShoppingBag, User } from "lucide-react";
+import { Grid, List, LayoutGrid } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface HeaderProps {
@@ -29,17 +29,15 @@ export const Header = ({
 }: HeaderProps) => {
   const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
 
-  // Update tempSearchTerm when searchTerm prop changes
   useEffect(() => {
     setTempSearchTerm(searchTerm);
   }, [searchTerm]);
 
-  // Update search results as user types
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       onSearchChange(tempSearchTerm);
       console.log('Searching for:', tempSearchTerm);
-    }, 300); // Add a small delay to prevent too many updates
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [tempSearchTerm, onSearchChange]);
@@ -56,17 +54,6 @@ export const Header = ({
                 className="h-8"
               />
             ) : null}
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <ShoppingBag className="h-5 w-5" />
-            </Button>
           </div>
         </div>
         {isSticky && (
