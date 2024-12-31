@@ -15,6 +15,7 @@ interface ProductCardProps {
   categories: string[];
   strain?: string;
   potency?: string;
+  viewMode: 'grid' | 'list' | 'compact';
 }
 
 export const ProductCard = ({
@@ -26,6 +27,7 @@ export const ProductCard = ({
   categories,
   strain,
   potency,
+  viewMode,
 }: ProductCardProps) => {
   const navigate = useNavigate();
   const [showMedia, setShowMedia] = useState(false);
@@ -42,17 +44,35 @@ export const ProductCard = ({
     setIsPlaying(false);
   };
 
+  const cardClasses = {
+    grid: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer",
+    list: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer flex",
+    compact: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer"
+  };
+
+  const imageClasses = {
+    grid: "w-full h-full object-cover",
+    list: "w-48 h-48 object-cover",
+    compact: "w-full h-full object-cover"
+  };
+
+  const contentClasses = {
+    grid: "p-3",
+    list: "p-4 flex-1",
+    compact: "p-2"
+  };
+
   return (
     <>
       <Card 
-        className="overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer" 
+        className={cardClasses[viewMode]}
         onClick={() => navigate(`/product/${id}`)}
       >
         <CardHeader className="p-0 relative aspect-square">
           <img
             src={image}
             alt={name}
-            className="w-full h-full object-cover"
+            className={imageClasses[viewMode]}
             loading="lazy"
           />
           {video && (
@@ -66,7 +86,7 @@ export const ProductCard = ({
             </Button>
           )}
         </CardHeader>
-        <CardContent className="p-3">
+        <CardContent className={contentClasses[viewMode]}>
           <div className="flex flex-wrap gap-1 mb-2">
             {categories.map((category) => (
               <Badge key={category} variant="secondary" className="text-xs">
