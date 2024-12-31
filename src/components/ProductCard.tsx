@@ -4,8 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Download, Play, X } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
+  id: string;
   name: string;
   description: string;
   image: string;
@@ -16,6 +18,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({
+  id,
   name,
   description,
   image,
@@ -24,10 +27,12 @@ export const ProductCard = ({
   strain,
   potency,
 }: ProductCardProps) => {
+  const navigate = useNavigate();
   const [showMedia, setShowMedia] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const handleMediaClick = () => {
+  const handleMediaClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setShowMedia(true);
     if (video) setIsPlaying(true);
   };
@@ -39,8 +44,11 @@ export const ProductCard = ({
 
   return (
     <>
-      <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg">
-        <CardHeader className="p-0 relative aspect-square cursor-pointer" onClick={handleMediaClick}>
+      <Card 
+        className="overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer" 
+        onClick={() => navigate(`/product/${id}`)}
+      >
+        <CardHeader className="p-0 relative aspect-square">
           <img
             src={image}
             alt={name}
@@ -52,6 +60,7 @@ export const ProductCard = ({
               size="icon"
               variant="secondary"
               className="absolute bottom-2 right-2 rounded-full w-6 h-6"
+              onClick={handleMediaClick}
             >
               <Play className="h-3 w-3" />
             </Button>
@@ -79,7 +88,10 @@ export const ProductCard = ({
             variant="outline"
             size="sm"
             className="w-full text-xs"
-            onClick={() => window.open(image, '_blank')}
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(image, '_blank');
+            }}
           >
             <Download className="mr-1 h-3 w-3" />
             Download

@@ -63,6 +63,7 @@ export const ProductGrid = ({ searchTerm, categoryFilter, sortBy }: ProductGridP
       {sortedProducts.map((product) => (
         <ProductCard
           key={product.id}
+          id={product.id}
           name={product.name}
           description={product.description || ""}
           image={product.image_url || ""}
