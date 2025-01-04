@@ -11,6 +11,8 @@ interface Product {
   categories: string[];
   strain?: string;
   potency?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ProductGridProps {
@@ -41,18 +43,21 @@ export const ProductGrid = ({
           return;
         }
 
-        // Add a sample video URL to the first product for testing
-        const productsWithVideo = data.map((product, index) => {
-          if (index === 0) {
-            return {
-              ...product,
-              video: "https://static.videezy.com/system/resources/previews/000/000/168/original/Record.mp4"
-            };
-          }
-          return product;
-        });
+        // Map Supabase data to our Product interface
+        const mappedProducts = data.map((item, index) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || '',
+          image: item.image_url || '',
+          video: index === 0 ? "https://static.videezy.com/system/resources/previews/000/000/168/original/Record.mp4" : item.video_url,
+          categories: item.categories || [],
+          strain: item.strain || '',
+          potency: item.potency || '',
+          created_at: item.created_at,
+          updated_at: item.updated_at
+        }));
 
-        setProducts(productsWithVideo);
+        setProducts(mappedProducts);
       } catch (error) {
         console.error('Error:', error);
       } finally {
