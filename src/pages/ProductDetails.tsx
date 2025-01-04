@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -62,6 +62,15 @@ const ProductDetails = () => {
             alt={product.name}
             className="w-full h-full object-cover rounded-lg"
           />
+          <Button
+            variant="secondary"
+            size="sm"
+            className="absolute bottom-4 right-4"
+            onClick={() => window.open(product.image_url, '_blank')}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download Image
+          </Button>
         </div>
 
         <div className="space-y-6">

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Download, Play, X, Image } from "lucide-react";
+import { Play, X, Image } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Toggle } from "@/components/ui/toggle";
@@ -111,20 +111,6 @@ export const ProductCard = ({
             </div>
           )}
         </CardContent>
-        <CardFooter className="p-3 pt-0">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full text-xs"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.open(image, '_blank');
-            }}
-          >
-            <Download className="mr-1 h-3 w-3" />
-            Download
-          </Button>
-        </CardFooter>
       </Card>
 
       <Dialog open={showMedia} onOpenChange={setShowMedia}>
