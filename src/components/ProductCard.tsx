@@ -2,9 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Download, Play, X } from "lucide-react";
+import { Download, Play, X, Image } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Toggle } from "@/components/ui/toggle";
 
 interface ProductCardProps {
   id: string;
@@ -32,16 +33,23 @@ export const ProductCard = ({
   const navigate = useNavigate();
   const [showMedia, setShowMedia] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
 
   const handleMediaClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowMedia(true);
-    if (video) setIsPlaying(true);
+    if (video && showVideo) setIsPlaying(true);
   };
 
   const handleClose = () => {
     setShowMedia(false);
     setIsPlaying(false);
+    setShowVideo(false);
+  };
+
+  const toggleMediaType = () => {
+    setShowVideo(!showVideo);
+    setIsPlaying(!showVideo);
   };
 
   const cardClasses = {
@@ -121,19 +129,31 @@ export const ProductCard = ({
 
       <Dialog open={showMedia} onOpenChange={setShowMedia}>
         <DialogContent className="max-w-4xl w-full p-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-4 z-10"
-            onClick={handleClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          {video && isPlaying ? (
+          <div className="absolute right-4 top-4 z-10 flex gap-2">
+            {video && (
+              <Toggle
+                pressed={showVideo}
+                onPressedChange={toggleMediaType}
+                size="sm"
+                className="bg-white/90 hover:bg-white"
+              >
+                {showVideo ? <Play className="h-4 w-4" /> : <Image className="h-4 w-4" />}
+              </Toggle>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-white/90 hover:bg-white"
+              onClick={handleClose}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          {(video && showVideo) ? (
             <video
               src={video}
               controls
-              autoPlay
+              autoPlay={isPlaying}
               className="w-full h-full object-contain"
             />
           ) : (
