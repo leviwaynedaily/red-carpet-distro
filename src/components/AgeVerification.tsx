@@ -45,7 +45,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
           alt="Palmtree Smokes Logo"
           className="w-48 mx-auto mb-6"
         />
-        <h2 className="text-2xl font-bold text-center mb-6">Age Verification Required</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Verification Required</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex items-start space-x-3">
             <Checkbox
