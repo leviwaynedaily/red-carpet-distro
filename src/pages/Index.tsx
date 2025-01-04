@@ -34,6 +34,11 @@ const Index = () => {
     setIsVerified(true);
   };
 
+  const handleLogoClick = () => {
+    localStorage.removeItem("age-verified");
+    setIsVerified(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {!isVerified && <AgeVerification onVerified={handleVerification} />}
@@ -53,7 +58,8 @@ const Index = () => {
           <img
             src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
             alt="Palmtree Smokes"
-            className="w-64 mx-auto mb-8"
+            className="w-64 mx-auto mb-8 cursor-pointer"
+            onClick={handleLogoClick}
           />
           <p className="text-gray-600 max-w-2xl mx-auto">
             Welcome to Palmtree Smokes, your premium destination for quality cannabis products.
