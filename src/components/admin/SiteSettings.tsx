@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { FileUpload } from "@/components/ui/file-upload";
 
 export function SiteSettings() {
   const [settings, setSettings] = useState({
@@ -61,22 +62,24 @@ export function SiteSettings() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
       <div className="space-y-2">
-        <label className="text-sm font-medium">Logo URL</label>
-        <Input
-          name="logo_url"
-          value={settings.logo_url || ""}
-          onChange={handleChange}
-          placeholder="Enter logo URL"
+        <label className="text-sm font-medium">Logo</label>
+        {settings.logo_url && (
+          <img src={settings.logo_url} alt="Logo" className="w-32 h-32 object-contain rounded-md mb-2" />
+        )}
+        <FileUpload
+          onUploadComplete={(url) => setSettings(prev => ({ ...prev, logo_url: url }))}
+          accept="image/*"
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Favicon URL</label>
-        <Input
-          name="favicon_url"
-          value={settings.favicon_url || ""}
-          onChange={handleChange}
-          placeholder="Enter favicon URL"
+        <label className="text-sm font-medium">Favicon</label>
+        {settings.favicon_url && (
+          <img src={settings.favicon_url} alt="Favicon" className="w-16 h-16 object-contain rounded-md mb-2" />
+        )}
+        <FileUpload
+          onUploadComplete={(url) => setSettings(prev => ({ ...prev, favicon_url: url }))}
+          accept="image/*"
         />
       </div>
 

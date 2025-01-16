@@ -7,12 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { AdminProductCard } from "./AdminProductCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus } from "lucide-react";
+import { LayoutGrid, List, Plus, Upload } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { CategoryManagement } from "./CategoryManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { FileUpload } from "@/components/ui/file-upload";
 
 export function ProductManagement() {
   const isMobile = useIsMobile();
@@ -202,16 +203,26 @@ export function ProductManagement() {
               className="min-h-[100px]"
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                placeholder="Image URL"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-              />
-              <Input
-                placeholder="Video URL"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-              />
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Product Image</label>
+                {imageUrl && (
+                  <img src={imageUrl} alt="Preview" className="w-32 h-32 object-cover rounded-md mb-2" />
+                )}
+                <FileUpload
+                  onUploadComplete={setImageUrl}
+                  accept="image/*"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Product Video</label>
+                {videoUrl && (
+                  <video src={videoUrl} className="w-32 h-32 object-cover rounded-md mb-2" controls />
+                )}
+                <FileUpload
+                  onUploadComplete={setVideoUrl}
+                  accept="video/*"
+                />
+              </div>
             </div>
             <Button type="submit" className="w-full">
               <Plus className="mr-2 h-4 w-4" />
