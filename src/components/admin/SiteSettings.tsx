@@ -34,6 +34,8 @@ type SiteSettingsType = {
   pwa_scope: string;
   pwa_start_url: string;
   pwa_icons: PWAIcon[];
+  pwa_desktop_screenshot?: string;
+  pwa_mobile_screenshot?: string;
 };
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -58,6 +60,8 @@ export function SiteSettings() {
     pwa_scope: "/",
     pwa_start_url: "/",
     pwa_icons: [],
+    pwa_desktop_screenshot: "",
+    pwa_mobile_screenshot: "",
   });
 
   useEffect(() => {
@@ -307,7 +311,50 @@ export function SiteSettings() {
 
         <TabsContent value="pwa" className="space-y-6">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">PWA Icons</h3>
+            <h3 className="text-lg font-medium">PWA Screenshots</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Desktop Screenshot (Wide)</Label>
+                {settings.pwa_desktop_screenshot && (
+                  <img 
+                    src={settings.pwa_desktop_screenshot} 
+                    alt="Desktop screenshot" 
+                    className="w-full h-32 object-cover rounded-md mb-2"
+                  />
+                )}
+                <FileUpload
+                  onUploadComplete={(url) => setSettings(prev => ({ ...prev, pwa_desktop_screenshot: url }))}
+                  accept="image/*"
+                  folderPath="sitesettings/pwa"
+                  fileName="desktop_screenshot"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Add a wide screenshot for desktop PWA install UI
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Mobile Screenshot</Label>
+                {settings.pwa_mobile_screenshot && (
+                  <img 
+                    src={settings.pwa_mobile_screenshot} 
+                    alt="Mobile screenshot" 
+                    className="w-full h-32 object-cover rounded-md mb-2"
+                  />
+                )}
+                <FileUpload
+                  onUploadComplete={(url) => setSettings(prev => ({ ...prev, pwa_mobile_screenshot: url }))}
+                  accept="image/*"
+                  folderPath="sitesettings/pwa"
+                  fileName="mobile_screenshot"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Add a mobile-optimized screenshot for PWA install UI
+                </p>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-medium mt-6">PWA Icons</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {PWA_ICON_SIZES.map((size) => {
                 const currentIcon = settings.pwa_icons?.find(
