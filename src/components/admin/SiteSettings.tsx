@@ -33,6 +33,8 @@ type SiteSettingsType = {
   pwa_icons: PWAIcon[];
 };
 
+const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
+
 export function SiteSettings() {
   const [settings, setSettings] = useState<SiteSettingsType>({
     id: "",
@@ -108,6 +110,22 @@ export function SiteSettings() {
       console.error("Error updating settings:", error);
       toast.error("Failed to update settings");
     }
+  };
+
+  const handleIconUpload = (url: string, size: number) => {
+    const newIcon = {
+      src: url,
+      sizes: `${size}x${size}`,
+      type: "image/png"
+    };
+
+    // Remove any existing icon with the same size
+    const filteredIcons = settings.pwa_icons.filter(icon => icon.sizes !== `${size}x${size}`);
+    
+    setSettings(prev => ({
+      ...prev,
+      pwa_icons: [...filteredIcons, newIcon]
+    }));
   };
 
   return (
@@ -285,34 +303,33 @@ export function SiteSettings() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">PWA Icon</label>
-            <FileUpload
-              onUploadComplete={(url) => {
-                const newIcon = {
-                  src: url,
-                  sizes: "192x192",
-                  type: "image/png"
-                };
-                setSettings(prev => ({
-                  ...prev,
-                  pwa_icons: [...(prev.pwa_icons || []), newIcon]
-                }));
-              }}
-              accept="image/*"
-            />
-            {settings.pwa_icons && settings.pwa_icons.length > 0 && (
-              <div className="grid grid-cols-3 gap-2 mt-2">
-                {settings.pwa_icons.map((icon, index) => (
-                  <img
-                    key={index}
-                    src={icon.src}
-                    alt={`PWA Icon ${index + 1}`}
-                    className="w-16 h-16 object-contain rounded-md"
+          <div className="space-y-4">
+            <label className="text-sm font-medium">PWA Icons</label>
+            <p className="text-sm text-muted-foreground">Upload icons for different sizes. All icons should be square PNG images.</p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              {PWA_ICON_SIZES.map((size) => (
+                <div key={size} className="space-y-2 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-medium">{size}x{size}</label>
+                    {settings.pwa_icons.find(icon => icon.sizes === `${size}x${size}`) && (
+                      <span className="text-xs text-green-500">✓ Uploaded</span>
+                    )}
+                  </div>
+                  <FileUpload
+                    onUploadComplete={(url) => handleIconUpload(url, size)}
+                    accept="image/png"
                   />
-                ))}
-              </div>
-            )}
+                  {settings.pwa_icons.find(icon => icon.sizes === `${size}x${size}`) && (
+                    <img
+                      src={settings.pwa_icons.find(icon => icon.sizes === `${size}x${size}`)?.src}
+                      alt={`PWA Icon ${size}x${size}`}
+                      className="w-16 h-16 object-contain rounded-md mt-2"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </TabsContent>
       </Tabs>
