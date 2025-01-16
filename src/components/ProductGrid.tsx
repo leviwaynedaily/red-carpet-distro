@@ -10,7 +10,6 @@ interface Product {
   video?: string;
   categories: string[];
   strain?: string;
-  potency?: string;
   stock?: number;
   regular_price?: number;
   shipping_price?: number;
@@ -45,19 +44,18 @@ export const ProductGrid = ({
         return;
       }
 
-      // Map Supabase data to our Product interface with sample data
-      const mappedProducts = data.map((item, index) => ({
+      // Map Supabase data to our Product interface without any default values
+      const mappedProducts = data.map((item) => ({
         id: item.id,
-        name: item.name || 'Premium Cannabis Product',
-        description: item.description || 'This premium-grade cannabis product offers a unique blend of flavors and effects, perfect for both recreational and medicinal use.',
-        image: item.image_url || 'https://images.unsplash.com/photo-1503262028195-93c528f03218',
-        video: index === 0 ? "https://static.videezy.com/system/resources/previews/000/000/168/original/Record.mp4" : undefined,
-        categories: item.categories || ['Indica', 'Premium', 'Organic'],
-        strain: item.strain || 'Purple Haze',
-        potency: item.potency || '18% THC',
-        stock: item.stock || Math.floor(Math.random() * 50) + 1,
-        regular_price: Number(item.regular_price) || Number((Math.random() * 100 + 20).toFixed(2)),
-        shipping_price: Math.random() > 0.5 ? Number((Math.random() * 10 + 5).toFixed(2)) : 0,
+        name: item.name,
+        description: item.description,
+        image: item.image_url,
+        video: item.video_url,
+        categories: item.categories || [],
+        strain: item.strain,
+        stock: item.stock,
+        regular_price: item.regular_price,
+        shipping_price: item.shipping_price,
         created_at: item.created_at,
         updated_at: item.updated_at
       }));
@@ -77,7 +75,7 @@ export const ProductGrid = ({
   // Filter products based on search term and category
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = categoryFilter === 'all' || product.categories.includes(categoryFilter);
     return matchesSearch && matchesCategory;
   });

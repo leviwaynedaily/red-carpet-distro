@@ -107,25 +107,33 @@ const ProductDetails = () => {
                 </CarouselItem>
               )}
             </CarouselContent>
-            <CarouselPrevious className="left-2" />
-            <CarouselNext className="right-2" />
+            {(product.image_url || product.video_url) && (
+              <>
+                <CarouselPrevious className="left-2" />
+                <CarouselNext className="right-2" />
+              </>
+            )}
           </Carousel>
         </div>
 
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {product.categories?.map((category: string) => (
-                <Badge key={category} variant="secondary">
-                  {category}
-                </Badge>
-              ))}
-            </div>
-            <p className="text-gray-600">{product.description}</p>
+            {product.categories && product.categories.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {product.categories.map((category: string) => (
+                  <Badge key={category} variant="secondary">
+                    {category}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            {product.description && (
+              <p className="text-gray-600">{product.description}</p>
+            )}
           </div>
 
-          {(product.strain || product.potency) && (
+          {(product.strain || product.stock || product.regular_price || product.shipping_price) && (
             <div className="space-y-2 border-t pt-4">
               {product.strain && (
                 <div className="flex justify-between">
@@ -133,10 +141,22 @@ const ProductDetails = () => {
                   <span className="font-medium">{product.strain}</span>
                 </div>
               )}
-              {product.potency && (
+              {product.stock !== null && product.stock !== undefined && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">THC Content</span>
-                  <span className="font-medium">{product.potency}</span>
+                  <span className="text-gray-600">Stock</span>
+                  <span className="font-medium">{product.stock}</span>
+                </div>
+              )}
+              {product.regular_price !== null && product.regular_price !== undefined && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Price</span>
+                  <span className="font-medium">${product.regular_price}</span>
+                </div>
+              )}
+              {product.shipping_price !== null && product.shipping_price !== undefined && product.shipping_price > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Shipping</span>
+                  <span className="font-medium">${product.shipping_price}</span>
                 </div>
               )}
             </div>

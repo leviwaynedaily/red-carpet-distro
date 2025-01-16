@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Play, X, Image } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +15,6 @@ interface ProductCardProps {
   video?: string;
   categories: string[];
   strain?: string;
-  potency?: string;
   stock?: number;
   regular_price?: number;
   shipping_price?: number;
@@ -30,7 +29,6 @@ export const ProductCard = ({
   video,
   categories,
   strain,
-  potency,
   stock,
   regular_price,
   shipping_price,
@@ -97,12 +95,14 @@ export const ProductCard = ({
         onClick={handleCardClick}
       >
         <CardHeader className="p-0 relative aspect-square">
-          <img
-            src={image}
-            alt={name}
-            className={imageClasses[viewMode]}
-            loading="lazy"
-          />
+          {image && (
+            <img
+              src={image}
+              alt={name}
+              className={imageClasses[viewMode]}
+              loading="lazy"
+            />
+          )}
           <div className="absolute bottom-2 right-2 flex gap-2">
             {video && (
               <Button
@@ -130,24 +130,23 @@ export const ProductCard = ({
           {description && (
             <p className="text-xs text-gray-600 line-clamp-2">{description}</p>
           )}
-          {(strain || potency) && (
+          {strain && (
             <div className="flex gap-2 text-xs text-gray-600 mt-2">
-              {strain && <span>Strain: {strain}</span>}
-              {potency && <span>THC: {potency}</span>}
+              <span>Strain: {strain}</span>
             </div>
           )}
           <div className="mt-2 space-y-1">
-            {regular_price !== undefined && regular_price > 0 && (
+            {regular_price !== undefined && regular_price !== null && regular_price > 0 && (
               <div className="text-sm font-medium">
                 {formatPrice(regular_price)}
               </div>
             )}
-            {shipping_price !== undefined && shipping_price > 0 && (
+            {shipping_price !== undefined && shipping_price !== null && shipping_price > 0 && (
               <div className="text-xs text-gray-600">
                 + {formatPrice(shipping_price)} shipping
               </div>
             )}
-            {stock !== undefined && stock > 0 && (
+            {stock !== undefined && stock !== null && stock > 0 && (
               <div className="text-xs text-gray-600">
                 {stock} in stock
               </div>
@@ -186,11 +185,13 @@ export const ProductCard = ({
               className="w-full h-full object-contain"
             />
           ) : (
-            <img
-              src={image}
-              alt={name}
-              className="w-full h-full object-contain"
-            />
+            image && (
+              <img
+                src={image}
+                alt={name}
+                className="w-full h-full object-contain"
+              />
+            )
           )}
         </DialogContent>
       </Dialog>
