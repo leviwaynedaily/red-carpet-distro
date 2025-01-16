@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { AdminProductCard } from "./AdminProductCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus } from "lucide-react";
+import { LayoutGrid, List, Plus, Download, Upload, FileText } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { CategoryManagement } from "./CategoryManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -171,6 +171,132 @@ export function ProductManagement() {
     }));
   };
 
+  const handleExportProducts = () => {
+    if (!products) return;
+
+    const csvHeader = [
+      "name",
+      "description",
+      "strain",
+      "categories",
+      "stock",
+      "regular_price",
+      "shipping_price",
+      "image_url",
+      "video_url"
+    ].join(",");
+
+    const csvRows = products.map(product => {
+      return [
+        `"${product.name || ''}"`,
+        `"${product.description || ''}"`,
+        `"${product.strain || ''}"`,
+        `"${(product.categories || []).join(';')}"`,
+        product.stock || '',
+        product.regular_price || '',
+        product.shipping_price || '',
+        `"${product.image_url || ''}"`,
+        `"${product.video_url || ''}"`,
+      ].join(",");
+    });
+
+    const csvContent = [csvHeader, ...csvRows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `products-export-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    toast.success("Products exported successfully");
+  };
+
+  const handleDownloadTemplate = () => {
+    const templateHeader = [
+      "name",
+      "description",
+      "strain",
+      "categories",
+      "stock",
+      "regular_price",
+      "shipping_price",
+      "image_url",
+      "video_url"
+    ].join(",");
+
+    const templateRow = [
+      '"Product Name"',
+      '"Product Description"',
+      '"Product Strain"',
+      '"Category1;Category2"',
+      "100",
+      "29.99",
+      "5.99",
+      '"https://example.com/image.jpg"',
+      '"https://example.com/video.mp4"'
+    ].join(",");
+
+    const csvContent = [templateHeader, templateRow].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "products-template.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    toast.success("Template downloaded successfully");
+  };
+
+  const handleImportProducts = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const rows = text.split("\n");
+        const headers = rows[0].split(",").map(h => h.trim());
+        
+        const products = rows.slice(1).map(row => {
+          const values = row.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
+          const product: any = {};
+          
+          headers.forEach((header, index) => {
+            if (header === 'categories') {
+              product[header] = values[index] ? values[index].split(';') : [];
+            } else if (header === 'stock') {
+              product[header] = values[index] ? parseInt(values[index]) : null;
+            } else if (header === 'regular_price' || header === 'shipping_price') {
+              product[header] = values[index] ? parseFloat(values[index]) : null;
+            } else {
+              product[header] = values[index] || null;
+            }
+          });
+          
+          return product;
+        });
+
+        for (const product of products) {
+          const { error } = await supabase.from("products").insert([product]);
+          if (error) throw error;
+        }
+
+        toast.success(`${products.length} products imported successfully`);
+        refetch();
+      } catch (error) {
+        console.error("Error importing products:", error);
+        toast.error("Failed to import products");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset input
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="products" className="space-y-4">
@@ -185,108 +311,133 @@ export function ProductManagement() {
 
         <TabsContent value="products" className="space-y-4">
           <div className="flex justify-between items-center">
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Product
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add New Product</DialogTitle>
-                  <DialogDescription>
-                    Fill in the product details below.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      placeholder="Product Name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
+            <div className="flex gap-2">
+              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Product
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Add New Product</DialogTitle>
+                    <DialogDescription>
+                      Fill in the product details below.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Product Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                      />
+                      <Input
+                        placeholder="Strain"
+                        value={strain}
+                        onChange={(e) => setStrain(e.target.value)}
+                      />
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Categories</label>
+                        <div className="flex flex-wrap gap-2">
+                          {categories?.map((category) => (
+                            <Button
+                              key={category.id}
+                              type="button"
+                              variant={selectedCategories.includes(category.name) ? "default" : "outline"}
+                              onClick={() => handleCategoryToggle(category.name)}
+                            >
+                              {category.name}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                      <Input
+                        type="number"
+                        placeholder="Stock (optional)"
+                        value={stock === null ? "" : stock}
+                        onChange={(e) => setStock(e.target.value === "" ? null : Number(e.target.value))}
+                      />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="Regular Price (optional)"
+                        value={regularPrice === null ? "" : regularPrice}
+                        onChange={(e) => setRegularPrice(e.target.value === "" ? null : Number(e.target.value))}
+                      />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="Shipping Price (optional)"
+                        value={shippingPrice === null ? "" : shippingPrice}
+                        onChange={(e) => setShippingPrice(e.target.value === "" ? null : Number(e.target.value))}
+                      />
+                    </div>
+                    <Textarea
+                      placeholder="Description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="min-h-[100px]"
                     />
-                    <Input
-                      placeholder="Strain"
-                      value={strain}
-                      onChange={(e) => setStrain(e.target.value)}
-                    />
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Categories</label>
-                      <div className="flex flex-wrap gap-2">
-                        {categories?.map((category) => (
-                          <Button
-                            key={category.id}
-                            type="button"
-                            variant={selectedCategories.includes(category.name) ? "default" : "outline"}
-                            onClick={() => handleCategoryToggle(category.name)}
-                          >
-                            {category.name}
-                          </Button>
-                        ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Product Image</label>
+                        {imageUrl && (
+                          <img src={imageUrl} alt="Preview" className="w-32 h-32 object-cover rounded-md mb-2" />
+                        )}
+                        <FileUpload
+                          onUploadComplete={setImageUrl}
+                          accept="image/*"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Product Video</label>
+                        {videoUrl && (
+                          <video src={videoUrl} className="w-32 h-32 object-cover rounded-md mb-2" controls />
+                        )}
+                        <FileUpload
+                          onUploadComplete={setVideoUrl}
+                          accept="video/*"
+                        />
                       </div>
                     </div>
-                    <Input
-                      type="number"
-                      placeholder="Stock (optional)"
-                      value={stock === null ? "" : stock}
-                      onChange={(e) => setStock(e.target.value === "" ? null : Number(e.target.value))}
-                    />
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="Regular Price (optional)"
-                      value={regularPrice === null ? "" : regularPrice}
-                      onChange={(e) => setRegularPrice(e.target.value === "" ? null : Number(e.target.value))}
-                    />
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="Shipping Price (optional)"
-                      value={shippingPrice === null ? "" : shippingPrice}
-                      onChange={(e) => setShippingPrice(e.target.value === "" ? null : Number(e.target.value))}
-                    />
-                  </div>
-                  <Textarea
-                    placeholder="Description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[100px]"
+                    <div className="flex justify-end gap-2">
+                      <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit">
+                        Add Product
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              <Button variant="outline" onClick={handleExportProducts}>
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+
+              <Button variant="outline" onClick={handleDownloadTemplate}>
+                <FileText className="mr-2 h-4 w-4" />
+                Template
+              </Button>
+
+              <div className="relative">
+                <Button variant="outline" className="relative">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import
+                  <Input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleImportProducts}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
                   />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Product Image</label>
-                      {imageUrl && (
-                        <img src={imageUrl} alt="Preview" className="w-32 h-32 object-cover rounded-md mb-2" />
-                      )}
-                      <FileUpload
-                        onUploadComplete={setImageUrl}
-                        accept="image/*"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Product Video</label>
-                      {videoUrl && (
-                        <video src={videoUrl} className="w-32 h-32 object-cover rounded-md mb-2" controls />
-                      )}
-                      <FileUpload
-                        onUploadComplete={setVideoUrl}
-                        accept="video/*"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit">
-                      Add Product
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+                </Button>
+              </div>
+            </div>
 
             <div className="flex space-x-2">
               <Toggle
