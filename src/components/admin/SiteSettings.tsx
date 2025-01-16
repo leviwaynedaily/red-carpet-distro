@@ -250,6 +250,11 @@ export function SiteSettings() {
     }
   };
 
+  const addCacheBuster = (url: string | null) => {
+    if (!url) return '';
+    return `${url}?t=${Date.now()}`;
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
       <Tabs defaultValue="colors" className="w-full">
@@ -351,7 +356,7 @@ export function SiteSettings() {
           <div className="space-y-4">
             <Label htmlFor="logo_url">Logo</Label>
             {settings.logo_url && (
-              <img src={settings.logo_url} alt="Logo" className="w-32 h-32 object-contain rounded-md mb-2" />
+              <img src={addCacheBuster(settings.logo_url)} alt="Logo" className="w-32 h-32 object-contain rounded-md mb-2" />
             )}
             <FileUpload
               onUploadComplete={(url) => setSettings(prev => ({ ...prev, logo_url: url }))}
@@ -361,7 +366,7 @@ export function SiteSettings() {
             />
             <Label htmlFor="favicon_url">Favicon</Label>
             {settings.favicon_url && (
-              <img src={settings.favicon_url} alt="Favicon" className="w-16 h-16 object-contain rounded-md mb-2" />
+              <img src={addCacheBuster(settings.favicon_url)} alt="Favicon" className="w-16 h-16 object-contain rounded-md mb-2" />
             )}
             <FileUpload
               onUploadComplete={(url) => setSettings(prev => ({ ...prev, favicon_url: url }))}
@@ -406,7 +411,7 @@ export function SiteSettings() {
                 <Label>Desktop Screenshot (Wide)</Label>
                 {settings.pwa_desktop_screenshot && (
                   <img 
-                    src={settings.pwa_desktop_screenshot} 
+                    src={addCacheBuster(settings.pwa_desktop_screenshot)} 
                     alt="Desktop screenshot" 
                     className="w-full h-32 object-cover rounded-md mb-2"
                   />
@@ -426,7 +431,7 @@ export function SiteSettings() {
                 <Label>Mobile Screenshot</Label>
                 {settings.pwa_mobile_screenshot && (
                   <img 
-                    src={settings.pwa_mobile_screenshot} 
+                    src={addCacheBuster(settings.pwa_mobile_screenshot)} 
                     alt="Mobile screenshot" 
                     className="w-full h-32 object-cover rounded-md mb-2"
                   />
@@ -455,7 +460,7 @@ export function SiteSettings() {
                     <Label>{size}x{size} Icon</Label>
                     {currentIcon?.src && (
                       <img 
-                        src={currentIcon.src} 
+                        src={addCacheBuster(currentIcon.src)}
                         alt={`${size}x${size} icon`} 
                         className="w-16 h-16 object-contain rounded-md mb-2"
                       />
@@ -525,7 +530,7 @@ export function SiteSettings() {
                 <Label>Preview Image</Label>
                 {settings.og_image && (
                   <img
-                    src={settings.og_image}
+                    src={addCacheBuster(settings.og_image)}
                     alt="Open Graph preview"
                     className="w-full h-48 object-cover rounded-md mb-2"
                   />
