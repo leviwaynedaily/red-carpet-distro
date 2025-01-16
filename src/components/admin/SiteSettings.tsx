@@ -154,84 +154,9 @@ export function SiteSettings() {
     toast.success(`${size}x${size} icon updated successfully`);
   };
 
-  const generateManifest = async () => {
-    const manifest = {
-      name: settings.pwa_name,
-      short_name: settings.pwa_short_name || settings.pwa_name,
-      description: settings.pwa_description,
-      start_url: settings.pwa_start_url,
-      display: settings.pwa_display,
-      background_color: settings.pwa_background_color,
-      theme_color: settings.pwa_theme_color,
-      orientation: settings.pwa_orientation,
-      scope: settings.pwa_scope,
-      icons: settings.pwa_icons.map(icon => ({
-        src: icon.src,
-        sizes: icon.sizes,
-        type: icon.type
-      })),
-      screenshots: []
-    };
-
-    // Add screenshots if they exist
-    if (settings.pwa_desktop_screenshot) {
-      manifest.screenshots.push({
-        src: settings.pwa_desktop_screenshot,
-        type: "image/png",
-        sizes: "1920x1080",
-        form_factor: "wide"
-      });
-    }
-    if (settings.pwa_mobile_screenshot) {
-      manifest.screenshots.push({
-        src: settings.pwa_mobile_screenshot,
-        type: "image/png",
-        sizes: "1080x1920",
-        form_factor: "narrow"
-      });
-    }
-
-    try {
-      // Convert manifest object to string with proper formatting
-      const manifestContent = JSON.stringify(manifest, null, 2);
-
-      // Upload manifest.json directly to the static bucket
-      const { error: uploadError } = await supabase.storage
-        .from('static')
-        .upload('manifest.json', manifestContent, {
-          contentType: 'application/json',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get the public URL of the manifest file
-      const { data: { publicUrl } } = supabase.storage
-        .from('static')
-        .getPublicUrl('manifest.json');
-
-      console.log('manifest.json updated successfully:', publicUrl);
-      return publicUrl;
-    } catch (error) {
-      console.error('Error updating manifest.json:', error);
-      throw error;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Get the public URL for the og_image from Supabase storage
-      if (settings.og_image) {
-        console.log('Original og_image:', settings.og_image);
-        const { data: { publicUrl } } = supabase.storage
-          .from('media')
-          .getPublicUrl(settings.og_image.replace(/^.*\/media\//, ''));
-        
-        console.log('Public URL for og_image:', publicUrl);
-        settings.og_image = publicUrl;
-      }
-
       // Update settings in Supabase
       const { error } = await supabase
         .from("site_settings")
@@ -240,22 +165,20 @@ export function SiteSettings() {
 
       if (error) throw error;
 
-      // Generate and update manifest.json
-      const manifestUrl = await generateManifest();
-      
       toast.success("Settings updated successfully");
-      console.log('New manifest.json URL:', manifestUrl);
       
-      // Update meta tags
+      // Update meta tags with direct Supabase URLs
       const ogImageMeta = document.querySelector('meta[property="og:image"]');
       const ogUrlMeta = document.querySelector('meta[property="og:url"]');
       
-      if (ogImageMeta && settings.og_image) {
-        console.log('Updating og:image meta tag to:', settings.og_image);
-        ogImageMeta.setAttribute('content', settings.og_image);
+      if (ogImageMeta) {
+        const ogImageUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image`;
+        console.log('Setting og:image meta tag to:', ogImageUrl);
+        ogImageMeta.setAttribute('content', ogImageUrl);
       }
+      
       if (ogUrlMeta && settings.og_url) {
-        console.log('Updating og:url meta tag to:', settings.og_url);
+        console.log('Setting og:url meta tag to:', settings.og_url);
         ogUrlMeta.setAttribute('content', settings.og_url);
       }
     } catch (error) {
@@ -544,7 +467,7 @@ export function SiteSettings() {
                 <Label>Preview Image</Label>
                 {settings.og_image && (
                   <img
-                    src={addCacheBuster(settings.og_image)}
+                    src={`https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image?t=${Date.now()}`}
                     alt="Open Graph preview"
                     className="w-full h-48 object-cover rounded-md mb-2"
                   />
