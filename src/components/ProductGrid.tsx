@@ -57,8 +57,8 @@ export const ProductGrid = ({
           strain: item.strain || 'Purple Haze',
           potency: item.potency || '18% THC',
           stock: item.stock || Math.floor(Math.random() * 50) + 1,
-          regular_price: item.regular_price || (Math.random() * 100 + 20).toFixed(2),
-          shipping_price: Math.random() > 0.5 ? (Math.random() * 10 + 5).toFixed(2) : 0,
+          regular_price: Number(item.regular_price) || Number((Math.random() * 100 + 20).toFixed(2)),
+          shipping_price: Math.random() > 0.5 ? Number((Math.random() * 10 + 5).toFixed(2)) : 0,
           created_at: item.created_at,
           updated_at: item.updated_at
         }));
