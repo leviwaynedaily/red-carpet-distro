@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AgeVerificationProps {
   onVerified: () => void;
@@ -12,10 +13,37 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
   const [isChecked, setIsChecked] = useState(false);
   const [password, setPassword] = useState("");
   const [step, setStep] = useState<'verification' | 'instructions'>('verification');
+  const [storefrontPassword, setStorefrontPassword] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // TODO: Replace with actual password from backend
-  const TEMP_PASSWORD = "palmtree2024";
+  useEffect(() => {
+    fetchStorefrontPassword();
+  }, []);
+
+  const fetchStorefrontPassword = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("storefront_password")
+        .single();
+
+      if (error) throw error;
+      
+      if (data?.storefront_password) {
+        setStorefrontPassword(data.storefront_password);
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching storefront password:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load site settings. Please try again later.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +55,15 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
       });
       return;
     }
-    if (password !== TEMP_PASSWORD) {
+    if (!storefrontPassword) {
+      toast({
+        title: "Access Unavailable",
+        description: "Site access is currently unavailable. Please try again later.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (password !== storefrontPassword) {
       toast({
         title: "Invalid Password",
         description: "Please enter the correct password to access the site.",
@@ -41,6 +77,16 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
       onVerified();
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-lg">
+          <p className="text-center">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
