@@ -56,70 +56,68 @@ export const Header = ({
             ) : null}
           </div>
         </div>
-        {isSticky && (
-          <div className="border-t border-gray-200/30 bg-white/10 backdrop-blur-sm">
-            <div className="flex items-center justify-between py-2 px-4 md:px-8">
-              <div className="flex items-center space-x-4 overflow-x-auto">
-                <Select value={categoryFilter} onValueChange={onCategoryChange}>
-                  <SelectTrigger className="w-[150px] bg-white/80">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="flower">Flower</SelectItem>
-                    <SelectItem value="edibles">Edibles</SelectItem>
-                    <SelectItem value="concentrates">Concentrates</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={sortBy} onValueChange={onSortChange}>
-                  <SelectTrigger className="w-[150px] bg-white/80">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                    <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                    <SelectItem value="strain-asc">Strain (A-Z)</SelectItem>
-                    <SelectItem value="strain-desc">Strain (Z-A)</SelectItem>
-                    <SelectItem value="price-asc">Price (Low to High)</SelectItem>
-                    <SelectItem value="price-desc">Price (High to Low)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  placeholder="Search products..."
-                  value={tempSearchTerm}
-                  onChange={(e) => setTempSearchTerm(e.target.value)}
-                  className="max-w-xs bg-white/80"
-                />
-              </div>
-              <div className="flex items-center space-x-2 ml-4">
-                <Button
-                  variant={viewMode === 'small' ? 'secondary' : 'ghost'}
-                  size="icon"
-                  onClick={() => onViewModeChange('small')}
-                  className={`${viewMode === 'small' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
-                >
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'medium' ? 'secondary' : 'ghost'}
-                  size="icon"
-                  onClick={() => onViewModeChange('medium')}
-                  className={`${viewMode === 'medium' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
-                >
-                  <Grid2X2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'large' ? 'secondary' : 'ghost'}
-                  size="icon"
-                  onClick={() => onViewModeChange('large')}
-                  className={`${viewMode === 'large' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
-                >
-                  <Square className="h-4 w-4" />
-                </Button>
-              </div>
+        <div className={`border-t border-gray-200/30 bg-white ${isSticky ? 'backdrop-blur-sm bg-white/10' : 'bg-white'}`}>
+          <div className="flex items-center justify-between py-2 px-4 md:px-8">
+            <div className="flex items-center space-x-4 overflow-x-auto">
+              <Select value={categoryFilter} onValueChange={onCategoryChange}>
+                <SelectTrigger className="w-[150px] bg-white/80">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="flower">Flower</SelectItem>
+                  <SelectItem value="edibles">Edibles</SelectItem>
+                  <SelectItem value="concentrates">Concentrates</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={onSortChange}>
+                <SelectTrigger className="w-[150px] bg-white/80">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                  <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                  <SelectItem value="strain-asc">Strain (A-Z)</SelectItem>
+                  <SelectItem value="strain-desc">Strain (Z-A)</SelectItem>
+                  <SelectItem value="price-asc">Price (Low to High)</SelectItem>
+                  <SelectItem value="price-desc">Price (High to Low)</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                placeholder="Search products..."
+                value={tempSearchTerm}
+                onChange={(e) => setTempSearchTerm(e.target.value)}
+                className="max-w-xs bg-white/80"
+              />
+            </div>
+            <div className="flex items-center space-x-2 ml-4">
+              <Button
+                variant={viewMode === 'small' ? 'secondary' : 'ghost'}
+                size="icon"
+                onClick={() => onViewModeChange('small')}
+                className={`${viewMode === 'small' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
+              >
+                <Grid3X3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'medium' ? 'secondary' : 'ghost'}
+                size="icon"
+                onClick={() => onViewModeChange('medium')}
+                className={`${viewMode === 'medium' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
+              >
+                <Grid2X2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'large' ? 'secondary' : 'ghost'}
+                size="icon"
+                onClick={() => onViewModeChange('large')}
+                className={`${viewMode === 'large' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
+              >
+                <Square className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </header>
   );
