@@ -69,7 +69,7 @@ export function SiteSettings() {
     og_title: "",
     og_description: "",
     og_image: "",
-    og_url: "",
+    og_url: "https://palmtreesmokes.netlify.app",
   });
 
   useEffect(() => {
@@ -176,8 +176,13 @@ export function SiteSettings() {
       
       // Update meta tags
       const ogImageMeta = document.querySelector('meta[property="og:image"]');
+      const ogUrlMeta = document.querySelector('meta[property="og:url"]');
+      
       if (ogImageMeta && settings.og_image) {
         ogImageMeta.setAttribute('content', settings.og_image);
+      }
+      if (ogUrlMeta && settings.og_url) {
+        ogUrlMeta.setAttribute('content', settings.og_url);
       }
     } catch (error) {
       console.error("Error updating settings:", error);
