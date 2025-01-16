@@ -19,13 +19,19 @@ const Index = () => {
 
   useEffect(() => {
     const fetchLogo = async () => {
+      console.log('Index.tsx: Fetching logo from site settings');
       const { data, error } = await supabase
         .from('site_settings')
         .select('logo_url')
         .single();
       
       if (!error && data?.logo_url) {
-        setLogoUrl(data.logo_url);
+        // Add cache buster to the URL
+        const logoUrlWithCache = `${data.logo_url}?t=${Date.now()}`;
+        console.log('Index.tsx: Logo URL fetched:', logoUrlWithCache);
+        setLogoUrl(logoUrlWithCache);
+      } else if (error) {
+        console.error('Index.tsx: Error fetching logo:', error);
       }
     };
     
