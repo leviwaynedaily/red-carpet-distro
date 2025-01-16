@@ -1,9 +1,8 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import { corsHeaders } from '../_shared/cors.ts'
 
 serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -16,6 +15,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    // Get the site settings to ensure we have the latest PWA icons
+    const { data: siteSettings, error: settingsError } = await supabase
+      .from('site_settings')
+      .select('pwa_icons')
+      .single()
+
+    if (settingsError) {
+      console.error('Error fetching site settings:', settingsError)
+      throw settingsError
+    }
+
+    // Ensure icons array exists and is populated from site settings
+    manifest.icons = Array.isArray(siteSettings?.pwa_icons) ? siteSettings.pwa_icons : []
+
+    console.log('Updating manifest with icons:', manifest.icons)
 
     // Convert manifest object to string
     const manifestContent = JSON.stringify(manifest, null, 2)
@@ -43,7 +58,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         message: 'Manifest updated successfully',
-        url: publicUrl 
+        url: publicUrl,
+        manifest: manifest // Include the manifest in the response for debugging
       }),
       {
         headers: {
