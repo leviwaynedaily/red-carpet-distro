@@ -68,7 +68,7 @@ export default function Admin() {
 
       <Tabs defaultValue="products" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="products">Products & Categories</TabsTrigger>
           <TabsTrigger value="settings">Site Settings</TabsTrigger>
         </TabsList>
 
