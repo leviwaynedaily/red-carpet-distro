@@ -35,6 +35,23 @@ const ProductDetails = () => {
     },
   });
 
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container py-8">
@@ -78,7 +95,7 @@ const ProductDetails = () => {
                       variant="secondary"
                       size="sm"
                       className="absolute bottom-4 right-4"
-                      onClick={() => window.open(product.image_url, '_blank')}
+                      onClick={() => handleDownload(product.image_url, `${product.name}-image.${product.image_url.split('.').pop()}`)}
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download Image
@@ -98,7 +115,7 @@ const ProductDetails = () => {
                       variant="secondary"
                       size="sm"
                       className="absolute bottom-4 right-4"
-                      onClick={() => window.open(product.video_url, '_blank')}
+                      onClick={() => handleDownload(product.video_url, `${product.name}-video.${product.video_url.split('.').pop()}`)}
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download Video
