@@ -52,6 +52,7 @@ const Index = () => {
         onSortChange={setSortBy}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        onLogoClick={handleLogoClick}
       />
       <main className="container py-8">
         <header className={`text-center mb-12 ${isSticky ? 'mt-32' : ''}`}>

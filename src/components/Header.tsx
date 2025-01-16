@@ -14,6 +14,7 @@ interface HeaderProps {
   onSortChange: (value: string) => void;
   viewMode: 'small' | 'medium' | 'large';
   onViewModeChange: (mode: 'small' | 'medium' | 'large') => void;
+  onLogoClick: () => void;
 }
 
 export const Header = ({
@@ -26,6 +27,7 @@ export const Header = ({
   onSortChange,
   viewMode,
   onViewModeChange,
+  onLogoClick,
 }: HeaderProps) => {
   const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
 
@@ -51,7 +53,8 @@ export const Header = ({
               <img
                 src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
                 alt="Palmtree Smokes"
-                className="h-8"
+                className="h-8 cursor-pointer"
+                onClick={onLogoClick}
               />
             ) : null}
           </div>
