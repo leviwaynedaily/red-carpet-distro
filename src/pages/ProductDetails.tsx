@@ -64,7 +64,7 @@ const ProductDetails = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="relative">
-          <Carousel className="w-full">
+          <Carousel className="w-full max-w-[600px]">
             <CarouselContent>
               {product.image_url && (
                 <CarouselItem>
@@ -107,8 +107,8 @@ const ProductDetails = () => {
                 </CarouselItem>
               )}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            <CarouselPrevious className="left-2" />
+            <CarouselNext className="right-2" />
           </Carousel>
         </div>
 
