@@ -154,6 +154,63 @@ export function SiteSettings() {
     toast.success(`${size}x${size} icon updated successfully`);
   };
 
+  const generateManifest = async () => {
+    const manifest = {
+      name: settings.pwa_name,
+      short_name: settings.pwa_short_name || settings.pwa_name,
+      description: settings.pwa_description,
+      start_url: settings.pwa_start_url,
+      display: settings.pwa_display,
+      background_color: settings.pwa_background_color,
+      theme_color: settings.pwa_theme_color,
+      orientation: settings.pwa_orientation,
+      scope: settings.pwa_scope,
+      icons: settings.pwa_icons.map(icon => ({
+        src: icon.src,
+        sizes: icon.sizes,
+        type: icon.type
+      })),
+      screenshots: []
+    };
+
+    // Add screenshots if they exist
+    if (settings.pwa_desktop_screenshot) {
+      manifest.screenshots.push({
+        src: settings.pwa_desktop_screenshot,
+        type: "image/png",
+        sizes: "1920x1080",
+        form_factor: "wide"
+      });
+    }
+    if (settings.pwa_mobile_screenshot) {
+      manifest.screenshots.push({
+        src: settings.pwa_mobile_screenshot,
+        type: "image/png",
+        sizes: "1080x1920",
+        form_factor: "narrow"
+      });
+    }
+
+    try {
+      const response = await fetch('/api/update-manifest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(manifest)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update manifest.json');
+      }
+
+      console.log('manifest.json updated successfully');
+    } catch (error) {
+      console.error('Error updating manifest.json:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -166,13 +223,18 @@ export function SiteSettings() {
         settings.og_image = publicUrl;
       }
 
+      // Update settings in Supabase
       const { error } = await supabase
         .from("site_settings")
         .update(settings)
         .eq("id", settings.id);
 
       if (error) throw error;
-      toast.success("Settings updated successfully");
+
+      // Generate and update manifest.json
+      await generateManifest();
+      
+      toast.success("Settings and manifest.json updated successfully");
       
       // Update meta tags
       const ogImageMeta = document.querySelector('meta[property="og:image"]');
