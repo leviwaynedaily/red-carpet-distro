@@ -7,16 +7,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { AdminProductCard } from "./AdminProductCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, Plus } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
+import { CategoryManagement } from "./CategoryManagement";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function ProductManagement() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [categories, setCategories] = useState("");
   const [strain, setStrain] = useState("");
   const [potency, setPotency] = useState("");
+  const [stock, setStock] = useState<number>(0);
+  const [regularPrice, setRegularPrice] = useState<number>(0);
+  const [shippingPrice, setShippingPrice] = useState<number>(0);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   const { data: products, refetch } = useQuery({
@@ -36,9 +42,13 @@ export function ProductManagement() {
           name,
           description,
           image_url: imageUrl,
+          video_url: videoUrl,
           categories: categories.split(",").map((c) => c.trim()),
           strain,
           potency,
+          stock: stock,
+          regular_price: regularPrice,
+          shipping_price: shippingPrice,
         },
       ]);
 
@@ -50,9 +60,13 @@ export function ProductManagement() {
       setName("");
       setDescription("");
       setImageUrl("");
+      setVideoUrl("");
       setCategories("");
       setStrain("");
       setPotency("");
+      setStock(0);
+      setRegularPrice(0);
+      setShippingPrice(0);
     } catch (error) {
       console.error("Error adding product:", error);
       toast.error("Failed to add product");
@@ -81,72 +95,116 @@ export function ProductManagement() {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          placeholder="Product Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <Textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <Input
-          placeholder="Image URL"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-        />
-        <Input
-          placeholder="Categories (comma-separated)"
-          value={categories}
-          onChange={(e) => setCategories(e.target.value)}
-        />
-        <Input
-          placeholder="Strain"
-          value={strain}
-          onChange={(e) => setStrain(e.target.value)}
-        />
-        <Input
-          placeholder="Potency"
-          value={potency}
-          onChange={(e) => setPotency(e.target.value)}
-        />
-        <Button type="submit">Add Product</Button>
-      </form>
+      <Tabs defaultValue="products" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+        </TabsList>
 
-      <div className="flex justify-end space-x-2">
-        <Toggle
-          pressed={viewMode === 'grid'}
-          onPressedChange={() => setViewMode('grid')}
-          aria-label="Grid view"
-        >
-          <LayoutGrid className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={viewMode === 'table'}
-          onPressedChange={() => setViewMode('table')}
-          aria-label="Table view"
-        >
-          <List className="h-4 w-4" />
-        </Toggle>
-      </div>
+        <TabsContent value="categories" className="space-y-4">
+          <CategoryManagement />
+        </TabsContent>
 
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products?.map((product) => (
-            <AdminProductCard
-              key={product.id}
-              {...product}
-              image={product.image_url || "/placeholder.svg"}
-              categories={product.categories || []}
-              onUpdate={refetch}
-              onDelete={handleDelete}
+        <TabsContent value="products" className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                placeholder="Product Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+              <Input
+                placeholder="Strain"
+                value={strain}
+                onChange={(e) => setStrain(e.target.value)}
+              />
+              <Input
+                placeholder="Potency (THC %)"
+                value={potency}
+                onChange={(e) => setPotency(e.target.value)}
+              />
+              <Input
+                placeholder="Categories (comma-separated)"
+                value={categories}
+                onChange={(e) => setCategories(e.target.value)}
+              />
+              <Input
+                type="number"
+                placeholder="Stock"
+                value={stock}
+                onChange={(e) => setStock(Number(e.target.value))}
+              />
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Regular Price"
+                value={regularPrice}
+                onChange={(e) => setRegularPrice(Number(e.target.value))}
+              />
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Shipping Price"
+                value={shippingPrice}
+                onChange={(e) => setShippingPrice(Number(e.target.value))}
+              />
+            </div>
+            <Textarea
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="min-h-[100px]"
             />
-          ))}
-        </div>
-      ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                placeholder="Image URL"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+              />
+              <Input
+                placeholder="Video URL"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Product
+            </Button>
+          </form>
+
+          <div className="flex justify-end space-x-2">
+            <Toggle
+              pressed={viewMode === 'grid'}
+              onPressedChange={() => setViewMode('grid')}
+              aria-label="Grid view"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Toggle>
+            <Toggle
+              pressed={viewMode === 'table'}
+              onPressedChange={() => setViewMode('table')}
+              aria-label="Table view"
+            >
+              <List className="h-4 w-4" />
+            </Toggle>
+          </div>
+
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {products?.map((product) => (
+                <AdminProductCard
+                  key={product.id}
+                  {...product}
+                  image={product.image_url || "/placeholder.svg"}
+                  categories={product.categories || []}
+                  onUpdate={refetch}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          ) : (
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -209,22 +267,24 @@ export function ProductManagement() {
             </TableBody>
           </Table>
         </div>
-      )}
+          )}
 
-      {/* Hidden AdminProductCards for edit functionality */}
-      <div className="hidden">
-        {products?.map((product) => (
-          <AdminProductCard
-            key={product.id}
-            {...product}
-            image={product.image_url || "/placeholder.svg"}
-            categories={product.categories || []}
-            onUpdate={refetch}
-            onDelete={handleDelete}
-            data-product-id={product.id}
-          />
-        ))}
-      </div>
+          {/* Hidden AdminProductCards for edit functionality */}
+          <div className="hidden">
+            {products?.map((product) => (
+              <AdminProductCard
+                key={product.id}
+                {...product}
+                image={product.image_url || "/placeholder.svg"}
+                categories={product.categories || []}
+                onUpdate={refetch}
+                onDelete={handleDelete}
+                data-product-id={product.id}
+              />
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
