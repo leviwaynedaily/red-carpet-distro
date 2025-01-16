@@ -92,6 +92,10 @@ export type Database = {
           font_family: string | null
           id: string
           logo_url: string | null
+          og_description: string | null
+          og_image: string | null
+          og_title: string | null
+          og_url: string | null
           primary_color: string | null
           pwa_background_color: string | null
           pwa_description: string | null
@@ -114,6 +118,10 @@ export type Database = {
           font_family?: string | null
           id?: string
           logo_url?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          og_url?: string | null
           primary_color?: string | null
           pwa_background_color?: string | null
           pwa_description?: string | null
@@ -136,6 +144,10 @@ export type Database = {
           font_family?: string | null
           id?: string
           logo_url?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          og_url?: string | null
           primary_color?: string | null
           pwa_background_color?: string | null
           pwa_description?: string | null

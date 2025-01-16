@@ -36,9 +36,11 @@ type SiteSettingsType = {
   pwa_icons: PWAIcon[];
   pwa_desktop_screenshot?: string;
   pwa_mobile_screenshot?: string;
+  og_title: string;
+  og_description: string;
+  og_image: string;
+  og_url: string;
 };
-
-const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
 
 export function SiteSettings() {
   const [settings, setSettings] = useState<SiteSettingsType>({
@@ -62,6 +64,10 @@ export function SiteSettings() {
     pwa_icons: [],
     pwa_desktop_screenshot: "",
     pwa_mobile_screenshot: "",
+    og_title: "",
+    og_description: "",
+    og_image: "",
+    og_url: "",
   });
 
   useEffect(() => {
@@ -165,10 +171,11 @@ export function SiteSettings() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
       <Tabs defaultValue="colors" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="colors">Colors</TabsTrigger>
           <TabsTrigger value="site">Site Settings</TabsTrigger>
           <TabsTrigger value="pwa">PWA Settings</TabsTrigger>
+          <TabsTrigger value="og">Open Graph</TabsTrigger>
         </TabsList>
 
         <TabsContent value="colors" className="space-y-4 mt-4">
@@ -382,6 +389,80 @@ export function SiteSettings() {
               })}
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="og" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Open Graph Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="og_title">Title</Label>
+                <Input
+                  id="og_title"
+                  name="og_title"
+                  value={settings.og_title}
+                  onChange={handleColorChange}
+                  placeholder="Enter Open Graph title"
+                />
+                <p className="text-sm text-muted-foreground">
+                  The title that appears in social media previews
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="og_description">Description</Label>
+                <Input
+                  id="og_description"
+                  name="og_description"
+                  value={settings.og_description}
+                  onChange={handleColorChange}
+                  placeholder="Enter Open Graph description"
+                />
+                <p className="text-sm text-muted-foreground">
+                  A brief description that appears in social media previews
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="og_url">URL</Label>
+                <Input
+                  id="og_url"
+                  name="og_url"
+                  value={settings.og_url}
+                  onChange={handleColorChange}
+                  placeholder="Enter website URL"
+                />
+                <p className="text-sm text-muted-foreground">
+                  The canonical URL of your website
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Preview Image</Label>
+                {settings.og_image && (
+                  <img
+                    src={settings.og_image}
+                    alt="Open Graph preview"
+                    className="w-full h-48 object-cover rounded-md mb-2"
+                  />
+                )}
+                <FileUpload
+                  onUploadComplete={(url) =>
+                    setSettings((prev) => ({ ...prev, og_image: url }))
+                  }
+                  accept="image/*"
+                  folderPath="sitesettings"
+                  fileName="og-image"
+                />
+                <p className="text-sm text-muted-foreground">
+                  This image will be displayed when your site is shared on social
+                  media (recommended size: 1200x630 pixels)
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
