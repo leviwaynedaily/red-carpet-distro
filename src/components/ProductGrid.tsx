@@ -34,43 +34,43 @@ export const ProductGrid = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*');
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
 
-        if (error) {
-          console.error('Error fetching products:', error);
-          return;
-        }
-
-        // Map Supabase data to our Product interface with sample data
-        const mappedProducts = data.map((item, index) => ({
-          id: item.id,
-          name: item.name || 'Premium Cannabis Product',
-          description: item.description || 'This premium-grade cannabis product offers a unique blend of flavors and effects, perfect for both recreational and medicinal use.',
-          image: item.image_url || 'https://images.unsplash.com/photo-1503262028195-93c528f03218',
-          video: index === 0 ? "https://static.videezy.com/system/resources/previews/000/000/168/original/Record.mp4" : undefined,
-          categories: item.categories || ['Indica', 'Premium', 'Organic'],
-          strain: item.strain || 'Purple Haze',
-          potency: item.potency || '18% THC',
-          stock: item.stock || Math.floor(Math.random() * 50) + 1,
-          regular_price: Number(item.regular_price) || Number((Math.random() * 100 + 20).toFixed(2)),
-          shipping_price: Math.random() > 0.5 ? Number((Math.random() * 10 + 5).toFixed(2)) : 0,
-          created_at: item.created_at,
-          updated_at: item.updated_at
-        }));
-
-        setProducts(mappedProducts);
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error('Error fetching products:', error);
+        return;
       }
-    };
 
+      // Map Supabase data to our Product interface with sample data
+      const mappedProducts = data.map((item, index) => ({
+        id: item.id,
+        name: item.name || 'Premium Cannabis Product',
+        description: item.description || 'This premium-grade cannabis product offers a unique blend of flavors and effects, perfect for both recreational and medicinal use.',
+        image: item.image_url || 'https://images.unsplash.com/photo-1503262028195-93c528f03218',
+        video: index === 0 ? "https://static.videezy.com/system/resources/previews/000/000/168/original/Record.mp4" : undefined,
+        categories: item.categories || ['Indica', 'Premium', 'Organic'],
+        strain: item.strain || 'Purple Haze',
+        potency: item.potency || '18% THC',
+        stock: item.stock || Math.floor(Math.random() * 50) + 1,
+        regular_price: Number(item.regular_price) || Number((Math.random() * 100 + 20).toFixed(2)),
+        shipping_price: Math.random() > 0.5 ? Number((Math.random() * 10 + 5).toFixed(2)) : 0,
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
+
+      setProducts(mappedProducts);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProducts();
   }, []);
 
@@ -111,6 +111,7 @@ export const ProductGrid = ({
           key={product.id}
           {...product}
           viewMode={viewMode}
+          onUpdate={fetchProducts}
         />
       ))}
     </div>
