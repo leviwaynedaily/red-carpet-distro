@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { AdminProductCard } from "./AdminProductCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Download, Upload, FileText } from "lucide-react";
+import { LayoutGrid, List, Plus, Download, Upload, FileText, X } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { CategoryManagement } from "./CategoryManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -302,6 +302,49 @@ export function ProductManagement() {
     return `${sanitizedStrain}_${type}`;
   };
 
+  const handleDeleteMedia = async (type: 'image' | 'video') => {
+    try {
+      if (!editingProduct) return;
+
+      const fieldToUpdate = type === 'image' ? 'image_url' : 'video_url';
+      const currentUrl = type === 'image' ? editingProduct.image : editingProduct.video_url;
+
+      if (!currentUrl) return;
+
+      // Extract the file path from the URL
+      const filePath = `products/${editingProduct.id}/${getFileNameWithStrain(type, editingProduct.strain || '')}`;
+
+      // Delete the file from storage
+      const { error: storageError } = await supabase.storage
+        .from('media')
+        .remove([filePath]);
+
+      if (storageError) {
+        console.error(`Error deleting ${type}:`, storageError);
+        throw storageError;
+      }
+
+      // Update the product in the database
+      const { error: updateError } = await supabase
+        .from("products")
+        .update({ [fieldToUpdate]: null })
+        .eq("id", editingProduct.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setEditingProduct({
+        ...editingProduct,
+        [fieldToUpdate]: null
+      });
+
+      toast.success(`${type === 'image' ? 'Image' : 'Video'} deleted successfully`);
+    } catch (error) {
+      console.error(`Error deleting ${type}:`, error);
+      toast.error(`Failed to delete ${type}`);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="products" className="space-y-4">
@@ -562,11 +605,22 @@ export function ProductManagement() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Product Image</label>
                     {editingProduct?.image && (
-                      <img 
-                        src={editingProduct.image} 
-                        alt="Preview" 
-                        className="w-32 h-32 object-cover rounded-md mb-2" 
-                      />
+                      <div className="relative">
+                        <img 
+                          src={editingProduct.image} 
+                          alt="Preview" 
+                          className="w-32 h-32 object-cover rounded-md mb-2" 
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => handleDeleteMedia('image')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     )}
                     <FileUpload
                       onUploadComplete={(url) => setEditingProduct({ ...editingProduct, image: url })}
@@ -578,11 +632,22 @@ export function ProductManagement() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Product Video</label>
                     {editingProduct?.video_url && (
-                      <video 
-                        src={editingProduct.video_url} 
-                        className="w-32 h-32 object-cover rounded-md mb-2" 
-                        controls 
-                      />
+                      <div className="relative">
+                        <video 
+                          src={editingProduct.video_url} 
+                          className="w-32 h-32 object-cover rounded-md mb-2" 
+                          controls 
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => handleDeleteMedia('video')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     )}
                     <FileUpload
                       onUploadComplete={(url) => setEditingProduct({ ...editingProduct, video_url: url })}
