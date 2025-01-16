@@ -16,6 +16,9 @@ interface ProductCardProps {
   categories: string[];
   strain?: string;
   potency?: string;
+  stock?: number;
+  regular_price?: number;
+  shipping_price?: number;
   viewMode: 'small' | 'medium' | 'large';
 }
 
@@ -28,6 +31,9 @@ export const ProductCard = ({
   categories,
   strain,
   potency,
+  stock,
+  regular_price,
+  shipping_price,
   viewMode,
 }: ProductCardProps) => {
   const navigate = useNavigate();
@@ -70,6 +76,13 @@ export const ProductCard = ({
     large: "p-4"
   };
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
+  };
+
   return (
     <>
       <Card 
@@ -95,21 +108,42 @@ export const ProductCard = ({
           )}
         </CardHeader>
         <CardContent className={contentClasses[viewMode]}>
-          <div className="flex flex-wrap gap-1 mb-2">
-            {categories.map((category) => (
-              <Badge key={category} variant="secondary" className="text-xs">
-                {category}
-              </Badge>
-            ))}
-          </div>
+          {categories && categories.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {categories.map((category) => (
+                <Badge key={category} variant="secondary" className="text-xs">
+                  {category}
+                </Badge>
+              ))}
+            </div>
+          )}
           <h3 className="text-sm font-semibold mb-1 truncate">{name}</h3>
-          <p className="text-xs text-gray-600 line-clamp-2">{description}</p>
+          {description && (
+            <p className="text-xs text-gray-600 line-clamp-2">{description}</p>
+          )}
           {(strain || potency) && (
             <div className="flex gap-2 text-xs text-gray-600 mt-2">
               {strain && <span>Strain: {strain}</span>}
               {potency && <span>THC: {potency}</span>}
             </div>
           )}
+          <div className="mt-2 space-y-1">
+            {regular_price !== undefined && regular_price > 0 && (
+              <div className="text-sm font-medium">
+                {formatPrice(regular_price)}
+              </div>
+            )}
+            {shipping_price !== undefined && shipping_price > 0 && (
+              <div className="text-xs text-gray-600">
+                + {formatPrice(shipping_price)} shipping
+              </div>
+            )}
+            {stock !== undefined && stock > 0 && (
+              <div className="text-xs text-gray-600">
+                {stock} in stock
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 

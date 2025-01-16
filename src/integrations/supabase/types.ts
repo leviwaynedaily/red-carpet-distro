@@ -20,6 +20,9 @@ export type Database = {
           name: string
           potency: string | null
           primary_media_type: string | null
+          regular_price: number | null
+          shipping_price: number | null
+          stock: number | null
           strain: string | null
           updated_at: string
           video_url: string | null
@@ -34,6 +37,9 @@ export type Database = {
           name: string
           potency?: string | null
           primary_media_type?: string | null
+          regular_price?: number | null
+          shipping_price?: number | null
+          stock?: number | null
           strain?: string | null
           updated_at?: string
           video_url?: string | null
@@ -48,6 +54,9 @@ export type Database = {
           name?: string
           potency?: string | null
           primary_media_type?: string | null
+          regular_price?: number | null
+          shipping_price?: number | null
+          stock?: number | null
           strain?: string | null
           updated_at?: string
           video_url?: string | null
