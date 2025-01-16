@@ -16,8 +16,10 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          media: Json | null
           name: string
           potency: string | null
+          primary_media_type: string | null
           strain: string | null
           updated_at: string
           video_url: string | null
@@ -28,8 +30,10 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          media?: Json | null
           name: string
           potency?: string | null
+          primary_media_type?: string | null
           strain?: string | null
           updated_at?: string
           video_url?: string | null
@@ -40,8 +44,10 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          media?: Json | null
           name?: string
           potency?: string | null
+          primary_media_type?: string | null
           strain?: string | null
           updated_at?: string
           video_url?: string | null
