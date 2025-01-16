@@ -223,10 +223,12 @@ export function SiteSettings() {
     try {
       // Get the public URL for the og_image from Supabase storage
       if (settings.og_image) {
+        console.log('Original og_image:', settings.og_image);
         const { data: { publicUrl } } = supabase.storage
           .from('media')
           .getPublicUrl(settings.og_image.replace(/^.*\/media\//, ''));
         
+        console.log('Public URL for og_image:', publicUrl);
         settings.og_image = publicUrl;
       }
 
@@ -249,9 +251,11 @@ export function SiteSettings() {
       const ogUrlMeta = document.querySelector('meta[property="og:url"]');
       
       if (ogImageMeta && settings.og_image) {
+        console.log('Updating og:image meta tag to:', settings.og_image);
         ogImageMeta.setAttribute('content', settings.og_image);
       }
       if (ogUrlMeta && settings.og_url) {
+        console.log('Updating og:url meta tag to:', settings.og_url);
         ogUrlMeta.setAttribute('content', settings.og_url);
       }
     } catch (error) {
