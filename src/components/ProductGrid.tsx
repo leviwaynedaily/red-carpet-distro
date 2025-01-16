@@ -96,6 +96,10 @@ export const ProductGrid = ({
         return (a.regular_price || 0) - (b.regular_price || 0);
       case 'price-desc':
         return (b.regular_price || 0) - (a.regular_price || 0);
+      case 'date-asc':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'date-desc':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       default:
         return 0;
     }
