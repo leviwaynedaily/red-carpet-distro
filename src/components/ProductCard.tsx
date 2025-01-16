@@ -103,8 +103,8 @@ export const ProductCard = ({
               loading="lazy"
             />
           )}
-          <div className="absolute bottom-2 right-2 flex gap-2">
-            {video && (
+          {video && (
+            <div className="absolute bottom-2 right-2 flex gap-2">
               <Button
                 size="icon"
                 variant="secondary"
@@ -113,8 +113,8 @@ export const ProductCard = ({
               >
                 <Play className="h-3 w-3" />
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent className={contentClasses[viewMode]}>
           {categories && categories.length > 0 && (
