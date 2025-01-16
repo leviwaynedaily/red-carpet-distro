@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FileUpload } from "@/components/ui/file-upload";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function ProductManagement() {
   const isMobile = useIsMobile();
@@ -21,9 +22,8 @@ export function ProductManagement() {
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [categories, setCategories] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [strain, setStrain] = useState("");
-  const [potency, setPotency] = useState("");
   const [stock, setStock] = useState<number | null>(null);
   const [regularPrice, setRegularPrice] = useState<number | null>(null);
   const [shippingPrice, setShippingPrice] = useState<number | null>(null);
@@ -40,6 +40,15 @@ export function ProductManagement() {
     },
   });
 
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("categories").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -49,9 +58,8 @@ export function ProductManagement() {
           description,
           image_url: imageUrl,
           video_url: videoUrl,
-          categories: categories.split(",").map((c) => c.trim()),
+          categories: selectedCategories,
           strain,
-          potency,
           stock: stock !== null ? stock : null,
           regular_price: regularPrice !== null ? regularPrice : null,
           shipping_price: shippingPrice !== null ? shippingPrice : null,
@@ -67,9 +75,8 @@ export function ProductManagement() {
       setDescription("");
       setImageUrl("");
       setVideoUrl("");
-      setCategories("");
+      setSelectedCategories([]);
       setStrain("");
-      setPotency("");
       setStock(null);
       setRegularPrice(null);
       setShippingPrice(null);
@@ -95,9 +102,8 @@ export function ProductManagement() {
           description: editingProduct.description,
           image_url: editingProduct.image,
           video_url: editingProduct.video_url,
-          categories: editingProduct.categories.split(",").map((c: string) => c.trim()),
+          categories: editingProduct.categories,
           strain: editingProduct.strain,
-          potency: editingProduct.potency,
           stock: editingProduct.stock === "" ? null : Number(editingProduct.stock),
           regular_price: editingProduct.regular_price === "" ? null : Number(editingProduct.regular_price),
           shipping_price: editingProduct.shipping_price === "" ? null : Number(editingProduct.shipping_price),
@@ -132,7 +138,7 @@ export function ProductManagement() {
     setEditingProduct({
       ...product,
       image: product.image_url,
-      categories: Array.isArray(product.categories) ? product.categories.join(", ") : "",
+      categories: product.categories || [],
     });
     setShowEditDialog(true);
   };
@@ -143,6 +149,25 @@ export function ProductManagement() {
       style: 'currency',
       currency: 'USD'
     }).format(price);
+  };
+
+  const handleCategoryToggle = (categoryName: string) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(categoryName)) {
+        return prev.filter(c => c !== categoryName);
+      } else {
+        return [...prev, categoryName];
+      }
+    });
+  };
+
+  const handleEditCategoryToggle = (categoryName: string) => {
+    setEditingProduct(prev => ({
+      ...prev,
+      categories: prev.categories.includes(categoryName)
+        ? prev.categories.filter((c: string) => c !== categoryName)
+        : [...prev.categories, categoryName]
+    }));
   };
 
   return (
@@ -171,16 +196,21 @@ export function ProductManagement() {
                 value={strain}
                 onChange={(e) => setStrain(e.target.value)}
               />
-              <Input
-                placeholder="Potency (THC %)"
-                value={potency}
-                onChange={(e) => setPotency(e.target.value)}
-              />
-              <Input
-                placeholder="Categories (comma-separated)"
-                value={categories}
-                onChange={(e) => setCategories(e.target.value)}
-              />
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Categories</label>
+                <div className="flex flex-wrap gap-2">
+                  {categories?.map((category) => (
+                    <Button
+                      key={category.id}
+                      type="button"
+                      variant={selectedCategories.includes(category.name) ? "default" : "outline"}
+                      onClick={() => handleCategoryToggle(category.name)}
+                    >
+                      {category.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
               <Input
                 type="number"
                 placeholder="Stock (optional)"
@@ -276,7 +306,6 @@ export function ProductManagement() {
                     <TableHead>Name</TableHead>
                     <TableHead>Categories</TableHead>
                     <TableHead>Strain</TableHead>
-                    <TableHead>Potency</TableHead>
                     <TableHead>Stock</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Actions</TableHead>
@@ -295,7 +324,6 @@ export function ProductManagement() {
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{product.categories?.join(', ') || '-'}</TableCell>
                       <TableCell>{product.strain || '-'}</TableCell>
-                      <TableCell>{product.potency || '-'}</TableCell>
                       <TableCell>{product.stock || '0'}</TableCell>
                       <TableCell>{formatPrice(product.regular_price)}</TableCell>
                       <TableCell>
@@ -378,24 +406,25 @@ export function ProductManagement() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Categories (comma-separated)</label>
-                  <Input
-                    value={editingProduct?.categories || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, categories: e.target.value })}
-                  />
+                  <label className="text-sm font-medium">Categories</label>
+                  <div className="flex flex-wrap gap-2">
+                    {categories?.map((category) => (
+                      <Button
+                        key={category.id}
+                        type="button"
+                        variant={editingProduct?.categories?.includes(category.name) ? "default" : "outline"}
+                        onClick={() => handleEditCategoryToggle(category.name)}
+                      >
+                        {category.name}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Strain</label>
                   <Input
                     value={editingProduct?.strain || ''}
                     onChange={(e) => setEditingProduct({ ...editingProduct, strain: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Potency</label>
-                  <Input
-                    value={editingProduct?.potency || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, potency: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
