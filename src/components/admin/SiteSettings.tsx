@@ -192,19 +192,16 @@ export function SiteSettings() {
     }
 
     try {
-      const response = await fetch('/api/update-manifest', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(manifest)
+      const response = await supabase.functions.invoke('update-manifest', {
+        body: manifest
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update manifest.json');
+      if (!response.error) {
+        console.log('manifest.json updated successfully:', response.data);
+        return response.data.url;
+      } else {
+        throw new Error(response.error.message);
       }
-
-      console.log('manifest.json updated successfully');
     } catch (error) {
       console.error('Error updating manifest.json:', error);
       throw error;
@@ -232,9 +229,10 @@ export function SiteSettings() {
       if (error) throw error;
 
       // Generate and update manifest.json
-      await generateManifest();
+      const manifestUrl = await generateManifest();
       
-      toast.success("Settings and manifest.json updated successfully");
+      toast.success("Settings updated successfully");
+      console.log('New manifest.json URL:', manifestUrl);
       
       // Update meta tags
       const ogImageMeta = document.querySelector('meta[property="og:image"]');
