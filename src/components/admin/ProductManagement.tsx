@@ -12,8 +12,10 @@ import { Toggle } from "@/components/ui/toggle";
 import { CategoryManagement } from "./CategoryManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function ProductManagement() {
+  const isMobile = useIsMobile();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -24,7 +26,7 @@ export function ProductManagement() {
   const [stock, setStock] = useState<number>(0);
   const [regularPrice, setRegularPrice] = useState<number>(0);
   const [shippingPrice, setShippingPrice] = useState<number>(0);
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>(isMobile ? 'grid' : 'table');
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
@@ -235,7 +237,7 @@ export function ProductManagement() {
           </div>
 
           {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {products?.map((product) => (
                 <AdminProductCard
                   key={product.id}
