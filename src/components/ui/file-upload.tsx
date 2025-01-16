@@ -53,10 +53,12 @@ export function FileUpload({
         throw uploadError;
       }
 
+      // Get the public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
 
+      console.log('File uploaded successfully, public URL:', publicUrl);
       onUploadComplete(publicUrl);
       toast.success('File uploaded successfully');
     } catch (error) {
