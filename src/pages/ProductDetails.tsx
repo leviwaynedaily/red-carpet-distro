@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -56,21 +63,53 @@ const ProductDetails = () => {
       </Button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="relative aspect-square">
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="w-full h-full object-cover rounded-lg"
-          />
-          <Button
-            variant="secondary"
-            size="sm"
-            className="absolute bottom-4 right-4"
-            onClick={() => window.open(product.image_url, '_blank')}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Download Image
-          </Button>
+        <div className="relative">
+          <Carousel className="w-full">
+            <CarouselContent>
+              {product.image_url && (
+                <CarouselItem>
+                  <div className="aspect-square relative">
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="absolute bottom-4 right-4"
+                      onClick={() => window.open(product.image_url, '_blank')}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download Image
+                    </Button>
+                  </div>
+                </CarouselItem>
+              )}
+              {product.video_url && (
+                <CarouselItem>
+                  <div className="aspect-square relative">
+                    <video
+                      src={product.video_url}
+                      controls
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="absolute bottom-4 right-4"
+                      onClick={() => window.open(product.video_url, '_blank')}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download Video
+                    </Button>
+                  </div>
+                </CarouselItem>
+              )}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
         </div>
 
         <div className="space-y-6">
@@ -100,17 +139,6 @@ const ProductDetails = () => {
                   <span className="font-medium">{product.potency}</span>
                 </div>
               )}
-            </div>
-          )}
-
-          {product.video_url && (
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold mb-2">Product Video</h3>
-              <video
-                src={product.video_url}
-                controls
-                className="w-full rounded-lg"
-              />
             </div>
           )}
         </div>
