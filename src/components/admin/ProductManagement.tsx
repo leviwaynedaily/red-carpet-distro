@@ -24,9 +24,9 @@ export function ProductManagement() {
   const [categories, setCategories] = useState("");
   const [strain, setStrain] = useState("");
   const [potency, setPotency] = useState("");
-  const [stock, setStock] = useState<number>(0);
-  const [regularPrice, setRegularPrice] = useState<number>(0);
-  const [shippingPrice, setShippingPrice] = useState<number>(0);
+  const [stock, setStock] = useState<number | null>(null);
+  const [regularPrice, setRegularPrice] = useState<number | null>(null);
+  const [shippingPrice, setShippingPrice] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>(isMobile ? 'grid' : 'table');
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -52,9 +52,9 @@ export function ProductManagement() {
           categories: categories.split(",").map((c) => c.trim()),
           strain,
           potency,
-          stock: stock,
-          regular_price: regularPrice,
-          shipping_price: shippingPrice,
+          stock: stock !== null ? stock : null,
+          regular_price: regularPrice !== null ? regularPrice : null,
+          shipping_price: shippingPrice !== null ? shippingPrice : null,
         },
       ]);
 
@@ -70,9 +70,9 @@ export function ProductManagement() {
       setCategories("");
       setStrain("");
       setPotency("");
-      setStock(0);
-      setRegularPrice(0);
-      setShippingPrice(0);
+      setStock(null);
+      setRegularPrice(null);
+      setShippingPrice(null);
     } catch (error) {
       console.error("Error adding product:", error);
       toast.error("Failed to add product");
@@ -92,9 +92,9 @@ export function ProductManagement() {
           categories: editingProduct.categories.split(",").map((c: string) => c.trim()),
           strain: editingProduct.strain,
           potency: editingProduct.potency,
-          stock: editingProduct.stock,
-          regular_price: editingProduct.regular_price,
-          shipping_price: editingProduct.shipping_price,
+          stock: editingProduct.stock !== "" ? Number(editingProduct.stock) : null,
+          regular_price: editingProduct.regular_price !== "" ? Number(editingProduct.regular_price) : null,
+          shipping_price: editingProduct.shipping_price !== "" ? Number(editingProduct.shipping_price) : null,
         })
         .eq("id", editingProduct.id);
 
@@ -177,23 +177,23 @@ export function ProductManagement() {
               />
               <Input
                 type="number"
-                placeholder="Stock"
-                value={stock}
-                onChange={(e) => setStock(Number(e.target.value))}
+                placeholder="Stock (optional)"
+                value={stock === null ? "" : stock}
+                onChange={(e) => setStock(e.target.value === "" ? null : Number(e.target.value))}
               />
               <Input
                 type="number"
                 step="0.01"
-                placeholder="Regular Price"
-                value={regularPrice}
-                onChange={(e) => setRegularPrice(Number(e.target.value))}
+                placeholder="Regular Price (optional)"
+                value={regularPrice === null ? "" : regularPrice}
+                onChange={(e) => setRegularPrice(e.target.value === "" ? null : Number(e.target.value))}
               />
               <Input
                 type="number"
                 step="0.01"
-                placeholder="Shipping Price"
-                value={shippingPrice}
-                onChange={(e) => setShippingPrice(Number(e.target.value))}
+                placeholder="Shipping Price (optional)"
+                value={shippingPrice === null ? "" : shippingPrice}
+                onChange={(e) => setShippingPrice(e.target.value === "" ? null : Number(e.target.value))}
               />
             </div>
             <Textarea
@@ -396,8 +396,12 @@ export function ProductManagement() {
                   <label className="text-sm font-medium">Stock</label>
                   <Input
                     type="number"
-                    value={editingProduct?.stock || 0}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                    value={editingProduct?.stock === null ? "" : editingProduct?.stock}
+                    onChange={(e) => setEditingProduct({ 
+                      ...editingProduct, 
+                      stock: e.target.value === "" ? null : Number(e.target.value) 
+                    })}
+                    placeholder="Leave empty if not applicable"
                   />
                 </div>
                 <div className="space-y-2">
@@ -405,8 +409,12 @@ export function ProductManagement() {
                   <Input
                     type="number"
                     step="0.01"
-                    value={editingProduct?.regular_price || 0}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, regular_price: Number(e.target.value) })}
+                    value={editingProduct?.regular_price === null ? "" : editingProduct?.regular_price}
+                    onChange={(e) => setEditingProduct({ 
+                      ...editingProduct, 
+                      regular_price: e.target.value === "" ? null : Number(e.target.value) 
+                    })}
+                    placeholder="Leave empty if not applicable"
                   />
                 </div>
                 <div className="space-y-2">
@@ -414,8 +422,12 @@ export function ProductManagement() {
                   <Input
                     type="number"
                     step="0.01"
-                    value={editingProduct?.shipping_price || 0}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, shipping_price: Number(e.target.value) })}
+                    value={editingProduct?.shipping_price === null ? "" : editingProduct?.shipping_price}
+                    onChange={(e) => setEditingProduct({ 
+                      ...editingProduct, 
+                      shipping_price: e.target.value === "" ? null : Number(e.target.value) 
+                    })}
+                    placeholder="Leave empty if not applicable"
                   />
                 </div>
                 <div className="flex justify-end gap-2">
