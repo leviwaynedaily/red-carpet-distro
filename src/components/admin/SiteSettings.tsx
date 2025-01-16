@@ -157,7 +157,6 @@ export function SiteSettings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Update settings in Supabase
       const { error } = await supabase
         .from("site_settings")
         .update(settings)
@@ -465,25 +464,29 @@ export function SiteSettings() {
 
               <div className="space-y-2">
                 <Label>Preview Image</Label>
-                {settings.og_image && (
-                  <img
-                    src={`https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image?t=${Date.now()}`}
-                    alt="Open Graph preview"
-                    className="w-full h-48 object-cover rounded-md mb-2"
-                  />
-                )}
-                <FileUpload
-                  onUploadComplete={(url) =>
-                    setSettings((prev) => ({ ...prev, og_image: url }))
-                  }
-                  accept="image/*"
-                  folderPath="sitesettings"
-                  fileName="og-image"
-                />
-                <p className="text-sm text-muted-foreground">
-                  This image will be displayed when your site is shared on social
-                  media (recommended size: 1200x630 pixels)
-                </p>
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  {settings.og_image && (
+                    <img
+                      src={`https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image?t=${Date.now()}`}
+                      alt="Open Graph preview"
+                      className="w-full h-48 object-cover rounded-md mb-2"
+                    />
+                  )}
+                  <div className="p-4">
+                    <FileUpload
+                      onUploadComplete={(url) =>
+                        setSettings((prev) => ({ ...prev, og_image: url }))
+                      }
+                      accept="image/*"
+                      folderPath="sitesettings"
+                      fileName="og-image"
+                    />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      This image will be displayed when your site is shared on social
+                      media (recommended size: 1200x630 pixels)
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
