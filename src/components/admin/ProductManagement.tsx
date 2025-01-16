@@ -390,6 +390,8 @@ export function ProductManagement() {
                         <FileUpload
                           onUploadComplete={setImageUrl}
                           accept="image/*"
+                          folderPath={`products/${editingProduct?.id || 'new'}`}
+                          fileName="image"
                         />
                       </div>
                       <div className="space-y-2">
@@ -400,6 +402,8 @@ export function ProductManagement() {
                         <FileUpload
                           onUploadComplete={setVideoUrl}
                           accept="video/*"
+                          folderPath={`products/${editingProduct?.id || 'new'}`}
+                          fileName="video"
                         />
                       </div>
                     </div>
@@ -562,6 +566,8 @@ export function ProductManagement() {
                     <FileUpload
                       onUploadComplete={(url) => setEditingProduct({ ...editingProduct, image: url })}
                       accept="image/*"
+                      folderPath={`products/${editingProduct?.id}`}
+                      fileName="image"
                     />
                   </div>
                   <div className="space-y-2">
@@ -576,6 +582,8 @@ export function ProductManagement() {
                     <FileUpload
                       onUploadComplete={(url) => setEditingProduct({ ...editingProduct, video_url: url })}
                       accept="video/*"
+                      folderPath={`products/${editingProduct?.id}`}
+                      fileName="video"
                     />
                   </div>
                 </div>

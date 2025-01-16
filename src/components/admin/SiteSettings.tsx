@@ -263,6 +263,8 @@ export function SiteSettings() {
             <FileUpload
               onUploadComplete={(url) => setSettings(prev => ({ ...prev, logo_url: url }))}
               accept="image/*"
+              folderPath="sitesettings"
+              fileName="logo"
             />
             <Label htmlFor="favicon_url">Favicon</Label>
             {settings.favicon_url && (
@@ -271,6 +273,8 @@ export function SiteSettings() {
             <FileUpload
               onUploadComplete={(url) => setSettings(prev => ({ ...prev, favicon_url: url }))}
               accept="image/*"
+              folderPath="sitesettings"
+              fileName="favicon"
             />
             <Label htmlFor="font_family">Font Family</Label>
             <Input
@@ -323,6 +327,8 @@ export function SiteSettings() {
                     <FileUpload
                       onUploadComplete={(url) => handlePWAIconUpload(url, size)}
                       accept="image/png"
+                      folderPath="sitesettings/pwa"
+                      fileName={`icon-${size}`}
                     />
                   </div>
                 );

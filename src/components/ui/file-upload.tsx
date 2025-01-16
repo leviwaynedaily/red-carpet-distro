@@ -8,6 +8,8 @@ interface FileUploadProps {
   onUploadComplete: (url: string) => void;
   accept?: string;
   bucket?: string;
+  folderPath?: string;
+  fileName?: string;
   className?: string;
 }
 
@@ -15,6 +17,8 @@ export function FileUpload({
   onUploadComplete, 
   accept = "image/*",
   bucket = "media",
+  folderPath = "",
+  fileName,
   className 
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -26,13 +30,24 @@ export function FileUpload({
     try {
       setIsUploading(true);
       
-      // Create a unique file name
+      // Create the final file path
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const finalFileName = fileName 
+        ? `${fileName}.${fileExt}`
+        : `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      
+      const filePath = folderPath 
+        ? `${folderPath}/${finalFileName}`.replace(/\/+/g, '/') // Normalize path
+        : finalFileName;
+
+      console.log('Uploading file to path:', filePath);
       
       const { error: uploadError, data } = await supabase.storage
         .from(bucket)
-        .upload(fileName, file);
+        .upload(filePath, file, {
+          contentType: file.type,
+          upsert: true // Enable overwriting
+        });
 
       if (uploadError) {
         throw uploadError;
@@ -40,7 +55,7 @@ export function FileUpload({
 
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
-        .getPublicUrl(fileName);
+        .getPublicUrl(filePath);
 
       onUploadComplete(publicUrl);
       toast.success('File uploaded successfully');
