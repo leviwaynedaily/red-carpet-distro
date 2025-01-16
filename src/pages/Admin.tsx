@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductManagement } from "@/components/admin/ProductManagement";
@@ -6,23 +6,63 @@ import { SiteSettings } from "@/components/admin/SiteSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-
-const ADMIN_PASSWORD = "admin123"; // In a real app, this should be properly secured
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [adminPassword, setAdminPassword] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchAdminPassword();
+  }, []);
+
+  const fetchAdminPassword = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("admin_password")
+        .single();
+
+      if (error) throw error;
+      
+      if (data?.admin_password) {
+        setAdminPassword(data.admin_password);
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching admin password:", error);
+      toast.error("Failed to load admin settings");
+      setIsLoading(false);
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    if (!adminPassword) {
+      toast.error("Admin password not set. Please set it in Site Settings first.");
+      return;
+    }
+    
+    if (password === adminPassword) {
       setIsAuthenticated(true);
       toast.success("Welcome to admin dashboard");
     } else {
       toast.error("Invalid password");
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -61,9 +101,14 @@ export default function Admin() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <Button variant="outline" onClick={() => navigate("/")}>
-          Back to Site
-        </Button>
+        <div className="space-x-2">
+          <Button variant="outline" onClick={() => setIsAuthenticated(false)}>
+            Logout
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/")}>
+            Back to Site
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="products" className="space-y-4">
