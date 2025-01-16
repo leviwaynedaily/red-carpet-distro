@@ -7,7 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 export default function Index() {
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [storefrontPassword, setStorefrontPassword] = useState("");
+  const [isSticky, setIsSticky] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("name-asc");
+  const [viewMode, setViewMode] = useState<'small' | 'medium' | 'large'>('medium');
 
   useEffect(() => {
     const checkVerification = async () => {
@@ -18,10 +22,6 @@ export default function Index() {
           .single();
 
         if (error) throw error;
-        
-        if (data?.storefront_password) {
-          setStorefrontPassword(data.storefront_password);
-        }
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching storefront password:", error);
@@ -30,6 +30,14 @@ export default function Index() {
     };
 
     checkVerification();
+
+    // Add scroll listener for sticky header
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   if (isLoading) {
@@ -43,9 +51,24 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background">
       {!isVerified && <AgeVerification onVerified={() => setIsVerified(true)} />}
-      <Header />
+      <Header 
+        isSticky={isSticky}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        categoryFilter={categoryFilter}
+        onCategoryChange={setCategoryFilter}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
       <main className="container mx-auto px-4 py-8">
-        <ProductGrid />
+        <ProductGrid 
+          searchTerm={searchTerm}
+          categoryFilter={categoryFilter}
+          sortBy={sortBy}
+          viewMode={viewMode}
+        />
       </main>
     </div>
   );
