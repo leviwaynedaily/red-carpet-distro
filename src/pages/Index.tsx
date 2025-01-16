@@ -15,18 +15,6 @@ const Index = () => {
   const [sortBy, setSortBy] = useState("");
   const [viewMode, setViewMode] = useState<'small' | 'medium' | 'large'>('small');
 
-  // Check if user is already verified
-  useEffect(() => {
-    console.log('Index.tsx: Checking age verification');
-    const verified = localStorage.getItem("age-verified");
-    if (verified === "true") {
-      console.log('Index.tsx: User is already verified');
-      setIsVerified(true);
-    } else {
-      console.log('Index.tsx: User needs verification');
-    }
-  }, []);
-
   // Handle sticky header
   useEffect(() => {
     console.log('Index.tsx: Setting up scroll listener');
@@ -40,13 +28,11 @@ const Index = () => {
 
   const handleVerification = () => {
     console.log('Index.tsx: User verified age');
-    localStorage.setItem("age-verified", "true");
     setIsVerified(true);
   };
 
   const handleLogoClick = () => {
     console.log('Index.tsx: Logo clicked, resetting verification');
-    localStorage.removeItem("age-verified");
     setIsVerified(false);
   };
 
