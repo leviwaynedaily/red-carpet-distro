@@ -68,6 +68,9 @@ export const AdminProductCard = ({
         <h3 className="font-bold truncate">{name}</h3>
         <p className="text-sm text-gray-600 line-clamp-2 mt-1" dangerouslySetInnerHTML={{ __html: description.replace(/,/g, ', ') }} />
         <div className="mt-2 space-y-1 text-sm text-gray-600">
+          {categories?.length > 0 && (
+            <div>Categories: {categories.join(', ')}</div>
+          )}
           {strain && <div>Strain: {strain}</div>}
           {stock !== undefined && <div>Stock: {stock}</div>}
           {regular_price !== undefined && <div>Price: ${regular_price}</div>}
