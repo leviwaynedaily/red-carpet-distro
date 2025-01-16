@@ -192,16 +192,26 @@ export function SiteSettings() {
     }
 
     try {
-      const response = await supabase.functions.invoke('update-manifest', {
-        body: manifest
-      });
+      // Convert manifest object to string with proper formatting
+      const manifestContent = JSON.stringify(manifest, null, 2);
 
-      if (!response.error) {
-        console.log('manifest.json updated successfully:', response.data);
-        return response.data.url;
-      } else {
-        throw new Error(response.error.message);
-      }
+      // Upload manifest.json directly to the static bucket
+      const { error: uploadError } = await supabase.storage
+        .from('static')
+        .upload('manifest.json', manifestContent, {
+          contentType: 'application/json',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get the public URL of the manifest file
+      const { data: { publicUrl } } = supabase.storage
+        .from('static')
+        .getPublicUrl('manifest.json');
+
+      console.log('manifest.json updated successfully:', publicUrl);
+      return publicUrl;
     } catch (error) {
       console.error('Error updating manifest.json:', error);
       throw error;
