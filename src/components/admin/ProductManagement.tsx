@@ -183,10 +183,14 @@ export function ProductManagement() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          // Open edit dialog through AdminProductCard
+                          // Find and trigger the edit button in the hidden AdminProductCard
                           const adminCard = document.querySelector(`[data-product-id="${product.id}"]`);
-                          const editButton = adminCard?.querySelector('button[aria-label="Edit product"]');
-                          editButton?.click();
+                          if (adminCard) {
+                            const editButton = adminCard.querySelector('button[aria-label="Edit product"]') as HTMLButtonElement;
+                            if (editButton) {
+                              editButton.click();
+                            }
+                          }
                         }}
                       >
                         Edit

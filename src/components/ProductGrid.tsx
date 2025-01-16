@@ -111,7 +111,6 @@ export const ProductGrid = ({
           key={product.id}
           {...product}
           viewMode={viewMode}
-          onUpdate={fetchProducts}
         />
       ))}
     </div>
