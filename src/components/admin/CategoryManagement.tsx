@@ -32,6 +32,12 @@ export function CategoryManagement() {
     e.preventDefault();
     if (!newCategory.trim()) return;
 
+    const session = await supabase.auth.getSession();
+    if (!session.data.session) {
+      toast.error("You must be logged in to manage categories");
+      return;
+    }
+
     try {
       console.log("Adding new category:", newCategory);
       const { error } = await supabase
@@ -43,7 +49,7 @@ export function CategoryManagement() {
         if (error.code === '23505') {
           toast.error("A category with this name already exists");
         } else {
-          toast.error("Failed to add category. Please make sure you're logged in.");
+          toast.error("Failed to add category: " + error.message);
         }
         return;
       }
@@ -58,6 +64,12 @@ export function CategoryManagement() {
   };
 
   const handleDeleteCategory = async (id: string) => {
+    const session = await supabase.auth.getSession();
+    if (!session.data.session) {
+      toast.error("You must be logged in to manage categories");
+      return;
+    }
+
     try {
       console.log("Deleting category:", id);
       const { error } = await supabase
@@ -67,7 +79,7 @@ export function CategoryManagement() {
 
       if (error) {
         console.error("Error deleting category:", error);
-        toast.error("Failed to delete category. Please make sure you're logged in.");
+        toast.error("Failed to delete category: " + error.message);
         return;
       }
 
