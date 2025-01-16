@@ -496,7 +496,7 @@ export function ProductManagement() {
                         />
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.categories?.join(', ') || '-'}</TableCell>
+                      <TableCell>{(product.categories || []).join(' ')}</TableCell>
                       <TableCell>{product.strain || '-'}</TableCell>
                       <TableCell>{product.stock || '0'}</TableCell>
                       <TableCell>{formatPrice(product.regular_price)}</TableCell>
