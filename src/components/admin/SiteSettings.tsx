@@ -68,13 +68,20 @@ export function SiteSettings() {
 
       if (error) throw error;
       
-      // Parse the pwa_icons JSON into the correct type
       if (data) {
-        const parsedData: SiteSettingsType = {
+        // Ensure pwa_icons is properly parsed and typed
+        const parsedIcons = Array.isArray(data.pwa_icons) 
+          ? data.pwa_icons.map((icon: any) => ({
+              src: icon.src || "",
+              sizes: icon.sizes || "",
+              type: icon.type || ""
+            }))
+          : [];
+
+        setSettings({
           ...data,
-          pwa_icons: Array.isArray(data.pwa_icons) ? data.pwa_icons : [],
-        };
-        setSettings(parsedData);
+          pwa_icons: parsedIcons
+        });
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
