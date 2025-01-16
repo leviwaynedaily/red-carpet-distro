@@ -4,7 +4,7 @@ import App from "./App.tsx";
 import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-console.log('Application initialization starting...');
+console.log('Application initialization starting in environment:', import.meta.env.MODE);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,14 +21,17 @@ const queryClient = new QueryClient({
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    console.log('Attempting to register service worker...');
     navigator.serviceWorker.register('/sw.js')
       .then(registration => {
-        console.log('ServiceWorker registration successful');
+        console.log('ServiceWorker registration successful with scope:', registration.scope);
       })
       .catch(err => {
-        console.log('ServiceWorker registration failed: ', err);
+        console.error('ServiceWorker registration failed: ', err);
       });
   });
+} else {
+  console.log('ServiceWorker is not supported in this browser');
 }
 
 console.log('Mounting React application...');
@@ -40,3 +43,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </React.StrictMode>
 );
+
+console.log('React application mounted');
