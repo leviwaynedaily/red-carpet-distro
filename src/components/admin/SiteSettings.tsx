@@ -157,6 +157,15 @@ export function SiteSettings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Get the public URL for the og_image from Supabase storage
+      if (settings.og_image) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('media')
+          .getPublicUrl(settings.og_image.replace(/^.*\/media\//, ''));
+        
+        settings.og_image = publicUrl;
+      }
+
       const { error } = await supabase
         .from("site_settings")
         .update(settings)
@@ -164,6 +173,12 @@ export function SiteSettings() {
 
       if (error) throw error;
       toast.success("Settings updated successfully");
+      
+      // Update meta tags
+      const ogImageMeta = document.querySelector('meta[property="og:image"]');
+      if (ogImageMeta && settings.og_image) {
+        ogImageMeta.setAttribute('content', settings.og_image);
+      }
     } catch (error) {
       console.error("Error updating settings:", error);
       toast.error("Failed to update settings");
