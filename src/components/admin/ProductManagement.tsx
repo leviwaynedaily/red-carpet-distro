@@ -297,6 +297,11 @@ export function ProductManagement() {
     event.target.value = ''; // Reset input
   };
 
+  const getFileNameWithStrain = (type: 'image' | 'video', strain: string) => {
+    const sanitizedStrain = strain?.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'no_strain';
+    return `${sanitizedStrain}_${type}`;
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="products" className="space-y-4">
@@ -391,7 +396,7 @@ export function ProductManagement() {
                           onUploadComplete={setImageUrl}
                           accept="image/*"
                           folderPath={`products/${editingProduct?.id || 'new'}`}
-                          fileName="image"
+                          fileName={getFileNameWithStrain('image', strain)}
                         />
                       </div>
                       <div className="space-y-2">
@@ -403,7 +408,7 @@ export function ProductManagement() {
                           onUploadComplete={setVideoUrl}
                           accept="video/*"
                           folderPath={`products/${editingProduct?.id || 'new'}`}
-                          fileName="video"
+                          fileName={getFileNameWithStrain('video', strain)}
                         />
                       </div>
                     </div>
@@ -567,7 +572,7 @@ export function ProductManagement() {
                       onUploadComplete={(url) => setEditingProduct({ ...editingProduct, image: url })}
                       accept="image/*"
                       folderPath={`products/${editingProduct?.id}`}
-                      fileName="image"
+                      fileName={getFileNameWithStrain('image', editingProduct?.strain || '')}
                     />
                   </div>
                   <div className="space-y-2">
@@ -583,7 +588,7 @@ export function ProductManagement() {
                       onUploadComplete={(url) => setEditingProduct({ ...editingProduct, video_url: url })}
                       accept="video/*"
                       folderPath={`products/${editingProduct?.id}`}
-                      fileName="video"
+                      fileName={getFileNameWithStrain('video', editingProduct?.strain || '')}
                     />
                   </div>
                 </div>
