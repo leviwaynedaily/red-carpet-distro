@@ -171,7 +171,7 @@ export function SiteSettings() {
       const ogUrlMeta = document.querySelector('meta[property="og:url"]');
       
       if (ogImageMeta) {
-        const ogImageUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image`;
+        const ogImageUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.png`;
         console.log('Setting og:image meta tag to:', ogImageUrl);
         ogImageMeta.setAttribute('content', ogImageUrl);
       }
@@ -467,7 +467,7 @@ export function SiteSettings() {
                 <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                   {settings.og_image && (
                     <img
-                      src={`https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image?t=${Date.now()}`}
+                      src={`https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.png`}
                       alt="Open Graph preview"
                       className="w-full h-48 object-cover rounded-md mb-2"
                     />
@@ -479,7 +479,7 @@ export function SiteSettings() {
                       }
                       accept="image/*"
                       folderPath="sitesettings"
-                      fileName="og-image"
+                      fileName="og-image.png"
                     />
                     <p className="text-sm text-muted-foreground mt-2">
                       This image will be displayed when your site is shared on social
