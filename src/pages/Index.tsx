@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AgeVerification } from "@/components/AgeVerification";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Header } from "@/components/Header";
+import { supabase } from "@/integrations/supabase/client";
 
 console.log('Index.tsx: Loading Index component');
 
@@ -14,6 +15,22 @@ const Index = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("");
   const [viewMode, setViewMode] = useState<'small' | 'medium' | 'large'>('small');
+  const [logoUrl, setLogoUrl] = useState("");
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('logo_url')
+        .single();
+      
+      if (!error && data?.logo_url) {
+        setLogoUrl(data.logo_url);
+      }
+    };
+    
+    fetchLogo();
+  }, []);
 
   // Handle sticky header
   useEffect(() => {
@@ -55,12 +72,14 @@ const Index = () => {
       />
       <main className="container py-8">
         <header className={`text-center mb-12 ${isSticky ? 'mt-32' : ''}`}>
-          <img
-            src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
-            alt="Palmtree Smokes"
-            className="w-64 mx-auto mb-8 cursor-pointer"
-            onClick={handleLogoClick}
-          />
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt="Palmtree Smokes"
+              className="w-64 mx-auto mb-8 cursor-pointer"
+              onClick={handleLogoClick}
+            />
+          )}
           <p className="text-gray-600 max-w-2xl mx-auto">
             Welcome to Palmtree Smokes, your premium destination for quality cannabis products.
             Browse our carefully curated selection below.
