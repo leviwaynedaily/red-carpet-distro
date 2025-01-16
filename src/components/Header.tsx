@@ -84,6 +84,8 @@ export const Header = ({
                   <SelectItem value="strain-desc">Strain (Z-A)</SelectItem>
                   <SelectItem value="price-asc">Price (Low to High)</SelectItem>
                   <SelectItem value="price-desc">Price (High to Low)</SelectItem>
+                  <SelectItem value="date-desc">Newest First</SelectItem>
+                  <SelectItem value="date-asc">Oldest First</SelectItem>
                 </SelectContent>
               </Select>
               <Input
