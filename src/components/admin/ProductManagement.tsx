@@ -7,11 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { AdminProductCard } from "./AdminProductCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Upload } from "lucide-react";
+import { LayoutGrid, List, Plus } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { CategoryManagement } from "./CategoryManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FileUpload } from "@/components/ui/file-upload";
 
@@ -321,6 +321,9 @@ export function ProductManagement() {
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Product</DialogTitle>
+                <DialogDescription>
+                  Make changes to your product here. Click save when you're done.
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleEdit} className="space-y-4">
                 <div className="space-y-2">
@@ -338,19 +341,35 @@ export function ProductManagement() {
                     onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Image URL</label>
-                  <Input
-                    value={editingProduct?.image || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Video URL</label>
-                  <Input
-                    value={editingProduct?.video_url || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, video_url: e.target.value })}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Product Image</label>
+                    {editingProduct?.image && (
+                      <img 
+                        src={editingProduct.image} 
+                        alt="Preview" 
+                        className="w-32 h-32 object-cover rounded-md mb-2" 
+                      />
+                    )}
+                    <FileUpload
+                      onUploadComplete={(url) => setEditingProduct({ ...editingProduct, image: url })}
+                      accept="image/*"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Product Video</label>
+                    {editingProduct?.video_url && (
+                      <video 
+                        src={editingProduct.video_url} 
+                        className="w-32 h-32 object-cover rounded-md mb-2" 
+                        controls 
+                      />
+                    )}
+                    <FileUpload
+                      onUploadComplete={(url) => setEditingProduct({ ...editingProduct, video_url: url })}
+                      accept="video/*"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Categories (comma-separated)</label>
