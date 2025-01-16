@@ -78,8 +78,10 @@ export const Header = ({
                   <SelectContent>
                     <SelectItem value="name-asc">Name (A-Z)</SelectItem>
                     <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                    <SelectItem value="potency-asc">Potency (Low to High)</SelectItem>
-                    <SelectItem value="potency-desc">Potency (High to Low)</SelectItem>
+                    <SelectItem value="strain-asc">Strain (A-Z)</SelectItem>
+                    <SelectItem value="strain-desc">Strain (Z-A)</SelectItem>
+                    <SelectItem value="price-asc">Price (Low to High)</SelectItem>
+                    <SelectItem value="price-desc">Price (High to Low)</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input

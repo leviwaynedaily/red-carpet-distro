@@ -44,7 +44,6 @@ export const ProductGrid = ({
         return;
       }
 
-      // Map Supabase data to our Product interface without any default values
       const mappedProducts = data.map((item) => ({
         id: item.id,
         name: item.name,
@@ -82,11 +81,21 @@ export const ProductGrid = ({
 
   // Sort products based on selected option
   const sortedProducts = [...filteredProducts].sort((a, b) => {
+    console.log('Sorting by:', sortBy);
+    
     switch (sortBy) {
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'newest':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case 'name-asc':
+        return (a.name || '').localeCompare(b.name || '');
+      case 'name-desc':
+        return (b.name || '').localeCompare(a.name || '');
+      case 'strain-asc':
+        return (a.strain || '').localeCompare(b.strain || '');
+      case 'strain-desc':
+        return (b.strain || '').localeCompare(a.strain || '');
+      case 'price-asc':
+        return (a.regular_price || 0) - (b.regular_price || 0);
+      case 'price-desc':
+        return (b.regular_price || 0) - (a.regular_price || 0);
       default:
         return 0;
     }
