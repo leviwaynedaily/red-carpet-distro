@@ -9,7 +9,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("");
-  const [viewMode, setViewMode] = useState<'small' | 'medium' | 'large'>('medium');
+  const [viewMode, setViewMode] = useState<'small' | 'medium' | 'large'>('small');
 
   // Check if user is already verified
   useEffect(() => {
