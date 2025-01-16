@@ -1,89 +1,52 @@
 import { useState, useEffect } from "react";
-import { AgeVerification } from "@/components/AgeVerification";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Header } from "@/components/Header";
+import { AgeVerification } from "@/components/AgeVerification";
+import { supabase } from "@/integrations/supabase/client";
 
-const Index = () => {
+export default function Index() {
   const [isVerified, setIsVerified] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("");
-  const [viewMode, setViewMode] = useState<'small' | 'medium' | 'large'>('small');
+  const [isLoading, setIsLoading] = useState(true);
+  const [storefrontPassword, setStorefrontPassword] = useState("");
 
-  // Check if user is already verified
   useEffect(() => {
-    const verified = localStorage.getItem("age-verified");
-    if (verified === "true") {
-      setIsVerified(true);
-    }
-  }, []);
+    const checkVerification = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("site_settings")
+          .select("storefront_password")
+          .single();
 
-  // Handle sticky header
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsSticky(window.scrollY > 100);
+        if (error) throw error;
+        
+        if (data?.storefront_password) {
+          setStorefrontPassword(data.storefront_password);
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching storefront password:", error);
+        setIsLoading(false);
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    checkVerification();
   }, []);
 
-  const handleVerification = () => {
-    localStorage.setItem("age-verified", "true");
-    setIsVerified(true);
-  };
-
-  const handleLogoClick = () => {
-    localStorage.removeItem("age-verified");
-    setIsVerified(false);
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {!isVerified && <AgeVerification onVerified={handleVerification} />}
-      <Header
-        isSticky={isSticky}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        categoryFilter={categoryFilter}
-        onCategoryChange={setCategoryFilter}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-      />
-      <main className="container py-8">
-        <header className={`text-center mb-12 ${isSticky ? 'mt-32' : ''}`}>
-          <img
-            src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
-            alt="Palmtree Smokes"
-            className="w-64 mx-auto mb-8 cursor-pointer"
-            onClick={handleLogoClick}
-          />
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Welcome to Palmtree Smokes, your premium destination for quality cannabis products.
-            Browse our carefully curated selection below.
-          </p>
-        </header>
-        <ProductGrid
-          searchTerm={searchTerm}
-          categoryFilter={categoryFilter}
-          sortBy={sortBy}
-          viewMode={viewMode}
-        />
+    <div className="min-h-screen bg-background">
+      {!isVerified && <AgeVerification onVerified={() => setIsVerified(true)} />}
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <ProductGrid />
       </main>
-      <footer className="bg-white border-t mt-12 py-8">
-        <div className="container text-center text-sm text-gray-600">
-          <p>© 2024 Palmtree Smokes. Must be 21 or older.</p>
-          <p className="mt-2">
-            This product has intoxicating effects and may be habit forming.
-            Marijuana can impair concentration, coordination, and judgment.
-          </p>
-        </div>
-      </footer>
     </div>
   );
-};
-
-export default Index;
+}

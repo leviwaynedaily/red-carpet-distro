@@ -46,7 +46,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-lg animate-fade-up">
         <img
-          src="/lovable-uploads/3da74169-47b0-4693-aad7-82c3df307063.png"
+          src="/lovable-uploads/8755b838-c203-43ef-b4ec-77641be30fce.png"
           alt="Palmtree Smokes Logo"
           className="w-48 mx-auto mb-6"
         />
