@@ -3,8 +3,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-192',
-  'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-512'
+  '/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png'
 ];
 
 self.addEventListener('install', (event) => {
