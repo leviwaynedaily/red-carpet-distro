@@ -68,6 +68,8 @@ const ProductDetails = () => {
     );
   }
 
+  const validCategories = product.categories?.filter(category => category && category.trim()) || [];
+
   return (
     <div className="container py-8">
       <Button
@@ -136,9 +138,9 @@ const ProductDetails = () => {
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-            {product.categories && product.categories.length > 0 && (
+            {validCategories.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
-                {product.categories.map((category: string) => (
+                {validCategories.map((category: string) => (
                   <Badge key={category} variant="secondary">
                     {category}
                   </Badge>
