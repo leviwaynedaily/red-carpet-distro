@@ -12,11 +12,18 @@ export function CategoryManagement() {
   const { data: categories, refetch } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
+      console.log("Fetching categories...");
       const { data, error } = await supabase
         .from("categories")
         .select("*")
         .order("name");
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Error fetching categories:", error);
+        throw error;
+      }
+      
+      console.log("Categories fetched:", data);
       return data;
     },
   });
@@ -26,11 +33,20 @@ export function CategoryManagement() {
     if (!newCategory.trim()) return;
 
     try {
+      console.log("Adding new category:", newCategory);
       const { error } = await supabase
         .from("categories")
         .insert([{ name: newCategory.trim() }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding category:", error);
+        if (error.code === '23505') {
+          toast.error("A category with this name already exists");
+        } else {
+          toast.error("Failed to add category. Please make sure you're logged in.");
+        }
+        return;
+      }
 
       toast.success("Category added successfully");
       setNewCategory("");
@@ -43,12 +59,17 @@ export function CategoryManagement() {
 
   const handleDeleteCategory = async (id: string) => {
     try {
+      console.log("Deleting category:", id);
       const { error } = await supabase
         .from("categories")
         .delete()
         .eq("id", id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting category:", error);
+        toast.error("Failed to delete category. Please make sure you're logged in.");
+        return;
+      }
 
       toast.success("Category deleted successfully");
       refetch();
