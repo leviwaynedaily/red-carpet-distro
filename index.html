@@ -11,12 +11,28 @@
     <meta property="og:url" content="https://palmtreesmokes.netlify.app" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#000000" />
-    <link rel="icon" href="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png" />
+    <link rel="icon" href="" id="favicon" />
   </head>
 
   <body>
     <div id="root"></div>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Fetch site settings and update favicon
+      fetch('https://fwsdoiaodphgyeteafbq.supabase.co/rest/v1/site_settings?select=favicon_url', {
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3c2RvaWFvZHBoZ3lldGVhZmJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUxODU0MDQsImV4cCI6MjA1MDc2MTQwNH0.a8CgvDuAerprMDVKxrp-qdSaJ5aDpdT6F1EusYrtbMc'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data[0]?.favicon_url) {
+          document.getElementById('favicon').href = data[0].favicon_url + '?t=' + Date.now();
+          console.log('Favicon updated to:', data[0].favicon_url);
+        }
+      })
+      .catch(error => console.error('Error fetching favicon:', error));
+    </script>
   </body>
 </html>
