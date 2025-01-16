@@ -86,6 +86,7 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          admin_password: string | null
           created_at: string
           favicon_url: string | null
           font_family: string | null
@@ -94,12 +95,20 @@ export type Database = {
           primary_color: string | null
           pwa_background_color: string | null
           pwa_description: string | null
+          pwa_display: string | null
+          pwa_icons: Json | null
           pwa_name: string | null
+          pwa_orientation: string | null
+          pwa_scope: string | null
+          pwa_short_name: string | null
+          pwa_start_url: string | null
           pwa_theme_color: string | null
           secondary_color: string | null
+          storefront_password: string | null
           updated_at: string
         }
         Insert: {
+          admin_password?: string | null
           created_at?: string
           favicon_url?: string | null
           font_family?: string | null
@@ -108,12 +117,20 @@ export type Database = {
           primary_color?: string | null
           pwa_background_color?: string | null
           pwa_description?: string | null
+          pwa_display?: string | null
+          pwa_icons?: Json | null
           pwa_name?: string | null
+          pwa_orientation?: string | null
+          pwa_scope?: string | null
+          pwa_short_name?: string | null
+          pwa_start_url?: string | null
           pwa_theme_color?: string | null
           secondary_color?: string | null
+          storefront_password?: string | null
           updated_at?: string
         }
         Update: {
+          admin_password?: string | null
           created_at?: string
           favicon_url?: string | null
           font_family?: string | null
@@ -122,9 +139,16 @@ export type Database = {
           primary_color?: string | null
           pwa_background_color?: string | null
           pwa_description?: string | null
+          pwa_display?: string | null
+          pwa_icons?: Json | null
           pwa_name?: string | null
+          pwa_orientation?: string | null
+          pwa_scope?: string | null
+          pwa_short_name?: string | null
+          pwa_start_url?: string | null
           pwa_theme_color?: string | null
           secondary_color?: string | null
+          storefront_password?: string | null
           updated_at?: string
         }
         Relationships: []
