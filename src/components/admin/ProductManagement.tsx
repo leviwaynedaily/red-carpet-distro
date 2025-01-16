@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { AdminProductCard } from "./AdminProductCard";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { LayoutGrid, List } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 export function ProductManagement() {
   const [name, setName] = useState("");
@@ -14,6 +17,7 @@ export function ProductManagement() {
   const [categories, setCategories] = useState("");
   const [strain, setStrain] = useState("");
   const [potency, setPotency] = useState("");
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   const { data: products, refetch } = useQuery({
     queryKey: ["products"],
@@ -67,6 +71,14 @@ export function ProductManagement() {
     }
   };
 
+  const formatPrice = (price: number | null) => {
+    if (price === null) return '-';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
+  };
+
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -104,22 +116,108 @@ export function ProductManagement() {
         <Button type="submit">Add Product</Button>
       </form>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex justify-end space-x-2">
+        <Toggle
+          pressed={viewMode === 'grid'}
+          onPressedChange={() => setViewMode('grid')}
+          aria-label="Grid view"
+        >
+          <LayoutGrid className="h-4 w-4" />
+        </Toggle>
+        <Toggle
+          pressed={viewMode === 'table'}
+          onPressedChange={() => setViewMode('table')}
+          aria-label="Table view"
+        >
+          <List className="h-4 w-4" />
+        </Toggle>
+      </div>
+
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {products?.map((product) => (
+            <AdminProductCard
+              key={product.id}
+              {...product}
+              image={product.image_url || "/placeholder.svg"}
+              categories={product.categories || []}
+              onUpdate={refetch}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Image</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Categories</TableHead>
+                <TableHead>Strain</TableHead>
+                <TableHead>Potency</TableHead>
+                <TableHead>Stock</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {products?.map((product) => (
+                <TableRow key={product.id}>
+                  <TableCell>
+                    <img
+                      src={product.image_url || "/placeholder.svg"}
+                      alt={product.name}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell>{product.categories?.join(', ') || '-'}</TableCell>
+                  <TableCell>{product.strain || '-'}</TableCell>
+                  <TableCell>{product.potency || '-'}</TableCell>
+                  <TableCell>{product.stock || '0'}</TableCell>
+                  <TableCell>{formatPrice(product.regular_price)}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Open edit dialog through AdminProductCard
+                          const adminCard = document.querySelector(`[data-product-id="${product.id}"]`);
+                          const editButton = adminCard?.querySelector('button[aria-label="Edit product"]');
+                          editButton?.click();
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(product.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      {/* Hidden AdminProductCards for edit functionality */}
+      <div className="hidden">
         {products?.map((product) => (
           <AdminProductCard
             key={product.id}
-            id={product.id}
-            name={product.name}
-            description={product.description}
+            {...product}
             image={product.image_url || "/placeholder.svg"}
             categories={product.categories || []}
-            strain={product.strain}
-            potency={product.potency}
-            stock={product.stock}
-            regular_price={product.regular_price}
-            shipping_price={product.shipping_price}
             onUpdate={refetch}
             onDelete={handleDelete}
+            data-product-id={product.id}
           />
         ))}
       </div>

@@ -21,6 +21,7 @@ interface AdminProductCardProps {
   shipping_price?: number;
   onUpdate: () => void;
   onDelete: (id: string) => void;
+  'data-product-id'?: string;
 }
 
 export const AdminProductCard = ({
@@ -36,6 +37,7 @@ export const AdminProductCard = ({
   shipping_price,
   onUpdate,
   onDelete,
+  'data-product-id': dataProductId,
 }: AdminProductCardProps) => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -81,7 +83,10 @@ export const AdminProductCard = ({
 
   return (
     <>
-      <Card className="overflow-hidden">
+      <Card 
+        className="overflow-hidden"
+        data-product-id={dataProductId}
+      >
         <CardHeader className="p-0 relative aspect-square">
           <img
             src={image}
