@@ -311,8 +311,13 @@ export function ProductManagement() {
 
       if (!currentUrl) return;
 
-      // Extract the file path from the URL
-      const filePath = `products/${editingProduct.id}/${getFileNameWithStrain(type, editingProduct.strain || '')}`;
+      console.log('Deleting media:', { type, currentUrl });
+
+      // Get the path from the URL by removing the storage URL part
+      const storageUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media/`;
+      const filePath = currentUrl.replace(storageUrl, '');
+
+      console.log('Extracted file path:', filePath);
 
       // Delete the file from storage
       const { error: storageError } = await supabase.storage
@@ -323,6 +328,8 @@ export function ProductManagement() {
         console.error(`Error deleting ${type}:`, storageError);
         throw storageError;
       }
+
+      console.log('File deleted from storage, updating database...');
 
       // Update the product in the database
       const { error: updateError } = await supabase
@@ -339,6 +346,7 @@ export function ProductManagement() {
       });
 
       toast.success(`${type === 'image' ? 'Image' : 'Video'} deleted successfully`);
+      refetch(); // Refresh the products list
     } catch (error) {
       console.error(`Error deleting ${type}:`, error);
       toast.error(`Failed to delete ${type}`);
