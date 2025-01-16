@@ -2,14 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Play, X, Image, Edit } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Play, X, Image } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Toggle } from "@/components/ui/toggle";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface ProductCardProps {
   id: string;
@@ -24,7 +20,6 @@ interface ProductCardProps {
   regular_price?: number;
   shipping_price?: number;
   viewMode: 'small' | 'medium' | 'large';
-  onUpdate?: () => void;
 }
 
 export const ProductCard = ({
@@ -40,42 +35,11 @@ export const ProductCard = ({
   regular_price,
   shipping_price,
   viewMode,
-  onUpdate,
 }: ProductCardProps) => {
   const navigate = useNavigate();
   const [showMedia, setShowMedia] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [editForm, setEditForm] = useState({
-    name,
-    description,
-    image,
-    categories: categories.join(", "),
-    strain,
-    potency,
-    stock,
-    regular_price,
-    shipping_price,
-  });
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: roles } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single();
-        
-        setIsAdmin(roles?.role === 'admin');
-      }
-    };
-
-    checkAdminStatus();
-  }, []);
 
   const handleMediaClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -92,35 +56,6 @@ export const ProductCard = ({
   const toggleMediaType = () => {
     setShowVideo(!showVideo);
     setIsPlaying(!showVideo);
-  };
-
-  const handleEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const { error } = await supabase
-        .from('products')
-        .update({
-          name: editForm.name,
-          description: editForm.description,
-          image_url: editForm.image,
-          categories: editForm.categories.split(",").map(c => c.trim()),
-          strain: editForm.strain,
-          potency: editForm.potency,
-          stock: editForm.stock,
-          regular_price: editForm.regular_price,
-          shipping_price: editForm.shipping_price,
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast.success("Product updated successfully");
-      setShowEditDialog(false);
-      if (onUpdate) onUpdate();
-    } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error("Failed to update product");
-    }
   };
 
   const cardClasses = {
@@ -177,19 +112,6 @@ export const ProductCard = ({
                 onClick={handleMediaClick}
               >
                 <Play className="h-3 w-3" />
-              </Button>
-            )}
-            {isAdmin && (
-              <Button
-                size="icon"
-                variant="secondary"
-                className="rounded-full w-6 h-6"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowEditDialog(true);
-                }}
-              >
-                <Edit className="h-3 w-3" />
               </Button>
             )}
           </div>
@@ -272,95 +194,6 @@ export const ProductCard = ({
           )}
         </DialogContent>
       </Dialog>
-
-      {isAdmin && (
-        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Product</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleEdit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
-                <Input
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Image URL</label>
-                <Input
-                  value={editForm.image}
-                  onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Categories (comma-separated)</label>
-                <Input
-                  value={editForm.categories}
-                  onChange={(e) => setEditForm({ ...editForm, categories: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Strain</label>
-                <Input
-                  value={editForm.strain}
-                  onChange={(e) => setEditForm({ ...editForm, strain: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Potency</label>
-                <Input
-                  value={editForm.potency}
-                  onChange={(e) => setEditForm({ ...editForm, potency: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Stock</label>
-                <Input
-                  type="number"
-                  value={editForm.stock}
-                  onChange={(e) => setEditForm({ ...editForm, stock: Number(e.target.value) })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Regular Price</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={editForm.regular_price}
-                  onChange={(e) => setEditForm({ ...editForm, regular_price: Number(e.target.value) })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Shipping Price</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={editForm.shipping_price}
-                  onChange={(e) => setEditForm({ ...editForm, shipping_price: Number(e.target.value) })}
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  Save Changes
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      )}
     </>
   );
 };

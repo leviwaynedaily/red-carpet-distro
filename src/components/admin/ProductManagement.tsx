@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { AdminProductCard } from "./AdminProductCard";
 
 export function ProductManagement() {
   const [name, setName] = useState("");
@@ -105,28 +106,21 @@ export function ProductManagement() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {products?.map((product) => (
-          <div
+          <AdminProductCard
             key={product.id}
-            className="border rounded-lg p-4 space-y-2"
-          >
-            <img
-              src={product.image_url || "/placeholder.svg"}
-              alt={product.name}
-              className="w-full h-48 object-cover rounded"
-            />
-            <h3 className="font-bold">{product.name}</h3>
-            <p className="text-sm text-gray-600">{product.description}</p>
-            <div className="flex justify-between items-center">
-              <span className="text-sm">{product.strain}</span>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleDelete(product.id)}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
+            id={product.id}
+            name={product.name}
+            description={product.description}
+            image={product.image_url || "/placeholder.svg"}
+            categories={product.categories || []}
+            strain={product.strain}
+            potency={product.potency}
+            stock={product.stock}
+            regular_price={product.regular_price}
+            shipping_price={product.shipping_price}
+            onUpdate={refetch}
+            onDelete={handleDelete}
+          />
         ))}
       </div>
     </div>
