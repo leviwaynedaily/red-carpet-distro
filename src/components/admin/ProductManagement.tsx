@@ -82,6 +82,12 @@ export function ProductManagement() {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      console.log('Editing product with values:', {
+        stock: editingProduct.stock,
+        regular_price: editingProduct.regular_price,
+        shipping_price: editingProduct.shipping_price
+      });
+      
       const { error } = await supabase
         .from("products")
         .update({
@@ -92,9 +98,9 @@ export function ProductManagement() {
           categories: editingProduct.categories.split(",").map((c: string) => c.trim()),
           strain: editingProduct.strain,
           potency: editingProduct.potency,
-          stock: editingProduct.stock !== "" ? Number(editingProduct.stock) : null,
-          regular_price: editingProduct.regular_price !== "" ? Number(editingProduct.regular_price) : null,
-          shipping_price: editingProduct.shipping_price !== "" ? Number(editingProduct.shipping_price) : null,
+          stock: editingProduct.stock === "" ? null : Number(editingProduct.stock),
+          regular_price: editingProduct.regular_price === "" ? null : Number(editingProduct.regular_price),
+          shipping_price: editingProduct.shipping_price === "" ? null : Number(editingProduct.shipping_price),
         })
         .eq("id", editingProduct.id);
 
