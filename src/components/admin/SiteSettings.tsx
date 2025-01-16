@@ -42,6 +42,8 @@ type SiteSettingsType = {
   og_url: string;
 };
 
+const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
+
 export function SiteSettings() {
   const [settings, setSettings] = useState<SiteSettingsType>({
     id: "",
