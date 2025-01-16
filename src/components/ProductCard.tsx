@@ -41,6 +41,9 @@ export const ProductCard = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
 
+  // Filter out any empty categories
+  const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
+
   const handleMediaClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowMedia(true);
@@ -119,11 +122,11 @@ export const ProductCard = ({
           )}
         </CardHeader>
         <CardContent className={contentClasses[viewMode]}>
-          {categories && categories.length > 0 && (
+          {validCategories.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
-              {categories.map((category) => (
+              {validCategories.map((category) => (
                 <Badge key={category} variant="secondary" className="text-xs">
-                  {category}
+                  {category.trim()}
                 </Badge>
               ))}
             </div>
