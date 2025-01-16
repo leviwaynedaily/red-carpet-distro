@@ -9,7 +9,6 @@ interface AdminProductCardProps {
   image: string;
   categories: string[];
   strain?: string;
-  potency?: string;
   stock?: number;
   regular_price?: number;
   shipping_price?: number;
@@ -26,7 +25,6 @@ export const AdminProductCard = ({
   image,
   categories,
   strain,
-  potency,
   stock,
   regular_price,
   shipping_price,
@@ -68,10 +66,9 @@ export const AdminProductCard = ({
       </CardHeader>
       <CardContent className="p-4">
         <h3 className="font-bold truncate">{name}</h3>
-        <p className="text-sm text-gray-600 line-clamp-2 mt-1">{description}</p>
+        <p className="text-sm text-gray-600 line-clamp-2 mt-1" dangerouslySetInnerHTML={{ __html: description.replace(/,/g, ', ') }} />
         <div className="mt-2 space-y-1 text-sm text-gray-600">
           {strain && <div>Strain: {strain}</div>}
-          {potency && <div>THC: {potency}</div>}
           {stock !== undefined && <div>Stock: {stock}</div>}
           {regular_price !== undefined && <div>Price: ${regular_price}</div>}
           {shipping_price !== undefined && <div>Shipping: ${shipping_price}</div>}
