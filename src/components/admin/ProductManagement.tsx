@@ -11,10 +11,9 @@ import { LayoutGrid, List, Plus } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { CategoryManagement } from "./CategoryManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FileUpload } from "@/components/ui/file-upload";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function ProductManagement() {
   const isMobile = useIsMobile();
@@ -30,6 +29,7 @@ export function ProductManagement() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>(isMobile ? 'grid' : 'table');
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   const { data: products, refetch } = useQuery({
     queryKey: ["products"],
@@ -70,6 +70,7 @@ export function ProductManagement() {
 
       toast.success("Product added successfully");
       refetch();
+      setShowAddDialog(false);
       // Reset form
       setName("");
       setDescription("");
@@ -183,104 +184,126 @@ export function ProductManagement() {
         </TabsContent>
 
         <TabsContent value="products" className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                placeholder="Product Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-              <Input
-                placeholder="Strain"
-                value={strain}
-                onChange={(e) => setStrain(e.target.value)}
-              />
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Categories</label>
-                <div className="flex flex-wrap gap-2">
-                  {categories?.map((category) => (
-                    <Button
-                      key={category.id}
-                      type="button"
-                      variant={selectedCategories.includes(category.name) ? "default" : "outline"}
-                      onClick={() => handleCategoryToggle(category.name)}
-                    >
-                      {category.name}
+          <div className="flex justify-between items-center">
+            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Product
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add New Product</DialogTitle>
+                  <DialogDescription>
+                    Fill in the product details below.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      placeholder="Product Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                    <Input
+                      placeholder="Strain"
+                      value={strain}
+                      onChange={(e) => setStrain(e.target.value)}
+                    />
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Categories</label>
+                      <div className="flex flex-wrap gap-2">
+                        {categories?.map((category) => (
+                          <Button
+                            key={category.id}
+                            type="button"
+                            variant={selectedCategories.includes(category.name) ? "default" : "outline"}
+                            onClick={() => handleCategoryToggle(category.name)}
+                          >
+                            {category.name}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <Input
+                      type="number"
+                      placeholder="Stock (optional)"
+                      value={stock === null ? "" : stock}
+                      onChange={(e) => setStock(e.target.value === "" ? null : Number(e.target.value))}
+                    />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Regular Price (optional)"
+                      value={regularPrice === null ? "" : regularPrice}
+                      onChange={(e) => setRegularPrice(e.target.value === "" ? null : Number(e.target.value))}
+                    />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Shipping Price (optional)"
+                      value={shippingPrice === null ? "" : shippingPrice}
+                      onChange={(e) => setShippingPrice(e.target.value === "" ? null : Number(e.target.value))}
+                    />
+                  </div>
+                  <Textarea
+                    placeholder="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="min-h-[100px]"
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Product Image</label>
+                      {imageUrl && (
+                        <img src={imageUrl} alt="Preview" className="w-32 h-32 object-cover rounded-md mb-2" />
+                      )}
+                      <FileUpload
+                        onUploadComplete={setImageUrl}
+                        accept="image/*"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Product Video</label>
+                      {videoUrl && (
+                        <video src={videoUrl} className="w-32 h-32 object-cover rounded-md mb-2" controls />
+                      )}
+                      <FileUpload
+                        onUploadComplete={setVideoUrl}
+                        accept="video/*"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
+                      Cancel
                     </Button>
-                  ))}
-                </div>
-              </div>
-              <Input
-                type="number"
-                placeholder="Stock (optional)"
-                value={stock === null ? "" : stock}
-                onChange={(e) => setStock(e.target.value === "" ? null : Number(e.target.value))}
-              />
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="Regular Price (optional)"
-                value={regularPrice === null ? "" : regularPrice}
-                onChange={(e) => setRegularPrice(e.target.value === "" ? null : Number(e.target.value))}
-              />
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="Shipping Price (optional)"
-                value={shippingPrice === null ? "" : shippingPrice}
-                onChange={(e) => setShippingPrice(e.target.value === "" ? null : Number(e.target.value))}
-              />
-            </div>
-            <Textarea
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="min-h-[100px]"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Product Image</label>
-                {imageUrl && (
-                  <img src={imageUrl} alt="Preview" className="w-32 h-32 object-cover rounded-md mb-2" />
-                )}
-                <FileUpload
-                  onUploadComplete={setImageUrl}
-                  accept="image/*"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Product Video</label>
-                {videoUrl && (
-                  <video src={videoUrl} className="w-32 h-32 object-cover rounded-md mb-2" controls />
-                )}
-                <FileUpload
-                  onUploadComplete={setVideoUrl}
-                  accept="video/*"
-                />
-              </div>
-            </div>
-            <Button type="submit" className="w-full">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Product
-            </Button>
-          </form>
+                    <Button type="submit">
+                      Add Product
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
 
-          <div className="flex justify-end space-x-2">
-            <Toggle
-              pressed={viewMode === 'grid'}
-              onPressedChange={() => setViewMode('grid')}
-              aria-label="Grid view"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Toggle>
-            <Toggle
-              pressed={viewMode === 'table'}
-              onPressedChange={() => setViewMode('table')}
-              aria-label="Table view"
-            >
-              <List className="h-4 w-4" />
-            </Toggle>
+            <div className="flex space-x-2">
+              <Toggle
+                pressed={viewMode === 'grid'}
+                onPressedChange={() => setViewMode('grid')}
+                aria-label="Grid view"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Toggle>
+              <Toggle
+                pressed={viewMode === 'table'}
+                onPressedChange={() => setViewMode('table')}
+                aria-label="Table view"
+              >
+                <List className="h-4 w-4" />
+              </Toggle>
+            </div>
           </div>
 
           {viewMode === 'grid' ? (
