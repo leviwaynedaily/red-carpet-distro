@@ -6,8 +6,35 @@ import { toast } from "sonner";
 import { FileUpload } from "@/components/ui/file-upload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+type PWAIcon = {
+  src: string;
+  sizes: string;
+  type: string;
+};
+
+type SiteSettingsType = {
+  id: string;
+  logo_url: string;
+  favicon_url: string;
+  pwa_name: string;
+  pwa_description: string;
+  pwa_theme_color: string;
+  pwa_background_color: string;
+  primary_color: string;
+  secondary_color: string;
+  font_family: string;
+  storefront_password: string;
+  admin_password: string;
+  pwa_short_name: string;
+  pwa_display: string;
+  pwa_orientation: string;
+  pwa_scope: string;
+  pwa_start_url: string;
+  pwa_icons: PWAIcon[];
+};
+
 export function SiteSettings() {
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SiteSettingsType>({
     id: "",
     logo_url: "",
     favicon_url: "",
@@ -25,7 +52,7 @@ export function SiteSettings() {
     pwa_orientation: "portrait",
     pwa_scope: "/",
     pwa_start_url: "/",
-    pwa_icons: [] as { src: string; sizes: string; type: string }[],
+    pwa_icons: [],
   });
 
   useEffect(() => {
@@ -40,7 +67,15 @@ export function SiteSettings() {
         .single();
 
       if (error) throw error;
-      if (data) setSettings(data);
+      
+      // Parse the pwa_icons JSON into the correct type
+      if (data) {
+        const parsedData: SiteSettingsType = {
+          ...data,
+          pwa_icons: Array.isArray(data.pwa_icons) ? data.pwa_icons : [],
+        };
+        setSettings(parsedData);
+      }
     } catch (error) {
       console.error("Error fetching settings:", error);
       toast.error("Failed to load settings");
