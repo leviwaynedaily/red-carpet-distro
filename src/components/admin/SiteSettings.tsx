@@ -65,7 +65,6 @@ export function SiteSettings() {
   }, []);
 
   useEffect(() => {
-    // Update colors whenever they change
     updateRootColors({
       primary: settings.primary_color,
       secondary: settings.secondary_color,
@@ -112,12 +111,35 @@ export function SiteSettings() {
     const { name, value } = e.target;
     setSettings((prev) => ({ ...prev, [name]: value }));
     
-    // Show a preview of the color change
     if (name.includes('color')) {
       toast.success('Color updated! Save to make permanent.', {
         description: `${name.replace('_', ' ')} changed to ${value}`,
       });
     }
+  };
+
+  const handlePWAIconUpload = (url: string, size: number) => {
+    const newIcons = Array.isArray(settings.pwa_icons) ? [...settings.pwa_icons] : [];
+    const iconIndex = newIcons.findIndex(icon => icon.sizes === `${size}x${size}`);
+    
+    const newIcon = {
+      src: url,
+      sizes: `${size}x${size}`,
+      type: "image/png"
+    };
+
+    if (iconIndex !== -1) {
+      newIcons[iconIndex] = newIcon;
+    } else {
+      newIcons.push(newIcon);
+    }
+
+    setSettings(prev => ({
+      ...prev,
+      pwa_icons: newIcons
+    }));
+
+    toast.success(`${size}x${size} icon updated successfully`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -279,64 +301,33 @@ export function SiteSettings() {
           </div>
         </TabsContent>
 
-        <TabsContent value="pwa">
+        <TabsContent value="pwa" className="space-y-6">
           <div className="space-y-4">
-            <Label htmlFor="pwa_name">PWA Name</Label>
-            <Input
-              id="pwa_name"
-              name="pwa_name"
-              value={settings.pwa_name || ""}
-              onChange={handleColorChange}
-              placeholder="Enter PWA name"
-            />
-            <Label htmlFor="pwa_short_name">PWA Short Name</Label>
-            <Input
-              id="pwa_short_name"
-              name="pwa_short_name"
-              value={settings.pwa_short_name || ""}
-              onChange={handleColorChange}
-              placeholder="Enter PWA short name"
-            />
-            <Label htmlFor="pwa_description">PWA Description</Label>
-            <Input
-              id="pwa_description"
-              name="pwa_description"
-              value={settings.pwa_description || ""}
-              onChange={handleColorChange}
-              placeholder="Enter PWA description"
-            />
-            <Label htmlFor="pwa_display">Display Mode</Label>
-            <Input
-              id="pwa_display"
-              name="pwa_display"
-              value={settings.pwa_display || ""}
-              onChange={handleColorChange}
-              placeholder="Enter display mode (e.g., standalone, fullscreen)"
-            />
-            <Label htmlFor="pwa_orientation">Orientation</Label>
-            <Input
-              id="pwa_orientation"
-              name="pwa_orientation"
-              value={settings.pwa_orientation || ""}
-              onChange={handleColorChange}
-              placeholder="Enter orientation (e.g., portrait, landscape)"
-            />
-            <Label htmlFor="pwa_scope">Scope</Label>
-            <Input
-              id="pwa_scope"
-              name="pwa_scope"
-              value={settings.pwa_scope || ""}
-              onChange={handleColorChange}
-              placeholder="Enter PWA scope (e.g., /)"
-            />
-            <Label htmlFor="pwa_start_url">Start URL</Label>
-            <Input
-              id="pwa_start_url"
-              name="pwa_start_url"
-              value={settings.pwa_start_url || ""}
-              onChange={handleColorChange}
-              placeholder="Enter start URL (e.g., /)"
-            />
+            <h3 className="text-lg font-medium">PWA Icons</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {PWA_ICON_SIZES.map((size) => {
+                const currentIcon = settings.pwa_icons?.find(
+                  (icon) => icon.sizes === `${size}x${size}`
+                );
+                
+                return (
+                  <div key={size} className="space-y-2">
+                    <Label>{size}x{size} Icon</Label>
+                    {currentIcon?.src && (
+                      <img 
+                        src={currentIcon.src} 
+                        alt={`${size}x${size} icon`} 
+                        className="w-16 h-16 object-contain rounded-md mb-2"
+                      />
+                    )}
+                    <FileUpload
+                      onUploadComplete={(url) => handlePWAIconUpload(url, size)}
+                      accept="image/png"
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </TabsContent>
       </Tabs>
