@@ -19,6 +19,7 @@ interface ProductCardProps {
   regular_price?: number;
   shipping_price?: number;
   viewMode: 'small' | 'medium' | 'large';
+  primary_media_type?: string;
 }
 
 export const ProductCard = ({
@@ -33,6 +34,7 @@ export const ProductCard = ({
   regular_price,
   shipping_price,
   viewMode,
+  primary_media_type,
 }: ProductCardProps) => {
   const navigate = useNavigate();
   const [showMedia, setShowMedia] = useState(false);
@@ -103,7 +105,7 @@ export const ProductCard = ({
               loading="lazy"
             />
           )}
-          {video && (
+          {video && primary_media_type === 'video' && (
             <div className="absolute bottom-2 right-2 flex gap-2">
               <Button
                 size="icon"
