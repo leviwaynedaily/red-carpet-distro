@@ -11,6 +11,9 @@ interface Product {
   categories: string[];
   strain?: string;
   potency?: string;
+  stock?: number;
+  regular_price?: number;
+  shipping_price?: number;
   created_at: string;
   updated_at: string;
 }
@@ -43,16 +46,19 @@ export const ProductGrid = ({
           return;
         }
 
-        // Map Supabase data to our Product interface
+        // Map Supabase data to our Product interface with sample data
         const mappedProducts = data.map((item, index) => ({
           id: item.id,
-          name: item.name,
-          description: item.description || '',
-          image: item.image_url || '',
-          video: index === 0 ? "https://static.videezy.com/system/resources/previews/000/000/168/original/Record.mp4" : item.video_url,
-          categories: item.categories || [],
-          strain: item.strain || '',
-          potency: item.potency || '',
+          name: item.name || 'Premium Cannabis Product',
+          description: item.description || 'This premium-grade cannabis product offers a unique blend of flavors and effects, perfect for both recreational and medicinal use.',
+          image: item.image_url || 'https://images.unsplash.com/photo-1503262028195-93c528f03218',
+          video: index === 0 ? "https://static.videezy.com/system/resources/previews/000/000/168/original/Record.mp4" : undefined,
+          categories: item.categories || ['Indica', 'Premium', 'Organic'],
+          strain: item.strain || 'Purple Haze',
+          potency: item.potency || '18% THC',
+          stock: item.stock || Math.floor(Math.random() * 50) + 1,
+          regular_price: item.regular_price || (Math.random() * 100 + 20).toFixed(2),
+          shipping_price: Math.random() > 0.5 ? (Math.random() * 10 + 5).toFixed(2) : 0,
           created_at: item.created_at,
           updated_at: item.updated_at
         }));
