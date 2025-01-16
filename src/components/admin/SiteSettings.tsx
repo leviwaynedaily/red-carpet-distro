@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 export function SiteSettings() {
   const [settings, setSettings] = useState({
+    id: "",
     logo_url: "",
     favicon_url: "",
     pwa_name: "",
