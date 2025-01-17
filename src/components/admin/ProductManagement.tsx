@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LayoutGrid, List } from "lucide-react";
+import { Edit, List, LayoutGrid, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -137,7 +137,7 @@ export function ProductManagement() {
                 <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Categories</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -157,22 +157,27 @@ export function ProductManagement() {
                   <TableCell>
                     {product.categories?.join(", ")}
                   </TableCell>
-                  <TableCell>
-                    <AdminProductCard
-                      id={product.id}
-                      name={product.name}
-                      description={product.description || ""}
-                      image={product.image_url || ""}
-                      categories={product.categories || []}
-                      strain={product.strain}
-                      stock={product.stock}
-                      regular_price={product.regular_price}
-                      shipping_price={product.shipping_price}
-                      onUpdate={fetchProducts}
-                      onDelete={handleDeleteProduct}
-                      onEdit={() => {}}
-                      data-product-id={product.id}
-                    />
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="h-8 w-8"
+                        onClick={() => {}}
+                        aria-label="Edit product"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="h-8 w-8"
+                        onClick={() => handleDeleteProduct(product.id)}
+                        aria-label="Delete product"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
