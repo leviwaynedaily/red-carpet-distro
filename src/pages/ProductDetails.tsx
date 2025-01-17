@@ -69,6 +69,7 @@ const ProductDetails = () => {
   }
 
   const validCategories = product.categories?.filter(category => category && category.trim()) || [];
+  const hasMultipleMedia = product.image_url && product.video_url;
 
   return (
     <div className="container py-8">
@@ -126,7 +127,7 @@ const ProductDetails = () => {
                 </CarouselItem>
               )}
             </CarouselContent>
-            {(product.image_url || product.video_url) && (
+            {hasMultipleMedia && (
               <>
                 <CarouselPrevious className="left-2" />
                 <CarouselNext className="right-2" />
