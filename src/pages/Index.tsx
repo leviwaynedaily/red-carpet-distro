@@ -17,6 +17,7 @@ const Index = () => {
   const [showDescription, setShowDescription] = useState(true);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [siteDescription, setSiteDescription] = useState<string>("");
+  const [isVerified, setIsVerified] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -25,7 +26,7 @@ const Index = () => {
     queryFn: async () => {
       const { data, error } = await supabase.from('products').select('*');
       if (error) throw error;
-      return data as Tables["products"]["Row"][];
+      return data as Tables<"products">["Row"][];
     }
   });
 
@@ -84,9 +85,13 @@ const Index = () => {
     setSelectedCategories(categories);
   };
 
+  const handleVerification = () => {
+    setIsVerified(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <AgeVerification />
+      {!isVerified && <AgeVerification onVerified={handleVerification} />}
       <main className="container">
         {(showLogo || showDescription) && (
           <header className={`text-center mb-8 ${isSticky ? 'mt-36' : 'mt-2'} hidden sm:block`}>
@@ -103,12 +108,10 @@ const Index = () => {
           </header>
         )}
         <ProductGrid
-          products={filteredProducts || []}
-          isLoading={isLoading}
-          error={error}
-          categories={categories}
-          selectedCategories={selectedCategories}
-          onCategoryChange={handleCategoryChange}
+          searchTerm=""
+          categoryFilter="all"
+          sortBy="name-asc"
+          viewMode="medium"
         />
       </main>
     </div>
