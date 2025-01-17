@@ -45,6 +45,8 @@ type SiteSettingsType = {
   show_site_logo: boolean;
   show_site_description: boolean;
   site_description: string;
+  header_color: string;
+  header_opacity: number;
 };
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -78,6 +80,8 @@ export function SiteSettings() {
     show_site_logo: true,
     show_site_description: true,
     site_description: "Welcome to Palmtree Smokes, your premium destination for quality cannabis products. Browse our carefully curated selection below.",
+    header_color: "#FFFFFF",
+    header_opacity: 1.0,
   });
 
   useEffect(() => {
@@ -138,28 +142,13 @@ export function SiteSettings() {
     }
   };
 
-  const handlePWAIconUpload = (url: string, size: number) => {
-    const newIcons = Array.isArray(settings.pwa_icons) ? [...settings.pwa_icons] : [];
-    const iconIndex = newIcons.findIndex(icon => icon.sizes === `${size}x${size}`);
+  const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setSettings(prev => ({ ...prev, header_opacity: value }));
     
-    const newIcon = {
-      src: url,
-      sizes: `${size}x${size}`,
-      type: "image/png"
-    };
-
-    if (iconIndex !== -1) {
-      newIcons[iconIndex] = newIcon;
-    } else {
-      newIcons.push(newIcon);
-    }
-
-    setSettings(prev => ({
-      ...prev,
-      pwa_icons: newIcons
-    }));
-
-    toast.success(`${size}x${size} icon updated successfully`);
+    toast.success('Opacity updated! Save to make permanent.', {
+      description: `Header opacity changed to ${value}`,
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -281,6 +270,43 @@ export function SiteSettings() {
                       {settings.pwa_background_color}
                     </span>
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="header_color">Header Color</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="header_color"
+                    name="header_color"
+                    type="color"
+                    value={settings.header_color}
+                    onChange={handleColorChange}
+                    className="w-20 h-10"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {settings.header_color}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="header_opacity">Header Opacity</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="header_opacity"
+                    name="header_opacity"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={settings.header_opacity}
+                    onChange={handleOpacityChange}
+                    className="w-full"
+                  />
+                  <span className="text-sm text-muted-foreground w-12">
+                    {Math.round(settings.header_opacity * 100)}%
+                  </span>
                 </div>
               </div>
 

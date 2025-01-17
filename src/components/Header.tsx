@@ -30,6 +30,28 @@ export const Header = ({
   onLogoClick,
 }: HeaderProps) => {
   const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
+  const [headerColor, setHeaderColor] = useState('#FFFFFF');
+  const [headerOpacity, setHeaderOpacity] = useState(1);
+
+  useEffect(() => {
+    const fetchHeaderSettings = async () => {
+      try {
+        const { data: settings } = await supabase
+          .from('site_settings')
+          .select('header_color, header_opacity')
+          .single();
+        
+        if (settings) {
+          setHeaderColor(settings.header_color || '#FFFFFF');
+          setHeaderOpacity(settings.header_opacity || 1);
+        }
+      } catch (error) {
+        console.error('Error fetching header settings:', error);
+      }
+    };
+
+    fetchHeaderSettings();
+  }, []);
 
   useEffect(() => {
     setTempSearchTerm(searchTerm);
@@ -44,10 +66,14 @@ export const Header = ({
     return () => clearTimeout(timeoutId);
   }, [tempSearchTerm, onSearchChange]);
 
+  const headerStyle = {
+    backgroundColor: headerColor ? `${headerColor}${Math.round(headerOpacity * 255).toString(16).padStart(2, '0')}` : '#FFFFFF',
+  };
+
   return (
-    <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50 right-0' : ''}`}>
+    <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50 right-0' : ''}`} style={headerStyle}>
       <div className="w-full">
-        <div className="flex items-center justify-center bg-white px-4 md:px-8 py-2">
+        <div className="flex items-center justify-center px-4 md:px-8 py-2">
           {isSticky ? (
             <img
               src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
@@ -57,7 +83,7 @@ export const Header = ({
             />
           ) : null}
         </div>
-        <div className={`border-t border-gray-200/30 bg-white ${isSticky ? 'backdrop-blur-sm bg-white/10' : 'bg-white'}`}>
+        <div className={`border-t border-gray-200/30 ${isSticky ? 'backdrop-blur-sm bg-white/10' : ''}`}>
           <div className="flex items-center justify-between py-2 px-4 md:px-8">
             <div className="flex items-center space-x-4 overflow-x-auto">
               <Select value={categoryFilter} onValueChange={onCategoryChange}>

@@ -90,6 +90,8 @@ export type Database = {
           created_at: string
           favicon_url: string | null
           font_family: string | null
+          header_color: string | null
+          header_opacity: number | null
           id: string
           logo_url: string | null
           og_description: string | null
@@ -121,6 +123,8 @@ export type Database = {
           created_at?: string
           favicon_url?: string | null
           font_family?: string | null
+          header_color?: string | null
+          header_opacity?: number | null
           id?: string
           logo_url?: string | null
           og_description?: string | null
@@ -152,6 +156,8 @@ export type Database = {
           created_at?: string
           favicon_url?: string | null
           font_family?: string | null
+          header_color?: string | null
+          header_opacity?: number | null
           id?: string
           logo_url?: string | null
           og_description?: string | null
