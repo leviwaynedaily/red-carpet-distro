@@ -25,13 +25,13 @@
   ],
   "screenshots": [
     {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/desktop_screenshot",
+      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/desktop_screenshot.png",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/mobile_screenshot",
+      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/mobile_screenshot.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow"
