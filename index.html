@@ -2,53 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Palmtree Smokes</title>
     <meta name="description" content="Premium cannabis products" />
-    <meta name="author" content="Palmtree Smokes" />
-    <meta property="og:image" content="https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image" />
-    <meta property="og:url" content="https://palmtreesmokes.netlify.app" />
-    <link rel="manifest" href="https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/static/manifest.json" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#000000" />
-    <link rel="icon" href="" id="favicon" />
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script type="module" crossorigin="anonymous" src="https://cdn.gpteng.co/gptengineer.js"></script>
-    <script>
-      console.log('Starting site settings fetch...');
-      // Fetch site settings and update favicon
-      fetch('https://fwsdoiaodphgyeteafbq.supabase.co/rest/v1/site_settings?select=favicon_url', {
-        headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3c2RvaWFvZHBoZ3lldGVhZmJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUxODU0MDQsImV4cCI6MjA1MDc2MTQwNH0.a8CgvDuAerprMDVKxrp-qdSaJ5aDpdT6F1EusYrtbMc'
-        }
-      })
-      .then(response => {
-        console.log('Site settings response received:', response.status);
-        return response.json();
-      })
-      .then(data => {
-        console.log('Site settings data:', data);
-        if (data[0]?.favicon_url) {
-          document.getElementById('favicon').href = data[0].favicon_url + '?t=' + Date.now();
-          console.log('Favicon updated to:', data[0].favicon_url);
-        } else {
-          console.log('No favicon URL found in site settings');
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching site settings:', error);
-        // Try to provide more detailed error information
-        if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-          console.error('Network error - check if Supabase is accessible');
-        }
-      });
-    </script>
   </body>
 </html>
