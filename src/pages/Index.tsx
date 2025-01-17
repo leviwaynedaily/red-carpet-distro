@@ -29,6 +29,22 @@ const Index = () => {
     }
   });
 
+  // Set small grid by default for mobile
+  useEffect(() => {
+    if (isMobile) {
+      console.log('Index.tsx: Setting small grid for mobile view');
+      setViewMode('small');
+    }
+  }, [isMobile]);
+
+  // Handle scroll position when entering mobile view
+  useEffect(() => {
+    if (isMobile) {
+      console.log('Index.tsx: Scrolling to top for mobile view');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isMobile]);
+
   useEffect(() => {
     const handleScroll = () => {
       const offset = window.scrollY;
