@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { LayoutGrid, List } from "lucide-react";
 import {
   DropdownMenu,
@@ -29,7 +29,7 @@ export function ProductManagement() {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchProducts();
@@ -48,6 +48,23 @@ export function ProductManagement() {
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load products");
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast.success("Product deleted successfully");
+      fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error("Failed to delete product");
     }
   };
 
@@ -96,8 +113,18 @@ export function ProductManagement() {
           {filteredProducts.map((product) => (
             <AdminProductCard
               key={product.id}
-              product={product}
+              id={product.id}
+              name={product.name}
+              description={product.description || ""}
+              image={product.image_url || ""}
+              categories={product.categories || []}
+              strain={product.strain}
+              stock={product.stock}
+              regular_price={product.regular_price}
+              shipping_price={product.shipping_price}
               onUpdate={fetchProducts}
+              onDelete={handleDeleteProduct}
+              onEdit={() => {}}
             />
           ))}
         </div>
@@ -132,9 +159,19 @@ export function ProductManagement() {
                   </TableCell>
                   <TableCell>
                     <AdminProductCard
-                      product={product}
+                      id={product.id}
+                      name={product.name}
+                      description={product.description || ""}
+                      image={product.image_url || ""}
+                      categories={product.categories || []}
+                      strain={product.strain}
+                      stock={product.stock}
+                      regular_price={product.regular_price}
+                      shipping_price={product.shipping_price}
                       onUpdate={fetchProducts}
-                      variant="row"
+                      onDelete={handleDeleteProduct}
+                      onEdit={() => {}}
+                      data-product-id={product.id}
                     />
                   </TableCell>
                 </TableRow>
