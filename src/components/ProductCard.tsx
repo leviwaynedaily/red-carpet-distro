@@ -41,7 +41,6 @@ export const ProductCard = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
 
-  // Filter out any empty categories
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
 
   const handleMediaClick = (e: React.MouseEvent) => {
@@ -68,9 +67,9 @@ export const ProductCard = ({
   };
 
   const imageClasses = {
-    small: "w-full h-full object-cover",
-    medium: "w-full h-full object-cover",
-    large: "w-full h-full object-cover"
+    small: "w-full h-full object-cover hidden sm:block", // Hide on mobile, show on sm and up
+    medium: "w-full h-full object-cover hidden sm:block",
+    large: "w-full h-full object-cover hidden sm:block"
   };
 
   const contentClasses = {
@@ -99,7 +98,7 @@ export const ProductCard = ({
         className={cardClasses[viewMode]}
         onClick={handleCardClick}
       >
-        <CardHeader className="p-0 relative aspect-square">
+        <CardHeader className="p-0 relative aspect-square hidden sm:block">
           {image && (
             <img
               src={image}
@@ -133,7 +132,7 @@ export const ProductCard = ({
           )}
           <h3 className="text-sm font-semibold mb-1 truncate">{name}</h3>
           {description && (
-            <p className="text-xs text-gray-600 line-clamp-2">{description}</p>
+            <p className="text-xs text-gray-600 line-clamp-2 hidden sm:block">{description}</p>
           )}
           {strain && (
             <div className="flex gap-2 text-xs text-gray-600 mt-2">
