@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import ProductGrid from "@/components/ProductGrid";
-import { Product } from "@/integrations/supabase/types";
-import AgeVerification from "@/components/AgeVerification";
+import { ProductGrid } from "@/components/ProductGrid";
+import type { Tables } from "@/integrations/supabase/types";
+import { AgeVerification } from "@/components/AgeVerification";
 import { useToast } from "@/components/ui/use-toast";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 console.log('Index.tsx: Component loading');
 
@@ -18,20 +18,22 @@ const Index = () => {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [siteDescription, setSiteDescription] = useState<string>("");
   const { toast } = useToast();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
-  const { data: products, isLoading, error } = useQuery<Product[]>('products', async () => {
-    const { data, error } = await supabase.from('products').select('*');
-    if (error) throw new Error(error.message);
-    return data;
+  const { data: products, isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('products').select('*');
+      if (error) throw error;
+      return data as Tables["products"]["Row"][];
+    }
   });
 
   const filteredProducts = products?.filter(product => 
-    selectedCategories.length === 0 || selectedCategories.includes(product.category)
+    selectedCategories.length === 0 || (product.categories && product.categories.some(cat => selectedCategories.includes(cat)))
   );
 
   useEffect(() => {
-    // Enable pull-to-refresh functionality
     if (isMobile) {
       console.log('Index.tsx: Enabling pull-to-refresh for mobile');
       document.body.style.overscrollBehavior = 'contain';
@@ -57,7 +59,6 @@ const Index = () => {
     const touchY = e.touches[0].clientY;
     const scrollTop = window.scrollY;
     
-    // Only enable pull-to-refresh when at the top of the page
     if (scrollTop <= 0 && touchY > touchStartY) {
       document.body.style.overscrollBehavior = 'auto';
     } else {
@@ -69,7 +70,6 @@ const Index = () => {
     const touchY = e.changedTouches[0].clientY;
     const scrollTop = window.scrollY;
     
-    // If we're at the top and pulled down enough, refresh
     if (scrollTop <= 0 && touchY - touchStartY > 100) {
       console.log('Index.tsx: Pull-to-refresh triggered');
       window.location.reload();
@@ -78,6 +78,10 @@ const Index = () => {
         duration: 2000,
       });
     }
+  };
+
+  const handleCategoryChange = (categories: string[]) => {
+    setSelectedCategories(categories);
   };
 
   return (
@@ -99,7 +103,7 @@ const Index = () => {
           </header>
         )}
         <ProductGrid
-          products={filteredProducts}
+          products={filteredProducts || []}
           isLoading={isLoading}
           error={error}
           categories={categories}
