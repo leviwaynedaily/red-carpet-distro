@@ -19,7 +19,12 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
 
   useEffect(() => {
     fetchStorefrontPassword();
-  }, []);
+    // Check if user is already verified
+    const isVerified = localStorage.getItem('isAgeVerified') === 'true';
+    if (isVerified) {
+      onVerified();
+    }
+  }, [onVerified]);
 
   const fetchStorefrontPassword = async () => {
     try {
@@ -79,6 +84,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
     if (step === 'verification') {
       setStep('instructions');
     } else {
+      localStorage.setItem('isAgeVerified', 'true');
       onVerified();
     }
   };

@@ -14,18 +14,11 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name-asc");
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerified, setIsVerified] = useState(() => {
+    return localStorage.getItem('isAgeVerified') === 'true';
+  });
   const { toast } = useToast();
   const isMobile = useIsMobile();
-
-  const { data: products, isLoading, error } = useQuery({
-    queryKey: ['products'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('products').select('*');
-      if (error) throw error;
-      return data as Database['public']['Tables']['products']['Row'][];
-    }
-  });
 
   const handleVerification = () => {
     setIsVerified(true);
