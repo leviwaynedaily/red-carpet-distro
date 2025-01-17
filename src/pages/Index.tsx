@@ -82,7 +82,7 @@ const Index = () => {
       />
       <main className="container">
         {(showLogo || showDescription) && (
-          <header className={`text-center mb-8 ${isSticky ? 'mt-32' : 'mt-2'} hidden sm:block`}>
+          <header className={`text-center mb-8 ${isSticky ? 'mt-36' : 'mt-2'} hidden sm:block`}>
             {showLogo && logoUrl && (
               <img
                 src={logoUrl}
