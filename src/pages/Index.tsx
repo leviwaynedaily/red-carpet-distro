@@ -80,22 +80,24 @@ const Index = () => {
         onViewModeChange={setViewMode}
         onLogoClick={handleLogoClick}
       />
-      <main className="container py-8">
-        <header className={`text-center mb-12 ${isSticky ? 'mt-32' : ''} hidden sm:block`}>
-          {showLogo && logoUrl && (
-            <img
-              src={logoUrl}
-              alt="Palmtree Smokes"
-              className="w-64 mx-auto mb-8 cursor-pointer"
-              onClick={handleLogoClick}
-            />
-          )}
-          {showDescription && (
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              {siteDescription}
-            </p>
-          )}
-        </header>
+      <main className="container py-4">
+        {(showLogo || showDescription) && (
+          <header className={`text-center mb-8 ${isSticky ? 'mt-32' : 'mt-4'} hidden sm:block`}>
+            {showLogo && logoUrl && (
+              <img
+                src={logoUrl}
+                alt="Palmtree Smokes"
+                className="w-64 mx-auto mb-6 cursor-pointer"
+                onClick={handleLogoClick}
+              />
+            )}
+            {showDescription && (
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                {siteDescription}
+              </p>
+            )}
+          </header>
+        )}
         <ProductGrid
           searchTerm={searchTerm}
           categoryFilter={categoryFilter}
