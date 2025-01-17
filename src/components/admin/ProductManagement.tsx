@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Trash2, Play, Image } from "lucide-react";
+import { Edit, Trash2, Play, Upload, Image } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/ui/file-upload";
@@ -21,15 +21,15 @@ import { FileUpload } from "@/components/ui/file-upload";
 type Product = Tables<"products">;
 
 const COLUMNS = [
-  { key: "image", label: "Media" },
   { key: "name", label: "Name" },
   { key: "strain", label: "Strain" },
   { key: "description", label: "Description" },
+  { key: "image", label: "Image" },
+  { key: "video_url", label: "Video" },
   { key: "categories", label: "Categories" },
   { key: "stock", label: "Stock" },
   { key: "regular_price", label: "Price" },
   { key: "shipping_price", label: "Shipping" },
-  { key: "video_url", label: "Video" },
 ];
 
 export function ProductManagement() {
@@ -213,39 +213,6 @@ export function ProductManagement() {
                 className="cursor-pointer"
                 onClick={() => !editingProduct && handleEditStart(product)}
               >
-                {visibleColumns.includes('image') && (
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {product.image_url && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMediaClick('image', product.image_url!);
-                          }}
-                        >
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="w-16 h-16 object-cover rounded-md"
-                          />
-                        </Button>
-                      )}
-                      {editingProduct === product.id && (
-                        <FileUpload
-                          onUploadComplete={(url) => handleImageUpload(product.id, url)}
-                          accept="image/*"
-                          bucket="media"
-                          folderPath={`products/${product.id}`}
-                          fileName="image"
-                          className="w-24"
-                        />
-                      )}
-                    </div>
-                  </TableCell>
-                )}
                 {visibleColumns.includes('name') && (
                   <TableCell>
                     {editingProduct === product.id ? (
@@ -283,6 +250,69 @@ export function ProductManagement() {
                     ) : (
                       product.description || '-'
                     )}
+                  </TableCell>
+                )}
+                {visibleColumns.includes('image') && (
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {product.image_url && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMediaClick('image', product.image_url!);
+                          }}
+                        >
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded-md"
+                          />
+                        </Button>
+                      )}
+                      {editingProduct === product.id && (
+                        <FileUpload
+                          onUploadComplete={(url) => handleImageUpload(product.id, url)}
+                          accept="image/*"
+                          bucket="media"
+                          folderPath={`products/${product.id}`}
+                          fileName="image"
+                          className="w-8"
+                          buttonContent={<Upload className="h-4 w-4" />}
+                        />
+                      )}
+                    </div>
+                  </TableCell>
+                )}
+                {visibleColumns.includes('video_url') && (
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {product.video_url && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMediaClick('video', product.video_url!);
+                          }}
+                        >
+                          <Play className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {editingProduct === product.id && (
+                        <FileUpload
+                          onUploadComplete={(url) => handleVideoUpload(product.id, url)}
+                          accept="video/*"
+                          bucket="media"
+                          folderPath={`products/${product.id}`}
+                          fileName="video"
+                          className="w-8"
+                          buttonContent={<Upload className="h-4 w-4" />}
+                        />
+                      )}
+                    </div>
                   </TableCell>
                 )}
                 {visibleColumns.includes('categories') && (
@@ -328,34 +358,6 @@ export function ProductManagement() {
                     ) : (
                       formatPrice(product.shipping_price)
                     )}
-                  </TableCell>
-                )}
-                {visibleColumns.includes('video_url') && (
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {product.video_url && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMediaClick('video', product.video_url!);
-                          }}
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {editingProduct === product.id && (
-                        <FileUpload
-                          onUploadComplete={(url) => handleVideoUpload(product.id, url)}
-                          accept="video/*"
-                          bucket="media"
-                          folderPath={`products/${product.id}`}
-                          fileName="video"
-                          className="w-24"
-                        />
-                      )}
-                    </div>
                   </TableCell>
                 )}
                 <TableCell className="text-right">
