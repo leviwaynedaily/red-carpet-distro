@@ -80,16 +80,12 @@ export const ProductGrid = ({
   useEffect(() => {
     fetchProducts();
 
-    // Prevent default pull-to-refresh behavior
-    const preventDefault = (e: Event) => {
-      e.preventDefault();
-    };
-
-    document.body.style.overscrollBehavior = 'none';
-    document.addEventListener('touchmove', preventDefault, { passive: false });
-
     const handleTouchStart = (e: TouchEvent) => {
-      if (window.scrollY === 0) {
+      const container = containerRef.current;
+      if (!container) return;
+      
+      // Only enable pull-to-refresh when at the top of the container
+      if (container.scrollTop === 0) {
         startY.current = e.touches[0].clientY;
         if (refreshIndicatorRef.current) {
           refreshIndicatorRef.current.style.transition = 'none';
@@ -98,53 +94,55 @@ export const ProductGrid = ({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (startY.current !== 0) {
-        currentY.current = e.touches[0].clientY;
-        const diff = currentY.current - startY.current;
+      const container = containerRef.current;
+      if (!container || startY.current === 0) return;
 
-        if (diff > 0 && window.scrollY === 0) {
-          e.preventDefault();
-          if (refreshIndicatorRef.current) {
-            const pullDistance = Math.min(diff * 0.5, refreshThreshold);
-            refreshIndicatorRef.current.style.transform = `translateY(${pullDistance}px)`;
-          }
+      currentY.current = e.touches[0].clientY;
+      const diff = currentY.current - startY.current;
+
+      // Only allow pull-to-refresh when scrolled to top and pulling down
+      if (diff > 0 && container.scrollTop === 0) {
+        e.preventDefault();
+        if (refreshIndicatorRef.current) {
+          const pullDistance = Math.min(diff * 0.5, refreshThreshold);
+          refreshIndicatorRef.current.style.transform = `translateY(${pullDistance}px)`;
         }
       }
     };
 
     const handleTouchEnd = async () => {
-      if (startY.current !== 0 && currentY.current !== 0) {
-        const diff = currentY.current - startY.current;
-        
-        if (refreshIndicatorRef.current) {
-          refreshIndicatorRef.current.style.transition = 'transform 0.3s ease-out';
-          refreshIndicatorRef.current.style.transform = 'translateY(0)';
-        }
+      const container = containerRef.current;
+      if (!container || startY.current === 0 || currentY.current === 0) return;
 
-        if (diff > refreshThreshold && window.scrollY === 0) {
-          console.log('Pull-to-refresh triggered');
-          setIsRefreshing(true);
-          await fetchProducts();
-        }
-
-        startY.current = 0;
-        currentY.current = 0;
+      const diff = currentY.current - startY.current;
+      
+      if (refreshIndicatorRef.current) {
+        refreshIndicatorRef.current.style.transition = 'transform 0.3s ease-out';
+        refreshIndicatorRef.current.style.transform = 'translateY(0)';
       }
+
+      if (diff > refreshThreshold && container.scrollTop === 0) {
+        console.log('Pull-to-refresh triggered');
+        setIsRefreshing(true);
+        await fetchProducts();
+      }
+
+      startY.current = 0;
+      currentY.current = 0;
     };
 
-    if (containerRef.current) {
-      containerRef.current.addEventListener('touchstart', handleTouchStart, { passive: false });
-      containerRef.current.addEventListener('touchmove', handleTouchMove, { passive: false });
-      containerRef.current.addEventListener('touchend', handleTouchEnd);
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('touchstart', handleTouchStart, { passive: true });
+      container.addEventListener('touchmove', handleTouchMove, { passive: false });
+      container.addEventListener('touchend', handleTouchEnd);
     }
 
     return () => {
-      document.body.style.overscrollBehavior = 'auto';
-      document.removeEventListener('touchmove', preventDefault);
-      if (containerRef.current) {
-        containerRef.current.removeEventListener('touchstart', handleTouchStart);
-        containerRef.current.removeEventListener('touchmove', handleTouchMove);
-        containerRef.current.removeEventListener('touchend', handleTouchEnd);
+      if (container) {
+        container.removeEventListener('touchstart', handleTouchStart);
+        container.removeEventListener('touchmove', handleTouchMove);
+        container.removeEventListener('touchend', handleTouchEnd);
       }
     };
   }, []);
@@ -194,7 +192,11 @@ export const ProductGrid = ({
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    <div 
+      ref={containerRef} 
+      className="relative h-full overflow-y-auto -mx-4 px-4"
+      style={{ overscrollBehavior: 'contain' }}
+    >
       <div 
         ref={refreshIndicatorRef} 
         className="absolute left-0 right-0 -top-16 flex items-center justify-center"
