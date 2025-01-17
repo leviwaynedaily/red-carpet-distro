@@ -13,13 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Play, Image } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 type Product = Tables<"products">;
 
 const COLUMNS = [
-  { key: "image", label: "Image" },
+  { key: "image", label: "Media" },
   { key: "name", label: "Name" },
   { key: "strain", label: "Strain" },
   { key: "description", label: "Description" },
@@ -27,6 +28,7 @@ const COLUMNS = [
   { key: "stock", label: "Stock" },
   { key: "regular_price", label: "Price" },
   { key: "shipping_price", label: "Shipping" },
+  { key: "video_url", label: "Video" },
 ];
 
 export function ProductManagement() {
@@ -35,6 +37,8 @@ export function ProductManagement() {
   const [visibleColumns, setVisibleColumns] = useState(COLUMNS.map(c => c.key));
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<Product>>({});
+  const [showMedia, setShowMedia] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<{ type: 'image' | 'video', url: string } | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -111,6 +115,26 @@ export function ProductManagement() {
     );
   };
 
+  const handleImport = () => {
+    // TODO: Implement import functionality
+    toast.info("Import functionality coming soon");
+  };
+
+  const handleExport = () => {
+    // TODO: Implement export functionality
+    toast.info("Export functionality coming soon");
+  };
+
+  const handleDownloadTemplate = () => {
+    // TODO: Implement template download
+    toast.info("Template download coming soon");
+  };
+
+  const handleMediaClick = (type: 'image' | 'video', url: string) => {
+    setSelectedMedia({ type, url });
+    setShowMedia(true);
+  };
+
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -137,6 +161,9 @@ export function ProductManagement() {
         columns={COLUMNS}
         visibleColumns={visibleColumns}
         onColumnToggle={handleColumnToggle}
+        onImport={handleImport}
+        onExport={handleExport}
+        onDownloadTemplate={handleDownloadTemplate}
       />
 
       <div className="rounded-md border">
@@ -158,13 +185,37 @@ export function ProductManagement() {
               >
                 {visibleColumns.includes('image') && (
                   <TableCell>
-                    {product.image_url && (
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-16 h-16 object-cover rounded-md"
-                      />
-                    )}
+                    <div className="flex items-center gap-2">
+                      {product.image_url && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMediaClick('image', product.image_url!);
+                          }}
+                        >
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded-md"
+                          />
+                        </Button>
+                      )}
+                      {product.video_url && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMediaClick('video', product.video_url!);
+                          }}
+                        >
+                          <Play className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 )}
                 {visibleColumns.includes('name') && (
@@ -251,6 +302,19 @@ export function ProductManagement() {
                     )}
                   </TableCell>
                 )}
+                {visibleColumns.includes('video_url') && (
+                  <TableCell>
+                    {editingProduct === product.id ? (
+                      <Input
+                        value={editValues.video_url || ''}
+                        onChange={(e) => setEditValues(prev => ({ ...prev, video_url: e.target.value }))}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      product.video_url ? <Play className="h-4 w-4" /> : '-'
+                    )}
+                  </TableCell>
+                )}
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     {editingProduct === product.id ? (
@@ -301,6 +365,26 @@ export function ProductManagement() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={showMedia} onOpenChange={setShowMedia}>
+        <DialogContent className="max-w-4xl w-full p-0">
+          {selectedMedia?.type === 'video' ? (
+            <video
+              src={selectedMedia.url}
+              controls
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            selectedMedia?.url && (
+              <img
+                src={selectedMedia.url}
+                alt="Product media"
+                className="w-full h-full object-contain"
+              />
+            )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
