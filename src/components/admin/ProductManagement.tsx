@@ -16,6 +16,7 @@ import {
 import { Edit, Trash2, Play, Image } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { FileUpload } from "@/components/ui/file-upload";
 
 type Product = Tables<"products">;
 
@@ -116,23 +117,52 @@ export function ProductManagement() {
   };
 
   const handleImport = () => {
-    // TODO: Implement import functionality
     toast.info("Import functionality coming soon");
   };
 
   const handleExport = () => {
-    // TODO: Implement export functionality
     toast.info("Export functionality coming soon");
   };
 
   const handleDownloadTemplate = () => {
-    // TODO: Implement template download
     toast.info("Template download coming soon");
   };
 
   const handleMediaClick = (type: 'image' | 'video', url: string) => {
     setSelectedMedia({ type, url });
     setShowMedia(true);
+  };
+
+  const handleImageUpload = async (productId: string, url: string) => {
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ image_url: url })
+        .eq("id", productId);
+
+      if (error) throw error;
+      toast.success("Image uploaded successfully");
+      fetchProducts();
+    } catch (error) {
+      console.error("Error updating product image:", error);
+      toast.error("Failed to update product image");
+    }
+  };
+
+  const handleVideoUpload = async (productId: string, url: string) => {
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ video_url: url })
+        .eq("id", productId);
+
+      if (error) throw error;
+      toast.success("Video uploaded successfully");
+      fetchProducts();
+    } catch (error) {
+      console.error("Error updating product video:", error);
+      toast.error("Failed to update product video");
+    }
   };
 
   const filteredProducts = products.filter((product) =>
@@ -203,17 +233,15 @@ export function ProductManagement() {
                           />
                         </Button>
                       )}
-                      {product.video_url && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMediaClick('video', product.video_url!);
-                          }}
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
+                      {editingProduct === product.id && (
+                        <FileUpload
+                          onUploadComplete={(url) => handleImageUpload(product.id, url)}
+                          accept="image/*"
+                          bucket="media"
+                          folderPath={`products/${product.id}`}
+                          fileName="image"
+                          className="w-24"
+                        />
                       )}
                     </div>
                   </TableCell>
@@ -304,15 +332,30 @@ export function ProductManagement() {
                 )}
                 {visibleColumns.includes('video_url') && (
                   <TableCell>
-                    {editingProduct === product.id ? (
-                      <Input
-                        value={editValues.video_url || ''}
-                        onChange={(e) => setEditValues(prev => ({ ...prev, video_url: e.target.value }))}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      product.video_url ? <Play className="h-4 w-4" /> : '-'
-                    )}
+                    <div className="flex items-center gap-2">
+                      {product.video_url && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMediaClick('video', product.video_url!);
+                          }}
+                        >
+                          <Play className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {editingProduct === product.id && (
+                        <FileUpload
+                          onUploadComplete={(url) => handleVideoUpload(product.id, url)}
+                          accept="video/*"
+                          bucket="media"
+                          folderPath={`products/${product.id}`}
+                          fileName="video"
+                          className="w-24"
+                        />
+                      )}
+                    </div>
                   </TableCell>
                 )}
                 <TableCell className="text-right">
