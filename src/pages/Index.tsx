@@ -6,17 +6,16 @@ import type { Database } from "@/integrations/supabase/types";
 import { AgeVerification } from "@/components/AgeVerification";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Header } from "@/components/Header";
 
 console.log('Index.tsx: Component loading');
 
 const Index = () => {
   const [isSticky, setIsSticky] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [showLogo, setShowLogo] = useState(true);
-  const [showDescription, setShowDescription] = useState(true);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [siteDescription, setSiteDescription] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("name-asc");
+  const [viewMode, setViewMode] = useState<'small' | 'medium' | 'large'>('medium');
   const [isVerified, setIsVerified] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -30,9 +29,15 @@ const Index = () => {
     }
   });
 
-  const filteredProducts = products?.filter(product => 
-    selectedCategories.length === 0 || (product.categories && product.categories.some(cat => selectedCategories.includes(cat)))
-  );
+  useEffect(() => {
+    const handleScroll = () => {
+      const offset = window.scrollY;
+      setIsSticky(offset > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (isMobile) {
@@ -81,37 +86,54 @@ const Index = () => {
     }
   };
 
-  const handleCategoryChange = (categories: string[]) => {
-    setSelectedCategories(categories);
-  };
-
   const handleVerification = () => {
     setIsVerified(true);
   };
 
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setCategoryFilter(value);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+  };
+
+  const handleViewModeChange = (mode: 'small' | 'medium' | 'large') => {
+    setViewMode(mode);
+  };
+
+  const handleLogoClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (!isVerified) {
+    return <AgeVerification onVerified={handleVerification} />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {!isVerified && <AgeVerification onVerified={handleVerification} />}
-      <main className="container">
-        {(showLogo || showDescription) && (
-          <header className={`text-center mb-8 ${isSticky ? 'mt-36' : 'mt-2'} hidden sm:block`}>
-            {showLogo && logoUrl && (
-              <img
-                src={logoUrl}
-                alt="Site Logo"
-                className="mx-auto mb-4 max-w-[200px]"
-              />
-            )}
-            {showDescription && siteDescription && (
-              <p className="text-lg text-gray-600">{siteDescription}</p>
-            )}
-          </header>
-        )}
+      <Header
+        isSticky={isSticky}
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        categoryFilter={categoryFilter}
+        onCategoryChange={handleCategoryChange}
+        sortBy={sortBy}
+        onSortChange={handleSortChange}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+        onLogoClick={handleLogoClick}
+      />
+      <main className="container pt-4">
         <ProductGrid
-          searchTerm=""
-          categoryFilter="all"
-          sortBy="name-asc"
-          viewMode="medium"
+          searchTerm={searchTerm}
+          categoryFilter={categoryFilter}
+          sortBy={sortBy}
+          viewMode={viewMode}
         />
       </main>
     </div>
