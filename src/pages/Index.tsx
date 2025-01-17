@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductGrid } from "@/components/ProductGrid";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/supabase/types";
 import { AgeVerification } from "@/components/AgeVerification";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -26,7 +26,7 @@ const Index = () => {
     queryFn: async () => {
       const { data, error } = await supabase.from('products').select('*');
       if (error) throw error;
-      return data as Tables<"products">["Row"][];
+      return data as Database['public']['Tables']['products']['Row'][];
     }
   });
 
