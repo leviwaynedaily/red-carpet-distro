@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Grid3X3, Grid2X2, Square } from "lucide-react";
-import { Button } from "./ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 interface HeaderProps {
@@ -13,8 +11,6 @@ interface HeaderProps {
   onCategoryChange: (value: string) => void;
   sortBy: string;
   onSortChange: (value: string) => void;
-  viewMode: 'small' | 'medium' | 'large';
-  onViewModeChange: (mode: 'small' | 'medium' | 'large') => void;
   onLogoClick: () => void;
 }
 
@@ -26,8 +22,6 @@ export const Header = ({
   onCategoryChange,
   sortBy,
   onSortChange,
-  viewMode,
-  onViewModeChange,
   onLogoClick,
 }: HeaderProps) => {
   const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
@@ -119,32 +113,6 @@ export const Header = ({
                 onChange={(e) => setTempSearchTerm(e.target.value)}
                 className="max-w-xs bg-white/80"
               />
-            </div>
-            <div className="flex items-center space-x-2 ml-4">
-              <Button
-                variant={viewMode === 'small' ? 'secondary' : 'ghost'}
-                size="icon"
-                onClick={() => onViewModeChange('small')}
-                className={`${viewMode === 'small' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'medium' ? 'secondary' : 'ghost'}
-                size="icon"
-                onClick={() => onViewModeChange('medium')}
-                className={`${viewMode === 'medium' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
-              >
-                <Grid2X2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'large' ? 'secondary' : 'ghost'}
-                size="icon"
-                onClick={() => onViewModeChange('large')}
-                className={`${viewMode === 'large' ? 'bg-secondary hover:bg-secondary/90' : 'bg-white/80'}`}
-              >
-                <Square className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>
