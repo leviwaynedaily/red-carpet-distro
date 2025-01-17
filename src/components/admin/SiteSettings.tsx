@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { updateRootColors } from "@/utils/colorUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 
 type PWAIcon = {
   src: string;
@@ -40,6 +42,9 @@ type SiteSettingsType = {
   og_description: string;
   og_image: string;
   og_url: string;
+  show_site_logo: boolean;
+  show_site_description: boolean;
+  site_description: string;
 };
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -69,7 +74,10 @@ export function SiteSettings() {
     og_title: "",
     og_description: "",
     og_image: "",
-    og_url: "https://palmtreesmokes.netlify.app",
+    og_url: "https://palmtreesmokes.com",
+    show_site_logo: true,
+    show_site_description: true,
+    site_description: "Welcome to Palmtree Smokes, your premium destination for quality cannabis products. Browse our carefully curated selection below.",
   });
 
   useEffect(() => {
@@ -166,7 +174,6 @@ export function SiteSettings() {
 
       toast.success("Settings updated successfully");
       
-      // Update meta tags with direct Supabase URLs
       const ogImageMeta = document.querySelector('meta[property="og:image"]');
       const ogUrlMeta = document.querySelector('meta[property="og:url"]');
       
@@ -290,16 +297,75 @@ export function SiteSettings() {
 
         <TabsContent value="site">
           <div className="space-y-4">
-            <Label htmlFor="logo_url">Logo</Label>
-            {settings.logo_url && (
-              <img src={addCacheBuster(settings.logo_url)} alt="Logo" className="w-32 h-32 object-contain rounded-md mb-2" />
-            )}
-            <FileUpload
-              onUploadComplete={(url) => setSettings(prev => ({ ...prev, logo_url: url }))}
-              accept="image/*"
-              folderPath="sitesettings"
-              fileName="logo"
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle>Logo Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="show_site_logo"
+                    checked={settings.show_site_logo}
+                    onCheckedChange={(checked) =>
+                      setSettings((prev) => ({ ...prev, show_site_logo: checked }))
+                    }
+                  />
+                  <Label htmlFor="show_site_logo">Show Site Logo</Label>
+                </div>
+
+                <Label>Logo</Label>
+                {settings.logo_url && (
+                  <img
+                    src={addCacheBuster(settings.logo_url)}
+                    alt="Logo"
+                    className="w-32 h-32 object-contain rounded-md mb-2"
+                  />
+                )}
+                <FileUpload
+                  onUploadComplete={(url) =>
+                    setSettings((prev) => ({ ...prev, logo_url: url }))
+                  }
+                  accept="image/*"
+                  folderPath="sitesettings"
+                  fileName="logo"
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Description Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="show_site_description"
+                    checked={settings.show_site_description}
+                    onCheckedChange={(checked) =>
+                      setSettings((prev) => ({ ...prev, show_site_description: checked }))
+                    }
+                  />
+                  <Label htmlFor="show_site_description">Show Site Description</Label>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="site_description">Site Description</Label>
+                  <Textarea
+                    id="site_description"
+                    value={settings.site_description}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        site_description: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter site description"
+                    className="min-h-[100px]"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <Label htmlFor="favicon_url">Favicon</Label>
             {settings.favicon_url && (
               <img src={addCacheBuster(settings.favicon_url)} alt="Favicon" className="w-16 h-16 object-contain rounded-md mb-2" />

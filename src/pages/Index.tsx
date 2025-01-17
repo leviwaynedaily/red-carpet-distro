@@ -16,25 +16,31 @@ const Index = () => {
   const [sortBy, setSortBy] = useState("");
   const [viewMode, setViewMode] = useState<'small' | 'medium' | 'large'>('small');
   const [logoUrl, setLogoUrl] = useState("");
+  const [showLogo, setShowLogo] = useState(true);
+  const [showDescription, setShowDescription] = useState(true);
+  const [siteDescription, setSiteDescription] = useState("");
 
   useEffect(() => {
-    const fetchLogo = async () => {
-      console.log('Index.tsx: Fetching logo from site settings');
+    const fetchSiteSettings = async () => {
+      console.log('Index.tsx: Fetching site settings');
       const { data, error } = await supabase
         .from('site_settings')
-        .select('logo_url')
+        .select('logo_url, show_site_logo, show_site_description, site_description')
         .single();
       
-      if (!error && data?.logo_url) {
-        const logoUrlWithCache = `${data.logo_url}?t=${Date.now()}`;
-        console.log('Index.tsx: Logo URL fetched:', logoUrlWithCache);
+      if (!error && data) {
+        const logoUrlWithCache = data.logo_url ? `${data.logo_url}?t=${Date.now()}` : "";
+        console.log('Index.tsx: Site settings fetched:', data);
         setLogoUrl(logoUrlWithCache);
+        setShowLogo(data.show_site_logo);
+        setShowDescription(data.show_site_description);
+        setSiteDescription(data.site_description);
       } else if (error) {
-        console.error('Index.tsx: Error fetching logo:', error);
+        console.error('Index.tsx: Error fetching site settings:', error);
       }
     };
     
-    fetchLogo();
+    fetchSiteSettings();
   }, []);
 
   useEffect(() => {
@@ -57,7 +63,7 @@ const Index = () => {
     setIsVerified(false);
   };
 
-  console.log('Index.tsx: Rendering Index component', { isVerified, isSticky });
+  console.log('Index.tsx: Rendering Index component', { isVerified, isSticky, showLogo, showDescription });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,7 +82,7 @@ const Index = () => {
       />
       <main className="container py-8">
         <header className={`text-center mb-12 ${isSticky ? 'mt-32' : ''} hidden sm:block`}>
-          {logoUrl && (
+          {showLogo && logoUrl && (
             <img
               src={logoUrl}
               alt="Palmtree Smokes"
@@ -84,10 +90,11 @@ const Index = () => {
               onClick={handleLogoClick}
             />
           )}
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Welcome to Palmtree Smokes, your premium destination for quality cannabis products.
-            Browse our carefully curated selection below.
-          </p>
+          {showDescription && (
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              {siteDescription}
+            </p>
+          )}
         </header>
         <ProductGrid
           searchTerm={searchTerm}
