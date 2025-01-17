@@ -11,7 +11,6 @@ import { Header } from "@/components/Header";
 console.log('Index.tsx: Component loading');
 
 const Index = () => {
-  const [isSticky, setIsSticky] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name-asc");
@@ -27,22 +26,6 @@ const Index = () => {
       return data as Database['public']['Tables']['products']['Row'][];
     }
   });
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const container = document.getElementById('root');
-      if (container) {
-        const offset = container.scrollTop;
-        setIsSticky(offset > 100);
-      }
-    };
-
-    const container = document.getElementById('root');
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
 
   const handleVerification = () => {
     setIsVerified(true);
@@ -74,7 +57,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header
-        isSticky={isSticky}
+        isSticky={true}
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         categoryFilter={categoryFilter}
@@ -83,7 +66,7 @@ const Index = () => {
         onSortChange={handleSortChange}
         onLogoClick={handleLogoClick}
       />
-      <main className="container pt-4">
+      <main className="container pt-32">
         <ProductGrid
           searchTerm={searchTerm}
           categoryFilter={categoryFilter}

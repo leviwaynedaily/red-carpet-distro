@@ -15,7 +15,6 @@ interface HeaderProps {
 }
 
 export const Header = ({
-  isSticky,
   searchTerm,
   onSearchChange,
   categoryFilter,
@@ -66,19 +65,17 @@ export const Header = ({
   };
 
   return (
-    <header className={`w-full transition-all duration-300 ${isSticky ? 'fixed top-0 left-0 z-50 right-0' : ''}`} style={headerStyle}>
+    <header className="fixed top-0 left-0 right-0 z-50 w-full shadow-sm" style={headerStyle}>
       <div className="w-full">
         <div className="flex items-center justify-center px-4 md:px-8 py-2">
-          {isSticky ? (
-            <img
-              src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
-              alt="Palmtree Smokes"
-              className="h-8 cursor-pointer"
-              onClick={onLogoClick}
-            />
-          ) : null}
+          <img
+            src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
+            alt="Palmtree Smokes"
+            className="h-8 cursor-pointer"
+            onClick={onLogoClick}
+          />
         </div>
-        <div className={`border-t border-gray-200/30 ${isSticky ? 'backdrop-blur-sm bg-white/10' : ''}`}>
+        <div className="border-t border-gray-200/30 backdrop-blur-sm bg-white/10">
           <div className="flex items-center justify-between py-2 px-4 md:px-8">
             <div className="flex items-center space-x-4 overflow-x-auto">
               <Select value={categoryFilter} onValueChange={onCategoryChange}>
