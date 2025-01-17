@@ -1,6 +1,7 @@
 import { ProductCard } from "@/components/ProductCard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 interface Product {
   id: string;
@@ -32,9 +33,15 @@ export const ProductGrid = ({
 }: ProductGridProps) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const startY = useRef(0);
+  const currentY = useRef(0);
+  const refreshThreshold = 100;
+  const refreshIndicatorRef = useRef<HTMLDivElement>(null);
 
   const fetchProducts = async () => {
     try {
+      console.log('Fetching products...');
       const { data, error } = await supabase
         .from('products')
         .select('*');
@@ -44,6 +51,7 @@ export const ProductGrid = ({
         return;
       }
 
+      console.log('Products fetched successfully:', data?.length);
       const mappedProducts = data.map((item) => ({
         id: item.id,
         name: item.name,
@@ -64,11 +72,66 @@ export const ProductGrid = ({
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
     fetchProducts();
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.scrollY === 0) {
+        startY.current = e.touches[0].clientY;
+        if (refreshIndicatorRef.current) {
+          refreshIndicatorRef.current.style.transition = 'none';
+        }
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (startY.current !== 0) {
+        currentY.current = e.touches[0].clientY;
+        const diff = currentY.current - startY.current;
+
+        if (diff > 0 && window.scrollY === 0) {
+          e.preventDefault();
+          if (refreshIndicatorRef.current) {
+            const pullDistance = Math.min(diff * 0.5, refreshThreshold);
+            refreshIndicatorRef.current.style.transform = `translateY(${pullDistance}px)`;
+          }
+        }
+      }
+    };
+
+    const handleTouchEnd = async () => {
+      if (startY.current !== 0 && currentY.current !== 0) {
+        const diff = currentY.current - startY.current;
+        
+        if (refreshIndicatorRef.current) {
+          refreshIndicatorRef.current.style.transition = 'transform 0.3s ease-out';
+          refreshIndicatorRef.current.style.transform = 'translateY(0)';
+        }
+
+        if (diff > refreshThreshold && window.scrollY === 0) {
+          console.log('Pull-to-refresh triggered');
+          setIsRefreshing(true);
+          await fetchProducts();
+        }
+
+        startY.current = 0;
+        currentY.current = 0;
+      }
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
   }, []);
 
   // Filter products based on search term and category
@@ -116,14 +179,26 @@ export const ProductGrid = ({
   }
 
   return (
-    <div className={gridClasses[viewMode]}>
-      {sortedProducts.map((product) => (
-        <ProductCard
-          key={product.id}
-          {...product}
-          viewMode={viewMode}
-        />
-      ))}
+    <div className="relative">
+      <div 
+        ref={refreshIndicatorRef} 
+        className="absolute left-0 right-0 -top-16 flex items-center justify-center"
+      >
+        {isRefreshing && (
+          <div className="flex items-center justify-center p-4">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+          </div>
+        )}
+      </div>
+      <div className={gridClasses[viewMode]}>
+        {sortedProducts.map((product) => (
+          <ProductCard
+            key={product.id}
+            {...product}
+            viewMode={viewMode}
+          />
+        ))}
+      </div>
     </div>
   );
 };
