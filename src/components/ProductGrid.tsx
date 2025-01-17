@@ -1,21 +1,7 @@
 import { ProductCard } from "@/components/ProductCard";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  video?: string;
-  categories: string[];
-  strain?: string;
-  stock?: number;
-  regular_price?: number;
-  shipping_price?: number;
-  created_at: string;
-  updated_at: string;
-}
+import type { Database } from "@/integrations/supabase/types";
 
 interface ProductGridProps {
   searchTerm: string;
@@ -28,21 +14,41 @@ export const ProductGrid = ({
   categoryFilter,
   sortBy,
 }: ProductGridProps) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: products, isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('products').select('*');
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-gray-500">Loading products...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-red-500">Error loading products. Please try again later.</p>
+      </div>
+    );
+  }
 
   // Filter products based on search term and category
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = categoryFilter === 'all' || product.categories.includes(categoryFilter);
+    const matchesCategory = categoryFilter === 'all' || (product.categories && product.categories.includes(categoryFilter));
     return matchesSearch && matchesCategory;
   });
 
   // Sort products based on selected option
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    console.log('Sorting by:', sortBy);
-    
     switch (sortBy) {
       case 'name-asc':
         return (a.name || '').localeCompare(b.name || '');
@@ -65,16 +71,14 @@ export const ProductGrid = ({
     }
   });
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {sortedProducts.map((product) => (
         <ProductCard
           key={product.id}
           {...product}
+          image={product.image_url || ''}
+          video={product.video_url || ''}
           viewMode="small"
         />
       ))}
