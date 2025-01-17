@@ -11,6 +11,7 @@ interface FileUploadProps {
   folderPath?: string;
   fileName?: string;
   className?: string;
+  buttonContent?: React.ReactNode;
 }
 
 export function FileUpload({ 
@@ -19,7 +20,8 @@ export function FileUpload({
   bucket = "media",
   folderPath = "",
   fileName,
-  className 
+  className,
+  buttonContent = "Upload File"
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -82,7 +84,7 @@ export function FileUpload({
             Uploading...
           </>
         ) : (
-          'Upload File'
+          buttonContent
         )}
         <input
           type="file"
