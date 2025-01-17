@@ -23,13 +23,18 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
 
   const fetchStorefrontPassword = async () => {
     try {
+      console.log('Fetching storefront password...');
       const { data, error } = await supabase
         .from("site_settings")
         .select("storefront_password")
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching storefront password:', error);
+        throw error;
+      }
       
+      console.log('Storefront password data:', data);
       if (data?.storefront_password) {
         setStorefrontPassword(data.storefront_password);
       }
