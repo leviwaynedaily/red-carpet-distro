@@ -187,6 +187,30 @@ export function SiteSettings() {
     return `${url}?t=${Date.now()}`;
   };
 
+  const handlePWAIconUpload = (url: string, size: number) => {
+    setSettings(prev => {
+      const newIcons = [...(prev.pwa_icons || [])];
+      const existingIconIndex = newIcons.findIndex(icon => icon.sizes === `${size}x${size}`);
+      
+      const newIcon = {
+        src: url,
+        sizes: `${size}x${size}`,
+        type: 'image/png'
+      };
+
+      if (existingIconIndex >= 0) {
+        newIcons[existingIconIndex] = newIcon;
+      } else {
+        newIcons.push(newIcon);
+      }
+
+      return {
+        ...prev,
+        pwa_icons: newIcons
+      };
+    });
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
       <Tabs defaultValue="colors" className="w-full">
@@ -589,5 +613,4 @@ export function SiteSettings() {
         Save Settings
       </Button>
     </form>
-  );
 }
