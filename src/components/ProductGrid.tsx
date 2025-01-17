@@ -38,6 +38,7 @@ export const ProductGrid = ({
   const currentY = useRef(0);
   const refreshThreshold = 100;
   const refreshIndicatorRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchProducts = async () => {
     try {
@@ -78,6 +79,14 @@ export const ProductGrid = ({
 
   useEffect(() => {
     fetchProducts();
+
+    // Prevent default pull-to-refresh behavior
+    const preventDefault = (e: Event) => {
+      e.preventDefault();
+    };
+
+    document.body.style.overscrollBehavior = 'none';
+    document.addEventListener('touchmove', preventDefault, { passive: false });
 
     const handleTouchStart = (e: TouchEvent) => {
       if (window.scrollY === 0) {
@@ -123,14 +132,20 @@ export const ProductGrid = ({
       }
     };
 
-    document.addEventListener('touchstart', handleTouchStart, { passive: false });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
+    if (containerRef.current) {
+      containerRef.current.addEventListener('touchstart', handleTouchStart, { passive: false });
+      containerRef.current.addEventListener('touchmove', handleTouchMove, { passive: false });
+      containerRef.current.addEventListener('touchend', handleTouchEnd);
+    }
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
+      document.body.style.overscrollBehavior = 'auto';
+      document.removeEventListener('touchmove', preventDefault);
+      if (containerRef.current) {
+        containerRef.current.removeEventListener('touchstart', handleTouchStart);
+        containerRef.current.removeEventListener('touchmove', handleTouchMove);
+        containerRef.current.removeEventListener('touchend', handleTouchEnd);
+      }
     };
   }, []);
 
@@ -179,7 +194,7 @@ export const ProductGrid = ({
   }
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <div 
         ref={refreshIndicatorRef} 
         className="absolute left-0 right-0 -top-16 flex items-center justify-center"
