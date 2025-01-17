@@ -613,4 +613,5 @@ export function SiteSettings() {
         Save Settings
       </Button>
     </form>
+  );
 }
