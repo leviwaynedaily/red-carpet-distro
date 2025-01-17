@@ -38,8 +38,11 @@ const Index = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const offset = window.scrollY;
-      setIsSticky(offset > 100);
+      const container = document.getElementById('root');
+      if (container) {
+        const offset = container.scrollTop;
+        setIsSticky(offset > 100);
+      }
     };
 
     const container = document.getElementById('root');
@@ -47,18 +50,6 @@ const Index = () => {
       container.addEventListener('scroll', handleScroll);
       return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, []);
-
-  // Prevent default touch behavior
-  useEffect(() => {
-    const preventPullToRefresh = (e: TouchEvent) => {
-      e.preventDefault();
-    };
-
-    document.body.addEventListener('touchmove', preventPullToRefresh, { passive: false });
-    return () => {
-      document.body.removeEventListener('touchmove', preventPullToRefresh);
-    };
   }, []);
 
   const handleVerification = () => {
