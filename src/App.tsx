@@ -16,6 +16,11 @@ console.log('App.tsx: Initializing App component');
 
 const queryClient = new QueryClient();
 
+// Type guard for Safari standalone mode
+const isSafariStandalone = (): boolean => {
+  return 'standalone' in window.navigator && (window.navigator as any).standalone;
+};
+
 const App = () => {
   console.log('App.tsx: Rendering App component');
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -26,7 +31,7 @@ const App = () => {
   useEffect(() => {
     const checkInstallability = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isPWA = window.navigator.standalone || isStandalone;
+      const isPWA = isSafariStandalone() || isStandalone;
       const isSecure = window.location.protocol === 'https:';
       
       console.log('App.tsx: Checking PWA installability:', {
@@ -35,7 +40,7 @@ const App = () => {
         userAgent: window.navigator.userAgent,
         platform: window.navigator.platform,
         vendor: window.navigator.vendor,
-        standalone: window.navigator.standalone,
+        isStandalone,
         displayMode: isStandalone
       });
 
