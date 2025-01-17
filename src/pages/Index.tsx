@@ -26,7 +26,6 @@ const Index = () => {
         .single();
       
       if (!error && data?.logo_url) {
-        // Add cache buster to the URL
         const logoUrlWithCache = `${data.logo_url}?t=${Date.now()}`;
         console.log('Index.tsx: Logo URL fetched:', logoUrlWithCache);
         setLogoUrl(logoUrlWithCache);
@@ -38,7 +37,6 @@ const Index = () => {
     fetchLogo();
   }, []);
 
-  // Handle sticky header
   useEffect(() => {
     console.log('Index.tsx: Setting up scroll listener');
     const handleScroll = () => {
@@ -77,7 +75,7 @@ const Index = () => {
         onLogoClick={handleLogoClick}
       />
       <main className="container py-8">
-        <header className={`text-center mb-12 ${isSticky ? 'mt-32' : ''}`}>
+        <header className={`text-center mb-12 ${isSticky ? 'mt-32' : ''} hidden sm:block`}>
           {logoUrl && (
             <img
               src={logoUrl}
