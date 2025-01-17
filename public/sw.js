@@ -1,4 +1,4 @@
-const CACHE_NAME = 'palmtree-smokes-v1';
+const CACHE_NAME = 'palmtree-smokes-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -9,6 +9,8 @@ const urlsToCache = [
 
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
+  // Force activation
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -35,16 +37,20 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('activate', (event) => {
   console.log('Service Worker: Activated');
+  // Force activation on all clients
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Service Worker: Clearing old cache');
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      clients.claim(),
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('Service Worker: Clearing old cache');
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+    ])
   );
 });

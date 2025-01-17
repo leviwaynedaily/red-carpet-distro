@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import ProductDetails from "./pages/ProductDetails";
 import Admin from "./pages/Admin";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 console.log('App.tsx: Initializing App component');
 
@@ -25,10 +27,8 @@ const App = () => {
       e.preventDefault();
       // Stash the event so it can be triggered later
       setDeferredPrompt(e);
-      // Show the install prompt after a delay
-      setTimeout(() => {
-        setShowInstallPrompt(true);
-      }, 3000); // Show after 3 seconds
+      // Show the install prompt immediately
+      setShowInstallPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -41,6 +41,27 @@ const App = () => {
   const handleClosePrompt = () => {
     console.log('App.tsx: Closing install prompt');
     setShowInstallPrompt(false);
+  };
+
+  const handleInstallClick = async () => {
+    console.log('App.tsx: Custom install button clicked');
+    if (deferredPrompt) {
+      try {
+        // Show the install prompt
+        await deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        const choiceResult = await deferredPrompt.userChoice;
+        console.log('App.tsx: User choice result:', choiceResult.outcome);
+        
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App.tsx: User accepted the install prompt');
+        }
+        // Clear the deferredPrompt
+        setDeferredPrompt(null);
+      } catch (error) {
+        console.error('App.tsx: Error showing install prompt:', error);
+      }
+    }
   };
   
   return (
@@ -60,6 +81,15 @@ const App = () => {
             deferredPrompt={deferredPrompt}
             onClose={handleClosePrompt}
           />
+        )}
+        {deferredPrompt && !showInstallPrompt && (
+          <Button
+            onClick={handleInstallClick}
+            className="fixed bottom-4 right-4 z-50"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Install App
+          </Button>
         )}
       </TooltipProvider>
     </QueryClientProvider>
