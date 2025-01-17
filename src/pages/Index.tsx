@@ -59,7 +59,7 @@ const Index = () => {
         onSortChange={handleSortChange}
         onLogoClick={handleLogoClick}
       />
-      <main className="container pt-32">
+      <main className="container pt-24 md:pt-32">
         <ProductGrid
           searchTerm={searchTerm}
           categoryFilter={categoryFilter}
