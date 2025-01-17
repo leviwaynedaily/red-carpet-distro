@@ -110,11 +110,11 @@ export const Header = ({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full shadow-sm" style={headerStyle}>
       <div className="w-full">
-        <div className="flex items-center justify-center px-4 md:px-8 py-2">
+        <div className="flex items-center justify-center px-4 md:px-8 py-3">
           <img
             src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
             alt="Palmtree Smokes"
-            className="h-6 md:h-8 cursor-pointer"
+            className="h-8 md:h-12 cursor-pointer" // Increased from h-6/h-8 to h-8/h-12
             onClick={onLogoClick}
           />
         </div>
