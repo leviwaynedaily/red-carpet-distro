@@ -76,10 +76,10 @@ export const Header = ({
           />
         </div>
         <div className="border-t border-gray-200/30 backdrop-blur-sm bg-white/10">
-          <div className="flex items-center justify-between py-2 px-4 md:px-8">
-            <div className="flex items-center space-x-4 overflow-x-auto">
+          <div className="container mx-auto px-4 py-2">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 max-w-3xl mx-auto">
               <Select value={categoryFilter} onValueChange={onCategoryChange}>
-                <SelectTrigger className="w-[150px] bg-white/80">
+                <SelectTrigger className="w-full md:w-[150px] bg-white/80">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -90,7 +90,7 @@ export const Header = ({
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={onSortChange}>
-                <SelectTrigger className="w-[150px] bg-white/80">
+                <SelectTrigger className="w-full md:w-[150px] bg-white/80">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -108,7 +108,7 @@ export const Header = ({
                 placeholder="Search products..."
                 value={tempSearchTerm}
                 onChange={(e) => setTempSearchTerm(e.target.value)}
-                className="max-w-xs bg-white/80"
+                className="w-full md:w-[200px] bg-white/80"
               />
             </div>
           </div>
