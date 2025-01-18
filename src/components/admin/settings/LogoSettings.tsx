@@ -14,6 +14,7 @@ interface LogoSettingsProps {
     logo_url_webp?: string;
     favicon_url: string;
     favicon_png_url?: string;
+    favicon_webp_url?: string;
   };
   onSettingChange: (name: string, value: any) => void;
 }
