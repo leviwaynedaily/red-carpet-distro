@@ -18,6 +18,8 @@ export function SiteSettings() {
   const [mediaInfo, setMediaInfo] = useState<{
     original?: { type: string; size: number; url: string };
     webp?: { type: string; size: number; url: string };
+    favicon?: { type: string; size: number; url: string };
+    faviconPng?: { type: string; size: number; url: string };
   }>({});
   const [adminPassword, setAdminPassword] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
@@ -117,13 +119,19 @@ export function SiteSettings() {
       if (data.media && typeof data.media === 'object' && 'webp' in data.media) {
         await fetchFileInfo(data.media.webp as string, 'webp');
       }
+      if (data.favicon_url) {
+        await fetchFileInfo(data.favicon_url, 'favicon');
+      }
+      if (data.favicon_png_url) {
+        await fetchFileInfo(data.favicon_png_url, 'faviconPng');
+      }
     } catch (error) {
       console.error("Error fetching settings:", error);
       toast.error("Failed to load settings");
     }
   };
 
-  const fetchFileInfo = async (url: string, type: 'original' | 'webp') => {
+  const fetchFileInfo = async (url: string, type: 'original' | 'webp' | 'favicon' | 'faviconPng') => {
     try {
       const response = await fetch(url);
       const blob = await response.blob();
@@ -719,13 +727,56 @@ export function SiteSettings() {
             <h3 className="text-lg font-medium">Favicon</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
+                <h4 className="font-medium">Current Favicon</h4>
                 {settings?.favicon_url && (
-                  <img
-                    src={settings.favicon_url}
-                    alt="Current Favicon"
-                    className="w-16 h-16 object-contain border rounded-md"
-                  />
+                  <div className="space-y-2">
+                    <img
+                      src={settings.favicon_url}
+                      alt="Current Favicon"
+                      className="w-16 h-16 object-contain border rounded-md"
+                    />
+                    <div className="text-sm space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span>ICO Format:</span>
+                        {mediaInfo.favicon?.type.includes('x-icon') ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                      <p>Type: {mediaInfo.favicon?.type || 'Unknown'}</p>
+                      <p>Size: {mediaInfo.favicon ? formatFileSize(mediaInfo.favicon.size) : 'Unknown'}</p>
+                    </div>
+                  </div>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-medium">PNG Version</h4>
+                {settings?.favicon_png_url && (
+                  <div className="space-y-2">
+                    <img
+                      src={settings.favicon_png_url}
+                      alt="Favicon PNG"
+                      className="w-16 h-16 object-contain border rounded-md"
+                    />
+                    <div className="text-sm space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span>PNG Format:</span>
+                        {mediaInfo.faviconPng?.type.includes('png') ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                      <p>Type: {mediaInfo.faviconPng?.type || 'Unknown'}</p>
+                      <p>Size: {mediaInfo.faviconPng ? formatFileSize(mediaInfo.faviconPng.size) : 'Unknown'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="col-span-2">
                 <FileUpload
                   onUploadComplete={handleFaviconUpload}
                   accept="image/*"
