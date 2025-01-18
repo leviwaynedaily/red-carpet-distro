@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { FileUpload } from "@/components/ui/file-upload";
-import { Check, X } from "lucide-react";
+import { Check, X, AlertTriangle } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { convertToWebP } from "@/utils/imageUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
 
@@ -210,7 +211,12 @@ export function SiteSettings() {
       
       if (!response.ok) {
         console.log(`PWA icon not found for size ${size} (${iconType}):`, url);
-        return null;
+        return {
+          exists: false,
+          type: null,
+          size: null,
+          url: url
+        };
       }
       
       const blob = await response.blob();
@@ -220,13 +226,20 @@ export function SiteSettings() {
       });
       
       return {
+        exists: true,
         type: blob.type,
         size: blob.size,
         url: url
       };
     } catch (error) {
       console.error(`Error fetching PWA icon ${size} (${iconType}):`, error);
-      return null;
+      return {
+        exists: false,
+        type: null,
+        size: null,
+        url: url,
+        error: error
+      };
     }
   };
 
@@ -475,6 +488,48 @@ export function SiteSettings() {
       console.error("Error updating PWA settings:", error);
       toast.error("Failed to update PWA settings");
     }
+  };
+
+  const renderIconStatus = (info: any, size: string, isMaskable: boolean = false) => {
+    if (!info) return null;
+
+    return (
+      <div key={`${size}-${isMaskable ? 'maskable' : 'regular'}`} className="space-y-2 border p-4 rounded-lg">
+        <div className="flex items-center gap-4">
+          {info.exists ? (
+            <img
+              src={info.url}
+              alt={`PWA Icon ${size}x${size}`}
+              className="w-16 h-16 object-contain border rounded-md"
+            />
+          ) : (
+            <div className="w-16 h-16 border rounded-md flex items-center justify-center bg-gray-50">
+              <AlertTriangle className="h-8 w-8 text-yellow-500" />
+            </div>
+          )}
+          <div className="text-sm space-y-1">
+            <div className="flex items-center gap-2">
+              <span>Status:</span>
+              {info.exists ? (
+                <Check className="h-4 w-4 text-green-500" />
+              ) : (
+                <X className="h-4 w-4 text-red-500" />
+              )}
+            </div>
+            <p>Size: {size}x{size}</p>
+            {info.exists && (
+              <>
+                <p>Type: {info.type}</p>
+                <p>File size: {formatFileSize(info.size)}</p>
+              </>
+            )}
+            {!info.exists && (
+              <p className="text-yellow-600">Icon missing</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -804,61 +859,27 @@ export function SiteSettings() {
 
             <div className="space-y-4">
               <h3 className="text-lg font-medium">PWA Icons</h3>
+              {(!mediaInfo.pwaIcons || Object.keys(mediaInfo.pwaIcons).length === 0) && (
+                <Alert variant="warning" className="mb-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    No PWA icons found. Please upload the required icons for better app installation experience.
+                  </AlertDescription>
+                </Alert>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-4">
                   <h4 className="font-medium">Regular Icons</h4>
-                  {mediaInfo.pwaIcons && Object.entries(mediaInfo.pwaIcons).map(([size, info]) => (
-                    <div key={size} className="space-y-2 border p-4 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={info.url}
-                          alt={`PWA Icon ${size}x${size}`}
-                          className="w-16 h-16 object-contain border rounded-md"
-                        />
-                        <div className="text-sm space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span>WebP Format:</span>
-                            {info.type.includes('webp') ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <X className="h-4 w-4 text-red-500" />
-                            )}
-                          </div>
-                          <p>Size: {size}x{size}</p>
-                          <p>Type: {info.type}</p>
-                          <p>File size: {formatFileSize(info.size)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  {mediaInfo.pwaIcons && Object.entries(mediaInfo.pwaIcons).map(([size, info]) => 
+                    renderIconStatus(info, size)
+                  )}
                 </div>
 
                 <div className="space-y-4">
                   <h4 className="font-medium">Maskable Icons</h4>
-                  {mediaInfo.pwaMaskableIcons && Object.entries(mediaInfo.pwaMaskableIcons).map(([size, info]) => (
-                    <div key={size} className="space-y-2 border p-4 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={info.url}
-                          alt={`PWA Maskable Icon ${size}x${size}`}
-                          className="w-16 h-16 object-contain border rounded-md"
-                        />
-                        <div className="text-sm space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span>WebP Format:</span>
-                            {info.type.includes('webp') ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <X className="h-4 w-4 text-red-500" />
-                            )}
-                          </div>
-                          <p>Size: {size}x{size}</p>
-                          <p>Type: {info.type}</p>
-                          <p>File size: {formatFileSize(info.size)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  {mediaInfo.pwaMaskableIcons && Object.entries(mediaInfo.pwaMaskableIcons).map(([size, info]) => 
+                    renderIconStatus(info, size, true)
+                  )}
                 </div>
               </div>
             </div>
