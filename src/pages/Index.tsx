@@ -37,11 +37,9 @@ const Index = () => {
   };
 
   const handleLogoClick = () => {
-    console.log('Index: Logo clicked, scrolling to top');
-    const container = document.getElementById('root');
-    if (container) {
-      container.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    console.log('Index: Logo clicked, clearing verification and refreshing');
+    localStorage.removeItem('isAgeVerified');
+    setIsVerified(false);
   };
 
   if (!isVerified) {
