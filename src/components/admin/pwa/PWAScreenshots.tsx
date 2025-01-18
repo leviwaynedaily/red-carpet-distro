@@ -13,60 +13,68 @@ interface PWAScreenshotsProps {
   onMobileUpload: (url: string) => void;
 }
 
+interface Screenshot {
+  type: 'desktop' | 'mobile';
+  url: string;
+  webp?: string;
+}
+
 export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
   desktopScreenshot,
   mobileScreenshot,
   onDesktopUpload,
   onMobileUpload
 }) => {
-  const [settingsId, setSettingsId] = useState<string | null>(null);
+  const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
 
   useEffect(() => {
-    fetchSettingsId();
+    fetchScreenshots();
   }, []);
 
-  const fetchSettingsId = async () => {
+  const fetchScreenshots = async () => {
     try {
-      console.log('Fetching settings ID...');
+      console.log('Fetching screenshots data...');
       const { data, error } = await supabase
         .from('site_settings')
-        .select('id')
-        .single();
+        .select('pwa_desktop_screenshot, pwa_mobile_screenshot')
+        .maybeSingle();
 
       if (error) {
-        console.error('Error fetching settings ID:', error);
+        console.error('Error fetching screenshots:', error);
         throw error;
       }
 
-      if (data?.id) {
-        console.log('Settings ID fetched successfully:', data.id);
-        setSettingsId(data.id);
-      } else {
-        console.error('No settings record found');
-        toast.error('No settings record found');
+      if (data) {
+        console.log('Screenshots data fetched:', data);
+        const screenshotsArray: Screenshot[] = [];
+        
+        if (data.pwa_desktop_screenshot) {
+          screenshotsArray.push({
+            type: 'desktop',
+            url: data.pwa_desktop_screenshot
+          });
+        }
+        
+        if (data.pwa_mobile_screenshot) {
+          screenshotsArray.push({
+            type: 'mobile',
+            url: data.pwa_mobile_screenshot
+          });
+        }
+
+        setScreenshots(screenshotsArray);
       }
     } catch (error) {
-      console.error('Error in fetchSettingsId:', error);
-      toast.error('Failed to fetch settings');
+      console.error('Error in fetchScreenshots:', error);
+      toast.error('Failed to fetch screenshots');
     }
-  };
-
-  const addCacheBuster = (url: string | null) => {
-    if (!url) return '';
-    return `${url}?t=${Date.now()}`;
   };
 
   const handleScreenshotUpload = async (url: string, type: 'desktop' | 'mobile') => {
-    if (!settingsId) {
-      console.error('Settings ID not found');
-      toast.error('Could not update settings: Settings ID not found');
-      return;
-    }
-
-    console.log(`Handling ${type} screenshot upload:`, { url, settingsId });
+    console.log(`Handling ${type} screenshot upload:`, { url });
     
     try {
-      // Fetch the image once and create a blob
+      // Fetch the image and create a blob
       const response = await fetch(url);
       const blob = await response.blob();
       const fileName = `${type}_screenshot`;
@@ -76,6 +84,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
       const { webpBlob } = await convertToWebP(originalFile);
       const webpFile = new File([webpBlob], `${fileName}.webp`, { type: 'image/webp' });
       
+      // Upload WebP version
       const { data: webpUpload, error: webpError } = await supabase.storage
         .from('media')
         .upload(`sitesettings/pwa/${fileName}.webp`, webpFile, {
@@ -90,6 +99,21 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
 
       console.log('WebP version uploaded successfully');
 
+      // Get the settings record
+      const { data: settings, error: settingsError } = await supabase
+        .from('site_settings')
+        .select('id')
+        .maybeSingle();
+
+      if (settingsError) {
+        console.error('Error fetching settings:', settingsError);
+        throw settingsError;
+      }
+
+      if (!settings?.id) {
+        throw new Error('No settings record found');
+      }
+
       // Update the site settings with both URLs
       const { error: updateError } = await supabase
         .from('site_settings')
@@ -99,12 +123,31 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
             [`${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
           }
         })
-        .eq('id', settingsId);
+        .eq('id', settings.id);
 
       if (updateError) {
         console.error('Error updating site settings:', updateError);
         throw updateError;
       }
+
+      // Update local state
+      setScreenshots(prev => {
+        const newScreenshots = [...prev];
+        const existingIndex = newScreenshots.findIndex(s => s.type === type);
+        const newScreenshot = {
+          type,
+          url,
+          webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
+        };
+
+        if (existingIndex >= 0) {
+          newScreenshots[existingIndex] = newScreenshot;
+        } else {
+          newScreenshots.push(newScreenshot);
+        }
+
+        return newScreenshots;
+      });
 
       if (type === 'desktop') {
         onDesktopUpload(url);
@@ -117,6 +160,11 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
       console.error(`Error in handle${type}ScreenshotUpload:`, error);
       toast.error(`Failed to process ${type} screenshot upload`);
     }
+  };
+
+  const addCacheBuster = (url: string | null) => {
+    if (!url) return '';
+    return `${url}?t=${Date.now()}`;
   };
 
   return (
@@ -134,7 +182,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!desktopScreenshot,
-              webp: !!desktopScreenshot
+              webp: !!screenshots.find(s => s.type === 'desktop')?.webp
             }}
           />
         </div>
@@ -162,7 +210,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!mobileScreenshot,
-              webp: !!mobileScreenshot
+              webp: !!screenshots.find(s => s.type === 'mobile')?.webp
             }}
           />
         </div>
