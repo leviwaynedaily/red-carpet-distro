@@ -1,6 +1,8 @@
 import { ProductCard } from "@/components/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface ProductGridProps {
   searchTerm: string;
@@ -17,7 +19,7 @@ export const ProductGrid = ({
   categoryFilter,
   sortBy,
 }: ProductGridProps) => {
-  const { data: products, isLoading, error } = useQuery({
+  const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ['products', 'categories'],
     queryFn: async () => {
       console.log('ProductGrid: Fetching products');
@@ -34,6 +36,11 @@ export const ProductGrid = ({
       return data;
     }
   });
+
+  const handleRefresh = async () => {
+    console.log('ProductGrid: Manually refreshing products');
+    await refetch();
+  };
 
   if (isLoading) {
     return (
@@ -97,17 +104,30 @@ export const ProductGrid = ({
   console.log('ProductGrid: Rendering filtered products:', sortedProducts.length);
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
-      {sortedProducts.map((product) => (
-        <ProductCard
-          key={product.id}
-          {...product}
-          image={product.image_url || ''}
-          video={product.video_url || ''}
-          media={product.media as Media}
-          viewMode="small"
-        />
-      ))}
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleRefresh}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+        {sortedProducts.map((product) => (
+          <ProductCard
+            key={product.id}
+            {...product}
+            image={product.image_url || ''}
+            video={product.video_url || ''}
+            media={product.media as Media}
+            viewMode="small"
+          />
+        ))}
+      </div>
     </div>
   );
 };
