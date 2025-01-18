@@ -333,12 +333,14 @@ export function SiteSettings() {
   const handlePWAIconUpload = async (url: string, size: number) => {
     console.log('Handling PWA icon upload:', { url, size });
     try {
-      const { data: settings } = await supabase
+      const { data: settingsData } = await supabase
         .from('site_settings')
-        .select('pwa_icons')
+        .select('*')
         .single();
 
-      const currentIcons = settings?.pwa_icons || [];
+      if (!settingsData?.id) {
+        throw new Error('No settings record found');
+      }
 
       // Convert the uploaded image to WebP
       const response = await fetch(url);
@@ -366,16 +368,17 @@ export function SiteSettings() {
         src: url,
         sizes: `${size}x${size}`,
         type: 'image/png',
-        purpose: 'any',
+        purpose: 'any' as const,
         webp: webpUrl
       };
 
+      const currentIcons = Array.isArray(settingsData.pwa_icons) ? settingsData.pwa_icons : [];
       const updatedIcons = [...currentIcons, newIcon];
 
       const { error: updateError } = await supabase
         .from('site_settings')
         .update({ pwa_icons: updatedIcons })
-        .eq('id', settings.id);
+        .eq('id', settingsData.id);
 
       if (updateError) throw updateError;
 
