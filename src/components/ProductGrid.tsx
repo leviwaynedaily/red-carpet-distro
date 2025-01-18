@@ -20,20 +20,33 @@ export const ProductGrid = ({
   sortBy,
 }: ProductGridProps) => {
   const { data: products, isLoading, error, refetch } = useQuery({
-    queryKey: ['products', 'categories'],
+    queryKey: ['products', 'product_categories'],
     queryFn: async () => {
-      console.log('ProductGrid: Fetching products');
-      const { data, error } = await supabase
+      console.log('ProductGrid: Fetching products with categories');
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('*');
+        .select(`
+          *,
+          product_categories (
+            category:categories(name)
+          )
+        `);
       
-      if (error) {
-        console.error('ProductGrid: Error fetching products:', error);
-        throw error;
+      if (productsError) {
+        console.error('ProductGrid: Error fetching products:', productsError);
+        throw productsError;
       }
       
-      console.log('ProductGrid: Fetched products:', data);
-      return data;
+      // Transform the data to match the expected format
+      const transformedProducts = productsData.map(product => ({
+        ...product,
+        categories: product.product_categories
+          ?.map(pc => pc.category?.name)
+          .filter(Boolean) || []
+      }));
+      
+      console.log('ProductGrid: Fetched and transformed products:', transformedProducts);
+      return transformedProducts;
     }
   });
 

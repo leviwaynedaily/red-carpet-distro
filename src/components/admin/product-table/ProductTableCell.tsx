@@ -7,16 +7,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Play, Upload, Trash2 } from "lucide-react";
 import { formatPrice } from "@/utils/formatPrice";
 import { ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type Product = Tables<"products">;
 
 interface ProductTableCellProps {
   column: string;
-  product: Product;
+  product: Product & { categories?: string[] };
   isEditing: boolean;
-  editValues: Partial<Product>;
+  editValues: Partial<Product> & { categories?: string[] };
   categories?: { id: string; name: string; }[];
-  onEditChange: (values: Partial<Product>) => void;
+  onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
   onMediaClick?: (type: 'image' | 'video', url: string) => void;
   onDeleteMedia?: (productId: string, type: 'image' | 'video') => void;
   onImageUpload?: (productId: string, url: string) => void;
@@ -35,14 +37,30 @@ export function ProductTableCell({
   onImageUpload,
   onVideoUpload,
 }: ProductTableCellProps) {
+  // Fetch current product categories
+  const { data: productCategories } = useQuery({
+    queryKey: ['product_categories', product.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('product_categories')
+        .select('categories(name)')
+        .eq('product_id', product.id);
+
+      if (error) throw error;
+
+      return data.map(pc => pc.categories?.name).filter(Boolean) as string[];
+    },
+    enabled: isEditing,
+  });
+
   const handleInputChange = (field: keyof Product, value: string | number | string[]) => {
     console.log('ProductTableCell: Updating field:', field, 'with value:', value);
     onEditChange({ ...editValues, [field]: value });
   };
 
-  const handleCategoryToggle = (categoryName: string, checked: boolean) => {
-    const currentCategories = editValues.categories || [];
-    const newCategories: string[] = checked 
+  const handleCategoryToggle = async (categoryName: string, checked: boolean) => {
+    const currentCategories = editValues.categories || productCategories || [];
+    const newCategories = checked 
       ? [...currentCategories, categoryName]
       : currentCategories.filter(cat => cat !== categoryName);
     
@@ -184,7 +202,7 @@ export function ProductTableCell({
               <div key={category.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={`category-${category.id}`}
-                  checked={(editValues.categories || []).includes(category.name)}
+                  checked={(editValues.categories || productCategories || []).includes(category.name)}
                   onCheckedChange={(checked) => 
                     handleCategoryToggle(category.name, checked === true)
                   }

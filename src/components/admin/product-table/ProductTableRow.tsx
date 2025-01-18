@@ -2,19 +2,20 @@ import { Tables } from "@/integrations/supabase/types";
 import { TableRow } from "@/components/ui/table";
 import { ProductTableCell } from "./ProductTableCell";
 import { ProductTableActions } from "./ProductTableActions";
+import { supabase } from "@/integrations/supabase/client";
 
 type Product = Tables<"products">;
 
 interface ProductTableRowProps {
-  product: Product;
+  product: Product & { categories?: string[] };
   visibleColumns: string[];
   isEditing: boolean;
-  editValues: Partial<Product>;
+  editValues: Partial<Product> & { categories?: string[] };
   categories?: { id: string; name: string; }[];
-  onEditStart: (product: Product) => void;
+  onEditStart: (product: Product & { categories?: string[] }) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
-  onEditChange: (values: Partial<Product>) => void;
+  onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
   onDelete: (id: string) => void;
   onImageUpload: (productId: string, url: string) => void;
   onVideoUpload: (productId: string, url: string) => void;
@@ -38,12 +39,42 @@ export function ProductTableRow({
   onDeleteMedia,
   onMediaClick,
 }: ProductTableRowProps) {
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = async (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      onEditSave();
+      await handleSave();
     } else if (e.key === 'Escape') {
       onEditCancel();
     }
+  };
+
+  const handleSave = async () => {
+    if (editValues.categories) {
+      // Get category IDs for the selected category names
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id, name')
+        .in('name', editValues.categories);
+
+      if (categoryData) {
+        // Delete existing category relationships
+        await supabase
+          .from('product_categories')
+          .delete()
+          .eq('product_id', product.id);
+
+        // Insert new category relationships
+        const categoryRelations = categoryData.map(category => ({
+          product_id: product.id,
+          category_id: category.id
+        }));
+
+        await supabase
+          .from('product_categories')
+          .insert(categoryRelations);
+      }
+    }
+
+    onEditSave();
   };
 
   return (
@@ -71,7 +102,7 @@ export function ProductTableRow({
       <ProductTableActions
         productId={product.id}
         isEditing={isEditing}
-        onSave={onEditSave}
+        onSave={handleSave}
         onCancel={onEditCancel}
         onDelete={onDelete}
       />
