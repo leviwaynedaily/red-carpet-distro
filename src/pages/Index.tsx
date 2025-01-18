@@ -1,8 +1,5 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { ProductGrid } from "@/components/ProductGrid";
-import type { Database } from "@/integrations/supabase/types";
 import { AgeVerification } from "@/components/AgeVerification";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -57,7 +54,7 @@ const Index = () => {
         onSortChange={handleSortChange}
         onLogoClick={handleLogoClick}
       />
-      <main className="container mx-auto px-4 pt-[calc(theme(spacing.40)+theme(spacing.24))] md:pt-[calc(theme(spacing.48)+theme(spacing.24))]">
+      <main className="container mx-auto px-4 pt-[calc(theme(spacing.32)+theme(spacing.8))] md:pt-[calc(theme(spacing.40)+theme(spacing.8))]">
         <ProductGrid
           searchTerm={searchTerm}
           categoryFilter={categoryFilter}
