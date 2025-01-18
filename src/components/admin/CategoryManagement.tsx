@@ -108,7 +108,6 @@ export function CategoryManagement() {
       );
 
       for (const product of productsToUpdate) {
-        // Remove duplicates and replace old category name with new one
         const uniqueCategories = Array.from(new Set(product.categories))
           .map(cat => cat === oldName ? newName : cat);
 
@@ -137,18 +136,58 @@ export function CategoryManagement() {
   const handleDeleteCategory = async (id: string) => {
     try {
       console.log("Deleting category:", id);
-      const { error } = await supabase
+      
+      // First, get the category name
+      const categoryToDelete = categories?.find(cat => cat.id === id);
+      if (!categoryToDelete) {
+        toast.error("Category not found");
+        return;
+      }
+
+      // Delete the category
+      const { error: deleteError } = await supabase
         .from("categories")
         .delete()
         .eq("id", id);
 
-      if (error) {
-        console.error("Error deleting category:", error);
-        toast.error("Failed to delete category: " + error.message);
+      if (deleteError) {
+        console.error("Error deleting category:", deleteError);
+        toast.error("Failed to delete category: " + deleteError.message);
         return;
       }
 
+      // Update products to remove the deleted category
+      const { data: products, error: fetchError } = await supabase
+        .from("products")
+        .select("id, categories");
+
+      if (fetchError) {
+        console.error("Error fetching products:", fetchError);
+        toast.error("Failed to update products after category deletion");
+        return;
+      }
+
+      // Update products that contain the deleted category
+      const productsToUpdate = products.filter(product => 
+        product.categories && product.categories.includes(categoryToDelete.name)
+      );
+
+      for (const product of productsToUpdate) {
+        const updatedCategories = product.categories.filter(cat => cat !== categoryToDelete.name);
+
+        const { error: productError } = await supabase
+          .from("products")
+          .update({ categories: updatedCategories })
+          .eq("id", product.id);
+
+        if (productError) {
+          console.error("Error updating product categories:", productError);
+          toast.error("Failed to update some products after category deletion");
+        }
+      }
+
       toast.success("Category deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       refetch();
     } catch (error) {
       console.error("Error deleting category:", error);
