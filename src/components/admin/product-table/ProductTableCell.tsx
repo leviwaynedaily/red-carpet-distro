@@ -63,6 +63,7 @@ export function ProductTableCell({
             value={editValues[column as keyof Product]?.toString() || ''}
             onChange={(e) => handleInputChange(column as keyof Product, e.target.value)}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           />
         ) : (
           product[column as keyof Product]?.toString() || '-'
@@ -190,9 +191,10 @@ export function ProductTableCell({
         return isEditing ? (
           <Input
             type="number"
-            value={editValues.stock || 0}
+            value={editValues.stock?.toString() || '0'}
             onChange={(e) => handleInputChange('stock', parseInt(e.target.value))}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           />
         ) : (
           product.stock?.toString() || '-'
@@ -203,9 +205,10 @@ export function ProductTableCell({
         return isEditing ? (
           <Input
             type="number"
-            value={editValues[column as keyof Product] || 0}
+            value={editValues[column as keyof Product]?.toString() || '0'}
             onChange={(e) => handleInputChange(column as keyof Product, parseFloat(e.target.value))}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           />
         ) : (
           formatPrice(product[column as keyof Product] as number)

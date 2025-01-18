@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
-import { Edit, Trash2 } from "lucide-react";
+import { Check, X, Trash2 } from "lucide-react";
 
 interface ProductTableActionsProps {
   productId: string;
@@ -32,7 +32,7 @@ export function ProductTableActions({
               }}
               aria-label="Save changes"
             >
-              <Edit className="h-4 w-4" />
+              <Check className="h-4 w-4" />
             </Button>
             <Button
               size="icon"
@@ -44,7 +44,7 @@ export function ProductTableActions({
               }}
               aria-label="Cancel editing"
             >
-              <Trash2 className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </Button>
           </>
         ) : (

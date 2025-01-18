@@ -38,11 +38,20 @@ export function ProductTableRow({
   onDeleteMedia,
   onMediaClick,
 }: ProductTableRowProps) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      onEditSave();
+    } else if (e.key === 'Escape') {
+      onEditCancel();
+    }
+  };
+
   return (
     <TableRow 
       key={product.id}
       className="cursor-pointer"
       onClick={() => !isEditing && onEditStart(product)}
+      onKeyDown={handleKeyDown}
     >
       {visibleColumns.map((column) => (
         <ProductTableCell
