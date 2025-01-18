@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { FileUpload } from "@/components/ui/file-upload";
 import { Check, X } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 
 interface FileInfo {
   type: string;
@@ -17,8 +18,10 @@ interface MediaInfo {
   webp?: FileInfo;
 }
 
+type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
+
 export function SiteSettings() {
-  const [settings, setSettings] = useState<any>(null);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [mediaInfo, setMediaInfo] = useState<MediaInfo>({});
   const [adminPassword, setAdminPassword] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
@@ -42,8 +45,8 @@ export function SiteSettings() {
       if (data.logo_url) {
         await fetchFileInfo(data.logo_url, 'original');
       }
-      if (data.media?.webp) {
-        await fetchFileInfo(data.media.webp, 'webp');
+      if (data.media && typeof data.media === 'object' && 'webp' in data.media) {
+        await fetchFileInfo(data.media.webp as string, 'webp');
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -177,10 +180,10 @@ export function SiteSettings() {
 
               <div className="space-y-2">
                 <h4 className="font-medium">WebP Version</h4>
-                {settings?.media?.webp && (
+                {settings?.media && typeof settings.media === 'object' && 'webp' in settings.media && (
                   <div className="space-y-2">
                     <img
-                      src={settings.media.webp}
+                      src={settings.media.webp as string}
                       alt="Site Logo WebP"
                       className="w-32 h-32 object-contain border rounded-md"
                     />
