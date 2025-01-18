@@ -222,16 +222,15 @@ export function SiteSettings() {
         };
       }
       
-      const blob = await data.blob();
       console.log(`Successfully fetched PWA icon ${size} (${iconType}):`, {
-        type: blob.type,
-        size: blob.size
+        type: data.type,
+        size: data.size
       });
       
       return {
         exists: true,
-        type: blob.type,
-        size: blob.size,
+        type: data.type,
+        size: data.size,
         url: url
       };
     } catch (error) {
