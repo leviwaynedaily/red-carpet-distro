@@ -30,7 +30,7 @@ export function ProductManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleColumns, setVisibleColumns] = useState(COLUMNS.map(c => c.key));
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<Partial<Product>>({});
+  const [editValues, setEditValues] = useState<Partial<Product> & { categories?: string[] }>({});
   const [showMedia, setShowMedia] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ type: 'image' | 'video', url: string } | null>(null);
   const queryClient = useQueryClient();
@@ -41,31 +41,32 @@ export function ProductManagement() {
 
   const fetchProducts = async () => {
     try {
-      console.log('ProductManagement: Fetching products');
+      console.log('ProductManagement: Fetching products with categories');
       const { data: productsData, error: productsError } = await supabase
         .from("products")
         .select(`
           *,
-          product_categories (
-            category:categories(name)
+          product_categories!inner (
+            categories (
+              name
+            )
           )
-        `)
-        .order("created_at", { ascending: false });
+        `);
 
       if (productsError) {
         console.error('ProductManagement: Error fetching products:', productsError);
         throw productsError;
       }
-      
+
       // Transform the data to include categories array
       const transformedProducts = productsData.map(product => ({
         ...product,
         categories: product.product_categories
-          ?.map(pc => pc.category?.name)
+          ?.map(pc => pc.categories?.name)
           .filter(Boolean) || []
       }));
-      
-      console.log('ProductManagement: Successfully fetched products:', transformedProducts.length);
+
+      console.log('ProductManagement: Successfully fetched products:', transformedProducts);
       setProducts(transformedProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -112,60 +113,43 @@ export function ProductManagement() {
     try {
       console.log('ProductManagement: Starting product deletion for ID:', id);
       
-      // Basic validation
-      if (!id) {
-        console.error('ProductManagement: Invalid product ID - empty or undefined');
-        toast.error("Invalid product ID");
-        return;
+      // Delete product categories first
+      const { error: categoryError } = await supabase
+        .from('product_categories')
+        .delete()
+        .eq('product_id', id);
+
+      if (categoryError) {
+        console.error('ProductManagement: Error deleting product categories:', categoryError);
+        throw categoryError;
       }
 
-      // UUID format validation
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(id)) {
-        console.error('ProductManagement: Invalid UUID format:', id);
-        toast.error("Invalid product ID format");
-        return;
-      }
-
-      // Get product details before deletion (for logging)
-      const { data: product, error: fetchError } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (fetchError) {
-        console.error('ProductManagement: Error fetching product before deletion:', fetchError);
-        throw fetchError;
-      }
-
-      console.log('ProductManagement: Found product to delete:', product);
-
-      // Perform the deletion
-      const { error: deleteError } = await supabase
+      // Then delete the product
+      const { error: productError } = await supabase
         .from("products")
         .delete()
         .eq("id", id);
 
-      if (deleteError) {
-        console.error('ProductManagement: Error deleting product:', deleteError);
-        throw deleteError;
+      if (productError) {
+        console.error('ProductManagement: Error deleting product:', productError);
+        throw productError;
       }
 
       console.log('ProductManagement: Successfully deleted product:', id);
       toast.success("Product deleted successfully");
-      
-      // Refresh the products list
       await fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
-      toast.error("Failed to delete product. Please try again.");
+      toast.error("Failed to delete product");
     }
   };
 
-  const handleEditStart = (product: Product) => {
+  const handleEditStart = (product: Product & { categories?: string[] }) => {
     setEditingProduct(product.id);
-    setEditValues(product);
+    setEditValues({
+      ...product,
+      categories: product.categories || []
+    });
   };
 
   const handleEditSave = async () => {
@@ -192,6 +176,49 @@ export function ProductManagement() {
         throw updateError;
       }
 
+      // Handle categories update
+      if (editValues.categories) {
+        // First, get category IDs for the selected names
+        const { data: categoryData, error: categoryError } = await supabase
+          .from('categories')
+          .select('id, name')
+          .in('name', editValues.categories);
+
+        if (categoryError) {
+          console.error('ProductManagement: Error fetching category IDs:', categoryError);
+          throw categoryError;
+        }
+
+        // Delete existing category relationships
+        const { error: deleteError } = await supabase
+          .from('product_categories')
+          .delete()
+          .eq('product_id', editingProduct);
+
+        if (deleteError) {
+          console.error('ProductManagement: Error deleting existing categories:', deleteError);
+          throw deleteError;
+        }
+
+        // Insert new category relationships
+        if (categoryData && categoryData.length > 0) {
+          const categoryRelations = categoryData.map(category => ({
+            product_id: editingProduct,
+            category_id: category.id
+          }));
+
+          const { error: insertError } = await supabase
+            .from('product_categories')
+            .insert(categoryRelations);
+
+          if (insertError) {
+            console.error('ProductManagement: Error inserting new categories:', insertError);
+            throw insertError;
+          }
+        }
+      }
+
+      console.log('ProductManagement: Product and categories updated successfully');
       toast.success("Product updated successfully");
       setEditingProduct(null);
       setEditValues({});
