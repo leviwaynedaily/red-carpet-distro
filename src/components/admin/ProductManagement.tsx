@@ -138,10 +138,23 @@ export function ProductManagement() {
     try {
       console.log('🚀 Starting image upload process for product:', productId);
       
+      // Find the product to get its name
+      const product = products.find(p => p.id === productId);
+      if (!product) {
+        throw new Error('Product not found');
+      }
+
+      // Create a sanitized filename from the product name
+      const sanitizedName = product.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
       // Fetch the uploaded file
       const response = await fetch(url);
       const blob = await response.blob();
-      const file = new File([blob], `image.${url.split('.').pop()}`, { type: blob.type });
+      const file = new File([blob], `${sanitizedName}.${url.split('.').pop()}`, { type: blob.type });
 
       console.log('📦 Original file details:', {
         name: file.name,
@@ -152,7 +165,7 @@ export function ProductManagement() {
       // Convert to WebP
       console.log('🔄 Converting image to WebP format');
       const { webpBlob } = await convertToWebP(file);
-      const webpFile = new File([webpBlob], 'image.webp', { type: 'image/webp' });
+      const webpFile = new File([webpBlob], `${sanitizedName}.webp`, { type: 'image/webp' });
 
       console.log('📦 WebP file details:', {
         name: webpFile.name,
@@ -161,7 +174,7 @@ export function ProductManagement() {
       });
 
       // Upload WebP version only
-      const webpPath = `products/${productId}/image.webp`;
+      const webpPath = `products/${productId}/${sanitizedName}.webp`;
       const { error: webpError, data: webpData } = await supabase.storage
         .from('media')
         .upload(webpPath, webpFile, {
