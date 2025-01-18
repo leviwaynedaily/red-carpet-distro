@@ -107,22 +107,24 @@ export const Header = ({
 
   const FilterControls = () => (
     <>
-      <Select value={categoryFilter} onValueChange={(value) => {
-        onCategoryChange(value);
-        if (isMobile) setIsSheetOpen(false);
-      }}>
-        <SelectTrigger className="w-full md:w-[150px] bg-white/80">
-          <SelectValue placeholder="Category" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Categories</SelectItem>
-          {categories.map((category) => (
-            <SelectItem key={category.id} value={category.name.toLowerCase()}>
-              {category.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {categories.length > 0 && (
+        <Select value={categoryFilter} onValueChange={(value) => {
+          onCategoryChange(value);
+          if (isMobile) setIsSheetOpen(false);
+        }}>
+          <SelectTrigger className="w-full md:w-[150px] bg-white/80">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.name.toLowerCase()}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
       <Select value={sortBy} onValueChange={(value) => {
         onSortChange(value);
         if (isMobile) setIsSheetOpen(false);

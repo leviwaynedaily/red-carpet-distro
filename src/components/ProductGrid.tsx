@@ -1,7 +1,6 @@
 import { ProductCard } from "@/components/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
 
 interface ProductGridProps {
   searchTerm: string;
@@ -21,8 +20,17 @@ export const ProductGrid = ({
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('products').select('*');
-      if (error) throw error;
+      console.log('ProductGrid: Fetching products');
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
+      
+      if (error) {
+        console.error('ProductGrid: Error fetching products:', error);
+        throw error;
+      }
+      
+      console.log('ProductGrid: Fetched products:', data);
       return data;
     }
   });
@@ -36,9 +44,19 @@ export const ProductGrid = ({
   }
 
   if (error) {
+    console.error('ProductGrid: Error rendering products:', error);
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <p className="text-red-500">Error loading products. Please try again later.</p>
+      </div>
+    );
+  }
+
+  if (!products || products.length === 0) {
+    console.log('ProductGrid: No products found');
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-gray-500">No products found.</p>
       </div>
     );
   }
@@ -47,7 +65,8 @@ export const ProductGrid = ({
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = categoryFilter === 'all' || (product.categories && product.categories.includes(categoryFilter));
+    const matchesCategory = categoryFilter === 'all' || 
+      (product.categories && product.categories.includes(categoryFilter));
     return matchesSearch && matchesCategory;
   });
 
@@ -74,6 +93,8 @@ export const ProductGrid = ({
         return 0;
     }
   });
+
+  console.log('ProductGrid: Rendering filtered products:', sortedProducts.length);
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
