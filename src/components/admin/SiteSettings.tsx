@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { FileUpload } from "@/components/ui/file-upload";
 import { Check, X } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { convertToWebP } from "@/utils/imageUtils";
 
 interface FileInfo {
   type: string;
@@ -79,11 +80,55 @@ export function SiteSettings() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleLogoUpload = async (url: string) => {
+  const handleLogoUpload = async (file: File) => {
     try {
+      console.log('Starting logo upload process');
+      
+      // Convert to WebP
+      const { webpBlob } = await convertToWebP(file);
+      
+      // Upload original file
+      const originalResponse = await supabase.storage
+        .from("media")
+        .upload(`sitesettings/logo.${file.name.split('.').pop()}`, file, {
+          upsert: true
+        });
+
+      if (originalResponse.error) throw originalResponse.error;
+
+      // Upload WebP version
+      const webpResponse = await supabase.storage
+        .from("media")
+        .upload('sitesettings/logo.webp', webpBlob, {
+          contentType: 'image/webp',
+          upsert: true
+        });
+
+      if (webpResponse.error) throw webpResponse.error;
+
+      // Get public URLs
+      const { data: originalUrl } = supabase.storage
+        .from("media")
+        .getPublicUrl(`sitesettings/logo.${file.name.split('.').pop()}`);
+
+      const { data: webpUrl } = supabase.storage
+        .from("media")
+        .getPublicUrl('sitesettings/logo.webp');
+
+      // Update database
+      const currentMedia = settings?.media && typeof settings.media === 'object' 
+        ? settings.media 
+        : {};
+
       const { error } = await supabase
         .from("site_settings")
-        .update({ logo_url: url })
+        .update({
+          logo_url: originalUrl.publicUrl,
+          media: {
+            ...currentMedia,
+            webp: webpUrl.publicUrl
+          }
+        })
         .eq("id", settings.id);
 
       if (error) throw error;
@@ -92,31 +137,6 @@ export function SiteSettings() {
     } catch (error) {
       console.error("Error updating logo:", error);
       toast.error("Failed to update logo");
-    }
-  };
-
-  const handleWebpUpload = async (url: string) => {
-    try {
-      const currentMedia = settings?.media && typeof settings.media === 'object' 
-        ? settings.media 
-        : {};
-
-      const { error } = await supabase
-        .from("site_settings")
-        .update({
-          media: {
-            ...currentMedia,
-            webp: url
-          }
-        })
-        .eq("id", settings.id);
-
-      if (error) throw error;
-      toast.success("WebP version uploaded successfully");
-      fetchSettings();
-    } catch (error) {
-      console.error("Error updating WebP version:", error);
-      toast.error("Failed to update WebP version");
     }
   };
 
@@ -151,7 +171,7 @@ export function SiteSettings() {
           <div className="flex flex-col space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <h4 className="font-medium">Original Image</h4>
+                <h4 className="font-medium">Logo Preview</h4>
                 {settings?.logo_url && (
                   <div className="space-y-2">
                     <img
@@ -161,7 +181,7 @@ export function SiteSettings() {
                     />
                     <div className="text-sm space-y-1">
                       <div className="flex items-center gap-2">
-                        <span>PNG/JPG:</span>
+                        <span>Original Format:</span>
                         {mediaInfo.original?.type.includes('png') || mediaInfo.original?.type.includes('jpeg') ? (
                           <Check className="h-4 w-4 text-green-500" />
                         ) : (
@@ -182,9 +202,9 @@ export function SiteSettings() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <h4 className="font-medium">WebP Version</h4>
-                {settings?.media && typeof settings.media === 'object' && 'webp' in settings.media && (
+              {settings?.media && typeof settings.media === 'object' && 'webp' in settings.media && (
+                <div className="space-y-2">
+                  <h4 className="font-medium">WebP Version</h4>
                   <div className="space-y-2">
                     <img
                       src={settings.media.webp as string}
@@ -204,15 +224,8 @@ export function SiteSettings() {
                       <p>Size: {mediaInfo.webp ? formatFileSize(mediaInfo.webp.size) : 'Unknown'}</p>
                     </div>
                   </div>
-                )}
-                <FileUpload
-                  onUploadComplete={handleWebpUpload}
-                  accept="image/webp"
-                  bucket="media"
-                  folderPath="sitesettings"
-                  fileName="logo-webp"
-                />
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
