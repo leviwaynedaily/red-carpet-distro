@@ -32,7 +32,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
       console.log('Fetching storefront password...');
       const { data, error } = await supabase
         .from("site_settings")
-        .select("storefront_password")
+        .select("storefront_password, logo_url, logo_url_webp")
         .single();
 
       if (error) {
@@ -44,6 +44,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
       if (data?.storefront_password) {
         setStorefrontPassword(data.storefront_password);
       }
+      setSettings(data);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching storefront password:", error);
@@ -104,12 +105,16 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-4 sm:p-8 max-w-md w-full mx-4 shadow-lg animate-fade-up overflow-y-auto max-h-[90vh]">
         <picture>
-          <source srcSet="/lovable-uploads/3da74169-47b0-4693-aad7-82c3df307063.webp" type="image/webp" />
-          <img
-            src="/lovable-uploads/3da74169-47b0-4693-aad7-82c3df307063.png"
-            alt="Palmtree Smokes Logo"
-            className="w-32 sm:w-48 mx-auto mb-4 sm:mb-6"
-          />
+          {settings?.logo_url_webp && (
+            <source srcSet={settings.logo_url_webp} type="image/webp" />
+          )}
+          {settings?.logo_url && (
+            <img
+              src={settings.logo_url}
+              alt="Palmtree Smokes Logo"
+              className="w-32 sm:w-48 mx-auto mb-4 sm:mb-6"
+            />
+          )}
         </picture>
         {step === 'verification' ? (
           <>
