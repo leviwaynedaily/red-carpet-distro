@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { updateRootColors } from "@/utils/colorUtils";
+import { convertToWebP } from "@/utils/imageUtils";
 import { ColorSettings } from "./settings/ColorSettings";
 import { LogoSettings } from "./settings/LogoSettings";
 import { DescriptionSettings } from "./settings/DescriptionSettings";
@@ -50,6 +51,11 @@ type SiteSettingsType = {
   header_opacity: number;
   toolbar_color: string;
   toolbar_opacity: number;
+  welcome_instructions: {
+    title: string;
+    subtitle: string;
+    guidelines: string[];
+  } | null;
 };
 
 export function SiteSettings() {
@@ -88,6 +94,18 @@ export function SiteSettings() {
     header_opacity: 1.0,
     toolbar_color: "#FFFFFF",
     toolbar_opacity: 1.0,
+    welcome_instructions: {
+      title: "Welcome to Palmtree Smokes",
+      subtitle: "Please take a moment to review our store guidelines:",
+      guidelines: [
+        "Browse our selection of premium products at your leisure",
+        "For purchases or inquiries, text or call us directly",
+        "Business Hours: Monday - Friday, 8:00 AM - 5:00 PM",
+        "Same-day delivery available for orders placed before 3 PM",
+        "Customer support available during business hours",
+        "All prices include applicable taxes"
+      ]
+    }
   });
 
   useEffect(() => {
