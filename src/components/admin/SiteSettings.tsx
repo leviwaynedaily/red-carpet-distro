@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 import { updateRootColors } from "@/utils/colorUtils";
-import { convertToWebP } from "@/utils/imageUtils";
 import { ColorSettings } from "./settings/ColorSettings";
 import { LogoSettings } from "./settings/LogoSettings";
 import { DescriptionSettings } from "./settings/DescriptionSettings";
 import { OpenGraphSettings } from "./settings/OpenGraphSettings";
 import { PWAIcons } from "./pwa/PWAIcons";
 import { PWAScreenshots } from "./pwa/PWAScreenshots";
+import { WelcomeInstructions } from "./settings/WelcomeInstructions";
 import type { PWAIcon } from "@/types/site-settings";
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -242,9 +241,10 @@ export function SiteSettings() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
       <Tabs defaultValue="colors" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="colors">Colors</TabsTrigger>
           <TabsTrigger value="site">Site Settings</TabsTrigger>
+          <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="pwa">PWA Settings</TabsTrigger>
           <TabsTrigger value="og">Open Graph</TabsTrigger>
         </TabsList>
@@ -267,6 +267,13 @@ export function SiteSettings() {
               onSettingChange={handleSettingChange}
             />
           </div>
+        </TabsContent>
+
+        <TabsContent value="welcome" className="space-y-4">
+          <WelcomeInstructions
+            settings={settings}
+            onSettingChange={handleSettingChange}
+          />
         </TabsContent>
 
         <TabsContent value="pwa" className="space-y-6">
