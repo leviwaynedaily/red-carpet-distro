@@ -62,9 +62,8 @@ export const Header = ({
           setLogoUrl(typedSettings.logo_url || 'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.png');
           
           // Check if media exists and contains webp property
-          const media = typedSettings.media;
-          if (media && typeof media === 'object' && 'webp' in media) {
-            setLogoWebpUrl(media.webp as string);
+          if (typedSettings.media && typeof typedSettings.media === 'object' && 'webp' in typedSettings.media) {
+            setLogoWebpUrl(typedSettings.media.webp as string);
           }
         }
       } catch (error) {
