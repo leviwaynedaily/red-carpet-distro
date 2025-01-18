@@ -109,7 +109,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
         />
         {step === 'verification' ? (
           <>
-            <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Verification Required</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-left mb-4 sm:mb-6">Verification Required</h2>
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div className="flex items-start space-x-3">
                 <Checkbox
@@ -119,7 +119,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
                 />
                 <label
                   htmlFor="age-verify"
-                  className="text-xs sm:text-sm leading-tight sm:leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-xs sm:text-sm leading-tight sm:leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-left"
                 >
                   I confirm that I am 21 years of age or older and agree to the Terms of Service and Privacy Policy.
                 </label>
@@ -148,10 +148,10 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
           </>
         ) : (
           <>
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Welcome to Palmtree Smokes</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-left">Welcome to Palmtree Smokes</h2>
             <div className="space-y-4 text-xs sm:text-sm text-gray-600">
-              <p>Please take a moment to review our store guidelines:</p>
-              <ul className="list-disc pl-5 space-y-2">
+              <p className="text-left">Please take a moment to review our store guidelines:</p>
+              <ul className="list-disc pl-5 space-y-2 text-left">
                 <li>Browse our selection of premium products at your leisure</li>
                 <li>For purchases or inquiries, text or call us directly</li>
                 <li>Business Hours: Monday - Friday, 8:00 AM - 5:00 PM</li>
