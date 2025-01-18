@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductManagement } from "@/components/admin/ProductManagement";
+import { CategoryManagement } from "@/components/admin/CategoryManagement";
 import { SiteSettings } from "@/components/admin/SiteSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,16 +113,29 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="products" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="products">Products & Categories</TabsTrigger>
+        <TabsList className="w-full border-b">
+          <TabsTrigger value="products-categories">Products & Categories</TabsTrigger>
           <TabsTrigger value="settings">Site Settings</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="products" className="space-y-4">
-          <ProductManagement />
+        <TabsContent value="products-categories">
+          <Tabs defaultValue="products" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="products">Products</TabsTrigger>
+              <TabsTrigger value="categories">Categories</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="products">
+              <ProductManagement />
+            </TabsContent>
+
+            <TabsContent value="categories">
+              <CategoryManagement />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
-        <TabsContent value="settings" className="space-y-4">
+        <TabsContent value="settings">
           <SiteSettings />
         </TabsContent>
       </Tabs>

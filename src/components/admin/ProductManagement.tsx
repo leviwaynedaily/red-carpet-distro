@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CategoryManagement } from "./CategoryManagement";
 import { ProductTableFilters } from "./ProductTableFilters";
 import { toast } from "sonner";
 import { Tables } from "@/integrations/supabase/types";
@@ -272,10 +271,6 @@ export function ProductManagement() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <CategoryManagement />
-      </div>
-
       <ProductTableFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
