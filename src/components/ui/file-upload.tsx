@@ -12,9 +12,10 @@ interface FileUploadProps {
   folderPath?: string;
   fileName?: string;
   className?: string;
-  children?: React.ReactNode;  // Added children prop
-  onClientUploadComplete?: (res: any) => void;  // Added for compatibility
-  onUploadError?: (error: Error) => void;  // Added for compatibility
+  children?: React.ReactNode;
+  onClientUploadComplete?: (res: any) => void;
+  onUploadError?: (error: Error) => void;
+  endpoint?: string; // Added for compatibility
 }
 
 export function FileUpload({ 

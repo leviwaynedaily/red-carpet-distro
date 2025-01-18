@@ -338,10 +338,9 @@ export function CategoryManagement() {
               ) : (
                 <div className="aspect-video rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
                   <FileUpload
-                    endpoint="imageUploader"
-                    onClientUploadComplete={(res) => {
-                      if (res?.[0]?.url) {
-                        handleImageUpload(category.id, res[0].url);
+                    onUploadComplete={(url) => {
+                      if (url) {
+                        handleImageUpload(category.id, url);
                       }
                     }}
                     onUploadError={(error: Error) => {

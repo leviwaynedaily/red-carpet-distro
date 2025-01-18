@@ -159,8 +159,9 @@ export function ProductTable({
                         folderPath={`products/${product.id}`}
                         fileName="image"
                         className="w-8"
-                        buttonContent={<Upload className="h-4 w-4" />}
-                      />
+                      >
+                        <Upload className="h-4 w-4" />
+                      </FileUpload>
                     )}
                   </div>
                 </TableCell>
@@ -203,8 +204,9 @@ export function ProductTable({
                         folderPath={`products/${product.id}`}
                         fileName="video"
                         className="w-8"
-                        buttonContent={<Upload className="h-4 w-4" />}
-                      />
+                      >
+                        <Upload className="h-4 w-4" />
+                      </FileUpload>
                     )}
                   </div>
                 </TableCell>
