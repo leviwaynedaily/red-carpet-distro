@@ -207,10 +207,13 @@ export function SiteSettings() {
     
     try {
       console.log(`Attempting to fetch PWA icon ${size} (${iconType}):`, url);
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        console.log(`PWA icon not found for size ${size} (${iconType}):`, url);
+      const { data, error } = await supabase
+        .storage
+        .from('media')
+        .download(`sitesettings/pwa/icon-${size}${isMaskable ? '-maskable' : ''}.webp`);
+
+      if (error) {
+        console.log(`PWA icon not found for size ${size} (${iconType}):`, error);
         return {
           exists: false,
           type: null,
@@ -219,7 +222,7 @@ export function SiteSettings() {
         };
       }
       
-      const blob = await response.blob();
+      const blob = await data.blob();
       console.log(`Successfully fetched PWA icon ${size} (${iconType}):`, {
         type: blob.type,
         size: blob.size
