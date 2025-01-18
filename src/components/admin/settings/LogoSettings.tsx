@@ -101,12 +101,39 @@ export function LogoSettings({ settings, onSettingChange }: LogoSettingsProps) {
         throw new Error('No settings record found');
       }
 
+      // Fetch the original file
       const response = await fetch(url);
       const blob = await response.blob();
+      
+      // Create PNG version
       const pngFile = new File([blob], 'favicon.png', { type: 'image/png' });
+      
+      // Convert to WebP
+      console.log('Converting to WebP...');
+      const { webpBlob } = await convertToWebP(pngFile);
+      const webpFile = new File([webpBlob], 'favicon.webp', { type: 'image/webp' });
 
-      console.log('Uploading PNG version...');
-      const { data: pngUpload, error: pngError } = await supabase.storage
+      // Convert to ICO (using PNG as ICO)
+      const icoFile = new File([blob], 'favicon.ico', { type: 'image/x-icon' });
+
+      // Upload all versions
+      console.log('Uploading all versions...');
+      
+      // Upload ICO version
+      const { error: icoError } = await supabase.storage
+        .from('media')
+        .upload('sitesettings/favicon.ico', icoFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (icoError) {
+        console.error('Error uploading ICO version:', icoError);
+        throw icoError;
+      }
+
+      // Upload PNG version
+      const { error: pngError } = await supabase.storage
         .from('media')
         .upload('sitesettings/favicon.png', pngFile, {
           cacheControl: '3600',
@@ -118,13 +145,29 @@ export function LogoSettings({ settings, onSettingChange }: LogoSettingsProps) {
         throw pngError;
       }
 
+      // Upload WebP version
+      const { error: webpError } = await supabase.storage
+        .from('media')
+        .upload('sitesettings/favicon.webp', webpFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (webpError) {
+        console.error('Error uploading WebP version:', webpError);
+        throw webpError;
+      }
+
+      const icoUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/favicon.ico`;
       const pngUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/favicon.png`;
+      const webpUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/favicon.webp`;
 
       const { error: updateError } = await supabase
         .from('site_settings')
         .update({
-          favicon_url: url,
-          favicon_png_url: pngUrl
+          favicon_url: icoUrl,
+          favicon_png_url: pngUrl,
+          favicon_webp_url: webpUrl
         })
         .eq('id', settings.id);
 
@@ -133,8 +176,9 @@ export function LogoSettings({ settings, onSettingChange }: LogoSettingsProps) {
         throw updateError;
       }
 
-      onSettingChange('favicon_url', url);
+      onSettingChange('favicon_url', icoUrl);
       onSettingChange('favicon_png_url', pngUrl);
+      onSettingChange('favicon_webp_url', webpUrl);
 
       toast.success('Favicon uploaded successfully');
     } catch (error) {
@@ -204,7 +248,8 @@ export function LogoSettings({ settings, onSettingChange }: LogoSettingsProps) {
                 <IconStatus 
                   status={{
                     ico: !!settings.favicon_url,
-                    png: !!settings.favicon_png_url
+                    png: !!settings.favicon_png_url,
+                    webp: !!settings.favicon_webp_url
                   }}
                 />
               </div>
