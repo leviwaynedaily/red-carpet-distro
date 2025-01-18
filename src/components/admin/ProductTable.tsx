@@ -9,6 +9,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductTableRow } from "./product-table/ProductTableRow";
+import { ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type Product = Tables<"products">;
 
@@ -26,6 +28,8 @@ interface ProductTableProps {
   onVideoUpload: (productId: string, url: string) => void;
   onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
   onMediaClick: (type: 'image' | 'video', url: string) => void;
+  sortConfig: { key: string; direction: 'asc' | 'desc' };
+  onSort: (key: string) => void;
 }
 
 export function ProductTable({
@@ -42,17 +46,19 @@ export function ProductTable({
   onVideoUpload,
   onDeleteMedia,
   onMediaClick,
+  sortConfig,
+  onSort,
 }: ProductTableProps) {
   const COLUMNS = [
-    { key: "name", label: "Name" },
-    { key: "strain", label: "Strain" },
-    { key: "description", label: "Description" },
-    { key: "image", label: "Image" },
-    { key: "video_url", label: "Video" },
-    { key: "categories", label: "Categories" },
-    { key: "stock", label: "Stock" },
-    { key: "regular_price", label: "Price" },
-    { key: "shipping_price", label: "Shipping" },
+    { key: "name", label: "Name", sortable: true },
+    { key: "strain", label: "Strain", sortable: true },
+    { key: "description", label: "Description", sortable: true },
+    { key: "image", label: "Image", sortable: false },
+    { key: "video_url", label: "Video", sortable: false },
+    { key: "categories", label: "Categories", sortable: false },
+    { key: "stock", label: "Stock", sortable: true },
+    { key: "regular_price", label: "Price", sortable: true },
+    { key: "shipping_price", label: "Shipping", sortable: true },
   ];
 
   // Fetch categories
@@ -74,7 +80,20 @@ export function ProductTable({
         <TableHeader>
           <TableRow>
             {COLUMNS.filter(col => visibleColumns.includes(col.key)).map((column) => (
-              <TableHead key={column.key}>{column.label}</TableHead>
+              <TableHead key={column.key}>
+                {column.sortable ? (
+                  <Button
+                    variant="ghost"
+                    onClick={() => onSort(column.key)}
+                    className="h-8 flex items-center gap-1 hover:bg-transparent"
+                  >
+                    {column.label}
+                    <ArrowUpDown className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  column.label
+                )}
+              </TableHead>
             ))}
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>

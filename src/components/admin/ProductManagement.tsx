@@ -14,15 +14,15 @@ import { useQueryClient } from "@tanstack/react-query";
 type Product = Tables<"products">;
 
 const COLUMNS = [
-  { key: "name", label: "Name" },
-  { key: "strain", label: "Strain" },
-  { key: "description", label: "Description" },
-  { key: "image", label: "Image" },
-  { key: "video_url", label: "Video" },
-  { key: "categories", label: "Categories" },
-  { key: "stock", label: "Stock" },
-  { key: "regular_price", label: "Price" },
-  { key: "shipping_price", label: "Shipping" },
+  { key: "name", label: "Name", sortable: true },
+  { key: "strain", label: "Strain", sortable: true },
+  { key: "description", label: "Description", sortable: true },
+  { key: "image", label: "Image", sortable: false },
+  { key: "video_url", label: "Video", sortable: false },
+  { key: "categories", label: "Categories", sortable: false },
+  { key: "stock", label: "Stock", sortable: true },
+  { key: "regular_price", label: "Price", sortable: true },
+  { key: "shipping_price", label: "Shipping", sortable: true },
 ];
 
 export function ProductManagement() {
@@ -33,6 +33,10 @@ export function ProductManagement() {
   const [editValues, setEditValues] = useState<Partial<Product> & { categories?: string[] }>({});
   const [showMedia, setShowMedia] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ type: 'image' | 'video', url: string } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ 
+    key: 'created_at', 
+    direction: 'desc' 
+  });
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -413,11 +417,49 @@ export function ProductManagement() {
     }
   };
 
+  const handleSort = (key: string) => {
+    setSortConfig(current => ({
+      key,
+      direction: 
+        current.key === key && current.direction === 'asc' 
+          ? 'desc' 
+          : 'asc',
+    }));
+  };
+
+  const sortProducts = (productsToSort: typeof products) => {
+    return [...productsToSort].sort((a, b) => {
+      const aValue = a[sortConfig.key as keyof typeof a];
+      const bValue = b[sortConfig.key as keyof typeof b];
+      
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+      
+      const modifier = sortConfig.direction === 'asc' ? 1 : -1;
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return aValue.localeCompare(bValue) * modifier;
+      }
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return (aValue - bValue) * modifier;
+      }
+      
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return (aValue.getTime() - bValue.getTime()) * modifier;
+      }
+      
+      return 0;
+    });
+  };
+
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.strain?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const sortedProducts = sortProducts(filteredProducts);
 
   return (
     <div className="space-y-4">
@@ -443,7 +485,7 @@ export function ProductManagement() {
       />
 
       <ProductTable
-        products={filteredProducts}
+        products={sortedProducts}
         visibleColumns={visibleColumns}
         editingProduct={editingProduct}
         editValues={editValues}
@@ -456,6 +498,8 @@ export function ProductManagement() {
         onVideoUpload={handleVideoUpload}
         onDeleteMedia={handleDeleteMedia}
         onMediaClick={handleMediaClick}
+        sortConfig={sortConfig}
+        onSort={handleSort}
       />
 
       <Dialog open={showMedia} onOpenChange={setShowMedia}>
