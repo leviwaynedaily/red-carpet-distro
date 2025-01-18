@@ -41,6 +41,7 @@ type SiteSettingsType = {
   og_title: string;
   og_description: string;
   og_image: string;
+  og_image_webp: string;
   og_url: string;
   show_site_logo: boolean;
   show_site_description: boolean;
@@ -76,6 +77,7 @@ export function SiteSettings() {
     og_title: "",
     og_description: "",
     og_image: "",
+    og_image_webp: "",
     og_url: "https://palmtreesmokes.com",
     show_site_logo: true,
     show_site_description: true,
@@ -248,6 +250,73 @@ export function SiteSettings() {
     } catch (error) {
       console.error('Error in handlePWAIconUpload:', error);
       toast.error('Failed to process icon upload');
+    }
+  };
+
+  const handleOGImageUpload = async (url: string) => {
+    console.log('Handling OG image upload:', { url });
+    
+    try {
+      const { data: settings, error: settingsError } = await supabase
+        .from('site_settings')
+        .select('*')
+        .maybeSingle();
+
+      if (settingsError) {
+        console.error('Error fetching settings:', settingsError);
+        throw settingsError;
+      }
+
+      if (!settings?.id) {
+        throw new Error('No settings record found');
+      }
+
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const originalFile = new File([blob], 'og-image.png', { type: 'image/png' });
+
+      console.log('Converting to WebP...');
+      const { webpBlob } = await convertToWebP(originalFile);
+      const webpFile = new File([webpBlob], 'og-image.webp', { type: 'image/webp' });
+
+      console.log('Uploading WebP version...');
+      const { data: webpUpload, error: webpError } = await supabase.storage
+        .from('media')
+        .upload('sitesettings/og-image.webp', webpFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (webpError) {
+        console.error('Error uploading WebP version:', webpError);
+        throw webpError;
+      }
+
+      console.log('WebP version uploaded successfully');
+
+      const { error: updateError } = await supabase
+        .from('site_settings')
+        .update({
+          og_image: url,
+          og_image_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`
+        })
+        .eq('id', settings.id);
+
+      if (updateError) {
+        console.error('Error updating site settings:', updateError);
+        throw updateError;
+      }
+
+      setSettings(prev => ({
+        ...prev,
+        og_image: url,
+        og_image_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`
+      }));
+
+      toast.success('Open Graph preview image uploaded successfully');
+    } catch (error) {
+      console.error('Error in handleOGImageUpload:', error);
+      toast.error('Failed to process Open Graph image upload');
     }
   };
 
@@ -603,17 +672,23 @@ export function SiteSettings() {
                 <Label>Preview Image</Label>
                 <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                   {settings.og_image && (
-                    <img
-                      src={`https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.png`}
-                      alt="Open Graph preview"
-                      className="w-full h-48 object-cover rounded-md mb-2"
-                    />
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={`https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.png`}
+                        alt="Open Graph preview"
+                        className="w-full h-48 object-cover rounded-md mb-2"
+                      />
+                      <IconStatus 
+                        status={{
+                          png: !!settings.og_image,
+                          webp: !!settings.og_image_webp
+                        }}
+                      />
+                    </div>
                   )}
                   <div className="p-4">
                     <FileUpload
-                      onUploadComplete={(url) =>
-                        setSettings((prev) => ({ ...prev, og_image: url }))
-                      }
+                      onUploadComplete={handleOGImageUpload}
                       accept="image/*"
                       folderPath="sitesettings"
                       fileName="og-image.png"
