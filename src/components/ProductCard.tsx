@@ -85,15 +85,15 @@ export const ProductCard = ({
   };
 
   const imageContainerClasses = {
-    small: "w-full aspect-square relative overflow-hidden",
-    medium: "w-full aspect-square relative overflow-hidden",
-    large: "w-full aspect-square relative overflow-hidden"
+    small: "w-full h-48 relative overflow-hidden bg-gray-100",
+    medium: "w-full h-48 relative overflow-hidden bg-gray-100",
+    large: "w-full h-48 relative overflow-hidden bg-gray-100"
   };
 
   const imageClasses = {
-    small: "w-full h-full object-cover absolute inset-0",
-    medium: "w-full h-full object-cover absolute inset-0",
-    large: "w-full h-full object-cover absolute inset-0"
+    small: "w-full h-full object-contain",
+    medium: "w-full h-full object-contain",
+    large: "w-full h-full object-contain"
   };
 
   const contentClasses = {
