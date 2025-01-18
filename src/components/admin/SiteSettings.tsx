@@ -22,6 +22,7 @@ type SiteSettingsType = {
   id: string;
   logo_url: string;
   favicon_url: string;
+  favicon_png_url: string;
   pwa_name: string;
   pwa_description: string;
   pwa_theme_color: string;
@@ -59,6 +60,7 @@ export function SiteSettings() {
     id: "",
     logo_url: "",
     favicon_url: "",
+    favicon_png_url: "",
     pwa_name: "",
     pwa_description: "",
     pwa_theme_color: "",
@@ -196,27 +198,33 @@ export function SiteSettings() {
   const handleFaviconUpload = async (url: string, fileType: string) => {
     console.log('Handling favicon upload:', { url, fileType });
     
-    // Determine the correct filename based on file type
-    const fileName = fileType === 'image/x-icon' ? 'favicon.ico' : 'favicon.png';
-    
     try {
+      // Update the database based on file type
       const { data, error } = await supabase
         .from('site_settings')
         .update({
-          favicon_url: url
+          favicon_url: fileType === 'image/x-icon' ? url : settings.favicon_url,
+          favicon_png_url: fileType === 'image/png' ? url : settings.favicon_png_url
         })
         .eq('id', settings.id);
 
       if (error) throw error;
 
-      // Update favicon in the document head
-      const existingFavicon = document.querySelector("link[rel='icon']");
+      // Update favicon in the document head based on file type
+      const selector = fileType === 'image/x-icon' ? "link[rel='icon'][type='image/x-icon']" : "link[rel='icon'][type='image/png']";
+      const existingFavicon = document.querySelector(selector);
       if (existingFavicon) {
         existingFavicon.setAttribute('href', url);
       }
 
-      toast.success('Favicon updated successfully');
-      console.log('Favicon updated:', { url, fileName });
+      setSettings(prev => ({
+        ...prev,
+        favicon_url: fileType === 'image/x-icon' ? url : prev.favicon_url,
+        favicon_png_url: fileType === 'image/png' ? url : prev.favicon_png_url
+      }));
+
+      toast.success(`${fileType === 'image/x-icon' ? 'ICO' : 'PNG'} favicon updated successfully`);
+      console.log('Favicon updated:', { url, fileType });
     } catch (error) {
       console.error('Error updating favicon:', error);
       toast.error('Failed to update favicon');
@@ -501,7 +509,7 @@ export function SiteSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>ICO Favicon</Label>
-                    {settings.favicon_url && settings.favicon_url.endsWith('.ico') && (
+                    {settings.favicon_url && (
                       <img
                         src={addCacheBuster(settings.favicon_url)}
                         alt="ICO Favicon"
@@ -512,7 +520,7 @@ export function SiteSettings() {
                       onUploadComplete={(url) => handleFaviconUpload(url, 'image/x-icon')}
                       accept=".ico"
                       folderPath="sitesettings"
-                      fileName="favicon"
+                      fileName="favicon.ico"
                     />
                     <p className="text-sm text-muted-foreground">
                       Upload .ico file for better browser compatibility
@@ -521,9 +529,9 @@ export function SiteSettings() {
 
                   <div className="space-y-2">
                     <Label>PNG Favicon</Label>
-                    {settings.favicon_url && settings.favicon_url.endsWith('.png') && (
+                    {settings.favicon_png_url && (
                       <img
-                        src={addCacheBuster(settings.favicon_url)}
+                        src={addCacheBuster(settings.favicon_png_url)}
                         alt="PNG Favicon"
                         className="w-16 h-16 object-contain rounded-md mb-2"
                       />
@@ -532,7 +540,7 @@ export function SiteSettings() {
                       onUploadComplete={(url) => handleFaviconUpload(url, 'image/png')}
                       accept=".png"
                       folderPath="sitesettings"
-                      fileName="favicon"
+                      fileName="favicon.png"
                     />
                     <p className="text-sm text-muted-foreground">
                       Upload .png file for high-resolution displays
@@ -542,16 +550,6 @@ export function SiteSettings() {
               </CardContent>
             </Card>
 
-            <Label htmlFor="favicon_url">Favicon</Label>
-            {settings.favicon_url && (
-              <img src={addCacheBuster(settings.favicon_url)} alt="Favicon" className="w-16 h-16 object-contain rounded-md mb-2" />
-            )}
-            <FileUpload
-              onUploadComplete={(url) => setSettings(prev => ({ ...prev, favicon_url: url }))}
-              accept="image/*"
-              folderPath="sitesettings"
-              fileName="favicon"
-            />
             <Label htmlFor="font_family">Font Family</Label>
             <Input
               id="font_family"
