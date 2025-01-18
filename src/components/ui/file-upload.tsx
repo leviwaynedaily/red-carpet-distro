@@ -32,6 +32,12 @@ export function FileUpload({
 
     try {
       setIsUploading(true);
+      console.log('Starting file upload process:', {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        folderPath
+      });
       
       // Create the final file path
       const fileExt = file.name.split('.').pop();
@@ -45,42 +51,57 @@ export function FileUpload({
 
       console.log('Uploading file to path:', filePath);
 
-      // If it's an image, convert to WebP
-      let webpBlob: Blob | null = null;
+      // First upload the original file directly to storage
+      const { error: uploadError, data } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('Error uploading original file:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Original file uploaded successfully:', data);
+
+      // Get the public URL for the uploaded file
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      console.log('File public URL:', publicUrl);
+
+      // If it's an image, handle WebP conversion
       if (isImageFile(file)) {
         try {
-          const { webpBlob: convertedBlob } = await convertToWebP(file);
-          webpBlob = convertedBlob;
-        } catch (error) {
-          console.error('WebP conversion failed:', error);
-          // Continue with original file if conversion fails
+          console.log('Starting WebP conversion');
+          const { webpBlob } = await convertToWebP(file);
+          const webpPath = `${folderPath}/${fileName || file.name.split('.')[0]}.webp`;
+
+          // Upload WebP version
+          const { error: webpError } = await supabase.storage
+            .from(bucket)
+            .upload(webpPath, webpBlob, {
+              contentType: 'image/webp',
+              cacheControl: '3600',
+              upsert: true
+            });
+
+          if (webpError) {
+            console.error('WebP upload error:', webpError);
+            // Don't throw, continue with original file
+          } else {
+            console.log('WebP version uploaded successfully');
+          }
+        } catch (webpError) {
+          console.error('WebP conversion failed:', webpError);
+          // Continue with original file if WebP conversion fails
         }
       }
 
-      // Create form data with both files
-      const formData = new FormData();
-      formData.append('file', file);
-      if (webpBlob) {
-        formData.append('webp', webpBlob, `${fileName || file.name.split('.')[0]}.webp`);
-      }
-      formData.append('productId', folderPath.split('/')[1]); // Assumes folderPath format: 'products/{productId}'
-
-      // Upload via Edge Function
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/convert-image`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const data = await response.json();
-      console.log('File uploaded successfully:', data);
-      onUploadComplete(data.originalUrl);
+      onUploadComplete(publicUrl);
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
