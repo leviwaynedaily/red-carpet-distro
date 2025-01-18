@@ -4,110 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { FileUpload } from "@/components/ui/file-upload";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { updateRootColors } from "@/utils/colorUtils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import { Check, X } from "lucide-react";
 
-type PWAIcon = {
-  src: string;
-  sizes: string;
+interface FileInfo {
   type: string;
-  purpose: 'any' | 'maskable';
-};
+  size: number;
+  url: string;
+}
 
-type SiteSettingsType = {
-  id: string;
-  logo_url: string;
-  favicon_url: string;
-  favicon_png_url: string;
-  pwa_name: string;
-  pwa_description: string;
-  pwa_theme_color: string;
-  pwa_background_color: string;
-  primary_color: string;
-  secondary_color: string;
-  font_family: string;
-  storefront_password: string;
-  admin_password: string;
-  pwa_short_name: string;
-  pwa_display: string;
-  pwa_orientation: string;
-  pwa_scope: string;
-  pwa_start_url: string;
-  pwa_icons: PWAIcon[];
-  pwa_desktop_screenshot?: string;
-  pwa_mobile_screenshot?: string;
-  og_title: string;
-  og_description: string;
-  og_image: string;
-  og_url: string;
-  show_site_logo: boolean;
-  show_site_description: boolean;
-  site_description: string;
-  header_color: string;
-  header_opacity: number;
-  toolbar_color: string;
-  toolbar_opacity: number;
-};
-
-const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
+interface MediaInfo {
+  original?: FileInfo;
+  webp?: FileInfo;
+}
 
 export function SiteSettings() {
-  const [settings, setSettings] = useState<SiteSettingsType>({
-    id: "",
-    logo_url: "",
-    favicon_url: "",
-    favicon_png_url: "",
-    pwa_name: "",
-    pwa_description: "",
-    pwa_theme_color: "",
-    pwa_background_color: "",
-    primary_color: "#FF69B4",
-    secondary_color: "#00A86B",
-    font_family: "",
-    storefront_password: "",
-    admin_password: "",
-    pwa_short_name: "",
-    pwa_display: "standalone",
-    pwa_orientation: "portrait",
-    pwa_scope: "/",
-    pwa_start_url: "/",
-    pwa_icons: [],
-    pwa_desktop_screenshot: "",
-    pwa_mobile_screenshot: "",
-    og_title: "",
-    og_description: "",
-    og_image: "",
-    og_url: "https://palmtreesmokes.com",
-    show_site_logo: true,
-    show_site_description: true,
-    site_description: "Welcome to Palmtree Smokes, your premium destination for quality cannabis products. Browse our carefully curated selection below.",
-    header_color: "#FFFFFF",
-    header_opacity: 1.0,
-    toolbar_color: "#FFFFFF",
-    toolbar_opacity: 1.0,
-  });
+  const [settings, setSettings] = useState<any>(null);
+  const [mediaInfo, setMediaInfo] = useState<MediaInfo>({});
+  const [adminPassword, setAdminPassword] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
     fetchSettings();
   }, []);
-
-  useEffect(() => {
-    updateRootColors({
-      primary: settings.primary_color,
-      secondary: settings.secondary_color,
-      background: settings.pwa_background_color,
-      foreground: settings.pwa_theme_color,
-    });
-  }, [
-    settings.primary_color,
-    settings.secondary_color,
-    settings.pwa_background_color,
-    settings.pwa_theme_color,
-  ]);
 
   const fetchSettings = async () => {
     try {
@@ -117,23 +35,15 @@ export function SiteSettings() {
         .single();
 
       if (error) throw error;
-      
-      if (data) {
-        const parsedIcons = Array.isArray(data.pwa_icons) 
-          ? data.pwa_icons.map((icon: any) => ({
-              src: icon.src || "",
-              sizes: icon.sizes || "",
-              type: icon.type || "",
-              purpose: icon.purpose || 'any'
-            }))
-          : [];
+      setSettings(data);
+      setAdminPassword(data.admin_password || "");
 
-        setSettings({
-          ...data,
-          pwa_icons: parsedIcons,
-          favicon_url: data.favicon_url || "",
-          favicon_png_url: data.favicon_png_url || ""
-        });
+      // Fetch file information for existing media
+      if (data.logo_url) {
+        await fetchFileInfo(data.logo_url, 'original');
+      }
+      if (data.media?.webp) {
+        await fetchFileInfo(data.media.webp, 'webp');
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -141,624 +51,183 @@ export function SiteSettings() {
     }
   };
 
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSettings((prev) => ({ ...prev, [name]: value }));
-    
-    if (name.includes('color')) {
-      toast.success('Color updated! Save to make permanent.', {
-        description: `${name.replace('_', ' ')} changed to ${value}`,
-      });
+  const fetchFileInfo = async (url: string, type: 'original' | 'webp') => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      setMediaInfo(prev => ({
+        ...prev,
+        [type]: {
+          type: blob.type,
+          size: blob.size,
+          url: url
+        }
+      }));
+    } catch (error) {
+      console.error(`Error fetching ${type} file info:`, error);
     }
   };
 
-  const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    setSettings(prev => ({ ...prev, header_opacity: value, toolbar_opacity: value }));
-    
-    toast.success('Opacity updated! Save to make permanent.', {
-      description: `Header opacity changed to ${value}`,
-    });
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogoUpload = async (url: string) => {
     try {
       const { error } = await supabase
         .from("site_settings")
-        .update(settings)
+        .update({ logo_url: url })
         .eq("id", settings.id);
 
       if (error) throw error;
-
-      toast.success("Settings updated successfully");
-      
-      const ogImageMeta = document.querySelector('meta[property="og:image"]');
-      const ogUrlMeta = document.querySelector('meta[property="og:url"]');
-      
-      if (ogImageMeta) {
-        const ogImageUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.png`;
-        console.log('Setting og:image meta tag to:', ogImageUrl);
-        ogImageMeta.setAttribute('content', ogImageUrl);
-      }
-      
-      if (ogUrlMeta && settings.og_url) {
-        console.log('Setting og:url meta tag to:', settings.og_url);
-        ogUrlMeta.setAttribute('content', settings.og_url);
-      }
+      toast.success("Logo updated successfully");
+      fetchSettings();
     } catch (error) {
-      console.error("Error updating settings:", error);
-      toast.error("Failed to update settings");
+      console.error("Error updating logo:", error);
+      toast.error("Failed to update logo");
     }
   };
 
-  const addCacheBuster = (url: string | null) => {
-    if (!url) return '';
-    return `${url}?t=${Date.now()}`;
-  };
-
-  const handleFaviconUpload = async (url: string, fileType: string) => {
-    console.log('Handling favicon upload:', { url, fileType });
-    
+  const handleWebpUpload = async (url: string) => {
     try {
-      // Update the database based on file type
-      const { data, error } = await supabase
-        .from('site_settings')
+      const { error } = await supabase
+        .from("site_settings")
         .update({
-          favicon_url: fileType === 'image/x-icon' ? url : settings.favicon_url,
-          favicon_png_url: fileType === 'image/png' ? url : settings.favicon_png_url
+          media: {
+            ...settings.media,
+            webp: url
+          }
         })
-        .eq('id', settings.id);
+        .eq("id", settings.id);
 
       if (error) throw error;
-
-      // Update favicon in the document head based on file type
-      const selector = fileType === 'image/x-icon' ? "link[rel='icon'][type='image/x-icon']" : "link[rel='icon'][type='image/png']";
-      const existingFavicon = document.querySelector(selector);
-      if (existingFavicon) {
-        existingFavicon.setAttribute('href', url);
-      }
-
-      setSettings(prev => ({
-        ...prev,
-        favicon_url: fileType === 'image/x-icon' ? url : prev.favicon_url,
-        favicon_png_url: fileType === 'image/png' ? url : prev.favicon_png_url
-      }));
-
-      toast.success(`${fileType === 'image/x-icon' ? 'ICO' : 'PNG'} favicon updated successfully`);
-      console.log('Favicon updated:', { url, fileType });
+      toast.success("WebP version uploaded successfully");
+      fetchSettings();
     } catch (error) {
-      console.error('Error updating favicon:', error);
-      toast.error('Failed to update favicon');
+      console.error("Error updating WebP version:", error);
+      toast.error("Failed to update WebP version");
     }
   };
 
-  const handlePWAIconUpload = (url: string, size: number, purpose: 'any' | 'maskable') => {
-    setSettings(prev => {
-      const newIcons = [...(prev.pwa_icons || [])];
-      const fileName = purpose === 'maskable' ? `icon-${size}-maskable` : `icon-${size}`;
-      const existingIconIndex = newIcons.findIndex(
-        icon => icon.sizes === `${size}x${size}` && icon.purpose === purpose
-      );
-      
-      const newIcon = {
-        src: url,
-        sizes: `${size}x${size}`,
-        type: 'image/png',
-        purpose
-      };
+  const handlePasswordUpdate = async () => {
+    if (!adminPassword) {
+      toast.error("Password cannot be empty");
+      return;
+    }
 
-      if (existingIconIndex >= 0) {
-        newIcons[existingIconIndex] = newIcon;
-      } else {
-        newIcons.push(newIcon);
-      }
+    setIsUpdatingPassword(true);
+    try {
+      const { error } = await supabase
+        .from("site_settings")
+        .update({ admin_password: adminPassword })
+        .eq("id", settings.id);
 
-      return {
-        ...prev,
-        pwa_icons: newIcons
-      };
-    });
+      if (error) throw error;
+      toast.success("Admin password updated successfully");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error("Failed to update password");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
-      <Tabs defaultValue="colors" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="colors">Colors</TabsTrigger>
-          <TabsTrigger value="site">Site Settings</TabsTrigger>
-          <TabsTrigger value="pwa">PWA Settings</TabsTrigger>
-          <TabsTrigger value="og">Open Graph</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="colors" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Theme Colors</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="primary_color">Primary Color</Label>
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      id="primary_color"
-                      name="primary_color"
-                      type="color"
-                      value={settings.primary_color}
-                      onChange={handleColorChange}
-                      className="w-20 h-10"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {settings.primary_color}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="secondary_color">Secondary Color</Label>
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      id="secondary_color"
-                      name="secondary_color"
-                      type="color"
-                      value={settings.secondary_color}
-                      onChange={handleColorChange}
-                      className="w-20 h-10"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {settings.secondary_color}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="pwa_theme_color">Theme Color (Foreground)</Label>
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      id="pwa_theme_color"
-                      name="pwa_theme_color"
-                      type="color"
-                      value={settings.pwa_theme_color}
-                      onChange={handleColorChange}
-                      className="w-20 h-10"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {settings.pwa_theme_color}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="pwa_background_color">Background Color</Label>
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      id="pwa_background_color"
-                      name="pwa_background_color"
-                      type="color"
-                      value={settings.pwa_background_color}
-                      onChange={handleColorChange}
-                      className="w-20 h-10"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {settings.pwa_background_color}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
+    <div className="space-y-6">
+      <div className="grid gap-4">
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium">Site Logo</h3>
+          <div className="flex flex-col space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="header_color">Header Color</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    id="header_color"
-                    name="header_color"
-                    type="color"
-                    value={settings.header_color}
-                    onChange={handleColorChange}
-                    className="w-20 h-10"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {settings.header_color}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="header_opacity">Header Opacity</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    id="header_opacity"
-                    name="header_opacity"
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={settings.header_opacity}
-                    onChange={handleOpacityChange}
-                    className="w-full"
-                  />
-                  <span className="text-sm text-muted-foreground w-12">
-                    {Math.round(settings.header_opacity * 100)}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="toolbar_color">Toolbar Color</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    id="toolbar_color"
-                    name="toolbar_color"
-                    type="color"
-                    value={settings.toolbar_color}
-                    onChange={handleColorChange}
-                    className="w-20 h-10"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {settings.toolbar_color}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="toolbar_opacity">Toolbar Opacity</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    id="toolbar_opacity"
-                    name="toolbar_opacity"
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={settings.toolbar_opacity}
-                    onChange={handleOpacityChange}
-                    className="w-full"
-                  />
-                  <span className="text-sm text-muted-foreground w-12">
-                    {Math.round(settings.toolbar_opacity * 100)}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <h3 className="text-sm font-medium mb-2">Color Preview</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <Button variant="default">Primary Button</Button>
-                  <Button variant="secondary">Secondary Button</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="site">
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Logo Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="show_site_logo"
-                    checked={settings.show_site_logo}
-                    onCheckedChange={(checked) =>
-                      setSettings((prev) => ({ ...prev, show_site_logo: checked }))
-                    }
-                  />
-                  <Label htmlFor="show_site_logo">Show Site Logo</Label>
-                </div>
-
-                <Label>Logo</Label>
-                {settings.logo_url && (
-                  <img
-                    src={addCacheBuster(settings.logo_url)}
-                    alt="Logo"
-                    className="w-32 h-32 object-contain rounded-md mb-2"
-                  />
+                <h4 className="font-medium">Original Image</h4>
+                {settings?.logo_url && (
+                  <div className="space-y-2">
+                    <img
+                      src={settings.logo_url}
+                      alt="Site Logo"
+                      className="w-32 h-32 object-contain border rounded-md"
+                    />
+                    <div className="text-sm space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span>PNG/JPG:</span>
+                        {mediaInfo.original?.type.includes('png') || mediaInfo.original?.type.includes('jpeg') ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                      <p>Type: {mediaInfo.original?.type || 'Unknown'}</p>
+                      <p>Size: {mediaInfo.original ? formatFileSize(mediaInfo.original.size) : 'Unknown'}</p>
+                    </div>
+                  </div>
                 )}
                 <FileUpload
-                  onUploadComplete={(url) =>
-                    setSettings((prev) => ({ ...prev, logo_url: url }))
-                  }
+                  onUploadComplete={handleLogoUpload}
                   accept="image/*"
+                  bucket="media"
                   folderPath="sitesettings"
                   fileName="logo"
                 />
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Description Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="show_site_description"
-                    checked={settings.show_site_description}
-                    onCheckedChange={(checked) =>
-                      setSettings((prev) => ({ ...prev, show_site_description: checked }))
-                    }
-                  />
-                  <Label htmlFor="show_site_description">Show Site Description</Label>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="site_description">Site Description</Label>
-                  <Textarea
-                    id="site_description"
-                    value={settings.site_description}
-                    onChange={(e) =>
-                      setSettings((prev) => ({
-                        ...prev,
-                        site_description: e.target.value,
-                      }))
-                    }
-                    placeholder="Enter site description"
-                    className="min-h-[100px]"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Favicon Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <h4 className="font-medium">WebP Version</h4>
+                {settings?.media?.webp && (
                   <div className="space-y-2">
-                    <Label>ICO Favicon</Label>
-                    {settings.favicon_url && (
-                      <img
-                        src={addCacheBuster(settings.favicon_url)}
-                        alt="ICO Favicon"
-                        className="w-16 h-16 object-contain rounded-md mb-2"
-                      />
-                    )}
-                    <FileUpload
-                      onUploadComplete={(url) => handleFaviconUpload(url, 'image/x-icon')}
-                      accept=".ico"
-                      folderPath="sitesettings"
-                      fileName="favicon.ico"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Upload .ico file for better browser compatibility
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>PNG Favicon</Label>
-                    {settings.favicon_png_url && (
-                      <img
-                        src={addCacheBuster(settings.favicon_png_url)}
-                        alt="PNG Favicon"
-                        className="w-16 h-16 object-contain rounded-md mb-2"
-                      />
-                    )}
-                    <FileUpload
-                      onUploadComplete={(url) => handleFaviconUpload(url, 'image/png')}
-                      accept=".png"
-                      folderPath="sitesettings"
-                      fileName="favicon.png"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Upload .png file for high-resolution displays
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Label htmlFor="font_family">Font Family</Label>
-            <Input
-              id="font_family"
-              name="font_family"
-              value={settings.font_family || ""}
-              onChange={handleColorChange}
-              placeholder="Enter font family name"
-            />
-            <Label htmlFor="storefront_password">Storefront Password</Label>
-            <Input
-              id="storefront_password"
-              name="storefront_password"
-              type="password"
-              value={settings.storefront_password || ""}
-              onChange={handleColorChange}
-              placeholder="Enter storefront password"
-            />
-            <Label htmlFor="admin_password">Admin Password</Label>
-            <Input
-              id="admin_password"
-              name="admin_password"
-              type="password"
-              value={settings.admin_password || ""}
-              onChange={handleColorChange}
-              placeholder="Enter admin password"
-            />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="pwa" className="space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">PWA Screenshots</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Desktop Screenshot (Wide)</Label>
-                {settings.pwa_desktop_screenshot && (
-                  <img 
-                    src={addCacheBuster(settings.pwa_desktop_screenshot)} 
-                    alt="Desktop screenshot" 
-                    className="w-full h-32 object-cover rounded-md mb-2"
-                  />
-                )}
-                <FileUpload
-                  onUploadComplete={(url) => setSettings(prev => ({ ...prev, pwa_desktop_screenshot: url }))}
-                  accept="image/*"
-                  folderPath="sitesettings/pwa"
-                  fileName="desktop_screenshot"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Add a wide screenshot for desktop PWA install UI
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Mobile Screenshot</Label>
-                {settings.pwa_mobile_screenshot && (
-                  <img 
-                    src={addCacheBuster(settings.pwa_mobile_screenshot)} 
-                    alt="Mobile screenshot" 
-                    className="w-full h-32 object-cover rounded-md mb-2"
-                  />
-                )}
-                <FileUpload
-                  onUploadComplete={(url) => setSettings(prev => ({ ...prev, pwa_mobile_screenshot: url }))}
-                  accept="image/*"
-                  folderPath="sitesettings/pwa"
-                  fileName="mobile_screenshot"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Add a mobile-optimized screenshot for PWA install UI
-                </p>
-              </div>
-            </div>
-
-            <h3 className="text-lg font-medium mt-6">PWA Icons</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {PWA_ICON_SIZES.map((size) => (
-                <div key={size} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>{size}x{size} Regular Icon</Label>
-                    {settings.pwa_icons?.find(
-                      icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                    )?.src && (
-                      <img 
-                        src={addCacheBuster(settings.pwa_icons.find(
-                          icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                        )?.src)}
-                        alt={`${size}x${size} regular icon`} 
-                        className="w-16 h-16 object-contain rounded-md mb-2"
-                      />
-                    )}
-                    <FileUpload
-                      onUploadComplete={(url) => handlePWAIconUpload(url, size, 'any')}
-                      accept="image/png"
-                      folderPath="sitesettings/pwa"
-                      fileName={`icon-${size}`}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>{size}x{size} Maskable Icon</Label>
-                    {settings.pwa_icons?.find(
-                      icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                    )?.src && (
-                      <img 
-                        src={addCacheBuster(settings.pwa_icons.find(
-                          icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                        )?.src)}
-                        alt={`${size}x${size} maskable icon`} 
-                        className="w-16 h-16 object-contain rounded-md mb-2"
-                      />
-                    )}
-                    <FileUpload
-                      onUploadComplete={(url) => handlePWAIconUpload(url, size, 'maskable')}
-                      accept="image/png"
-                      folderPath="sitesettings/pwa"
-                      fileName={`icon-${size}-maskable`}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="og" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Open Graph Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="og_title">Title</Label>
-                <Input
-                  id="og_title"
-                  name="og_title"
-                  value={settings.og_title}
-                  onChange={handleColorChange}
-                  placeholder="Enter Open Graph title"
-                />
-                <p className="text-sm text-muted-foreground">
-                  The title that appears in social media previews
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="og_description">Description</Label>
-                <Input
-                  id="og_description"
-                  name="og_description"
-                  value={settings.og_description}
-                  onChange={handleColorChange}
-                  placeholder="Enter Open Graph description"
-                />
-                <p className="text-sm text-muted-foreground">
-                  A brief description that appears in social media previews
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="og_url">URL</Label>
-                <Input
-                  id="og_url"
-                  name="og_url"
-                  value={settings.og_url}
-                  onChange={handleColorChange}
-                  placeholder="Enter website URL"
-                />
-                <p className="text-sm text-muted-foreground">
-                  The canonical URL of your website
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Preview Image</Label>
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                  {settings.og_image && (
                     <img
-                      src={`https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.png`}
-                      alt="Open Graph preview"
-                      className="w-full h-48 object-cover rounded-md mb-2"
+                      src={settings.media.webp}
+                      alt="Site Logo WebP"
+                      className="w-32 h-32 object-contain border rounded-md"
                     />
-                  )}
-                  <div className="p-4">
-                    <FileUpload
-                      onUploadComplete={(url) =>
-                        setSettings((prev) => ({ ...prev, og_image: url }))
-                      }
-                      accept="image/*"
-                      folderPath="sitesettings"
-                      fileName="og-image.png"
-                    />
-                    <p className="text-sm text-muted-foreground mt-2">
-                      This image will be displayed when your site is shared on social
-                      media (recommended size: 1200x630 pixels)
-                    </p>
+                    <div className="text-sm space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span>WebP:</span>
+                        {mediaInfo.webp?.type.includes('webp') ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                      <p>Type: {mediaInfo.webp?.type || 'Unknown'}</p>
+                      <p>Size: {mediaInfo.webp ? formatFileSize(mediaInfo.webp.size) : 'Unknown'}</p>
+                    </div>
                   </div>
-                </div>
+                )}
+                <FileUpload
+                  onUploadComplete={handleWebpUpload}
+                  accept="image/webp"
+                  bucket="media"
+                  folderPath="sitesettings"
+                  fileName="logo-webp"
+                />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </div>
+        </div>
 
-      <Button type="submit" className="w-full">
-        Save Settings
-      </Button>
-    </form>
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium">Admin Password</h3>
+          <div className="flex gap-2">
+            <Input
+              type="password"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              placeholder="Enter new admin password"
+            />
+            <Button
+              onClick={handlePasswordUpdate}
+              disabled={isUpdatingPassword}
+            >
+              {isUpdatingPassword ? "Updating..." : "Update Password"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
