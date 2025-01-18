@@ -20,6 +20,9 @@ interface ProductCardProps {
   shipping_price?: number;
   viewMode: 'small' | 'medium' | 'large';
   primary_media_type?: string;
+  media?: {
+    webp?: string;
+  };
 }
 
 export const ProductCard = ({
@@ -35,6 +38,7 @@ export const ProductCard = ({
   shipping_price,
   viewMode,
   primary_media_type,
+  media,
 }: ProductCardProps) => {
   const navigate = useNavigate();
   const [showMedia, setShowMedia] = useState(false);
@@ -101,8 +105,8 @@ export const ProductCard = ({
         <CardHeader className="p-0 relative aspect-square">
           {image ? (
             <picture>
-              {product?.media?.webp && (
-                <source srcSet={product.media.webp} type="image/webp" />
+              {media?.webp && (
+                <source srcSet={media.webp} type="image/webp" />
               )}
               <img
                 src={image}
