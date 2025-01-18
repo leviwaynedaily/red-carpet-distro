@@ -4,6 +4,7 @@ import { FileUpload } from "@/components/ui/file-upload";
 import { IconStatus } from './IconStatus';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { convertToWebP } from "@/utils/imageUtils";
 
 interface PWAScreenshotsProps {
   desktopScreenshot: string | null;
@@ -37,11 +38,38 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
         throw new Error('No settings record found');
       }
 
-      // Update the site settings with the URL directly
+      // Get the original file from URL
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const originalFile = new File([blob], `${type}_screenshot.png`, { type: 'image/png' });
+
+      // Convert to WebP
+      console.log('Converting to WebP...');
+      const { webpBlob } = await convertToWebP(originalFile);
+      const webpFile = new File([webpBlob], `${type}_screenshot.webp`, { type: 'image/webp' });
+
+      // Upload WebP version
+      console.log('Uploading WebP version...');
+      const { data: webpUpload, error: webpError } = await supabase.storage
+        .from('media')
+        .upload(`sitesettings/pwa/${type}_screenshot.webp`, webpFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (webpError) {
+        console.error('Error uploading WebP version:', webpError);
+        throw webpError;
+      }
+
+      console.log('WebP version uploaded successfully');
+
+      // Update site settings with both URLs
       const { error: updateError } = await supabase
         .from('site_settings')
         .update({
-          [`pwa_${type}_screenshot`]: url
+          [`pwa_${type}_screenshot`]: url,
+          [`pwa_${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${type}_screenshot.webp`
         })
         .eq('id', settings.id);
 
@@ -84,7 +112,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!desktopScreenshot,
-              webp: false // We're not using WebP anymore
+              webp: !!desktopScreenshot // Will be true if PNG exists since we always create WebP
             }}
           />
         </div>
@@ -112,7 +140,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!mobileScreenshot,
-              webp: false // We're not using WebP anymore
+              webp: !!mobileScreenshot // Will be true if PNG exists since we always create WebP
             }}
           />
         </div>
