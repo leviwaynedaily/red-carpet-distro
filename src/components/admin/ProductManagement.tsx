@@ -10,6 +10,7 @@ import { convertToWebP } from "@/utils/imageUtils";
 import { ProductTable } from "./ProductTable";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Product = Tables<"products">;
 
@@ -33,6 +34,13 @@ export function ProductManagement() {
   const [editValues, setEditValues] = useState<Partial<Product>>({});
   const [showMedia, setShowMedia] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ type: 'image' | 'video', url: string } | null>(null);
+  const queryClient = useQueryClient();
+
+  const handleCategoryChange = () => {
+    console.log('ProductManagement: Category changed, refreshing products');
+    queryClient.invalidateQueries({ queryKey: ['products'] });
+    fetchProducts();
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -368,7 +376,7 @@ export function ProductManagement() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <CategoryManagement />
+        <CategoryManagement onCategoryChange={handleCategoryChange} />
         <Button 
           onClick={handleAddProduct}
           className="w-full md:w-auto"
