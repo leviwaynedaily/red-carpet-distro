@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import Sharp from 'https://esm.sh/sharp@0.32.6'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -36,31 +35,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Read file data
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = new Uint8Array(arrayBuffer)
-
-    // Convert to WebP
-    const webpBuffer = await Sharp(buffer)
-      .webp({ quality: 80 })
-      .toBuffer()
-
     // Generate filenames
     const originalName = file.name.replace(/[^\x00-\x7F]/g, '')
     const baseName = originalName.split('.')[0]
-    const webpFileName = `${baseName}.webp`
     
-    // Upload both original and WebP versions
-    const originalPath = `products/${productId}/${originalName}`
-    const webpPath = `products/${productId}/${webpFileName}`
-
-    console.log(`Uploading files: 
-      Original: ${originalPath}
-      WebP: ${webpPath}`
-    );
-
     // Upload original file
-    const { error: originalError } = await supabase.storage
+    const originalPath = `products/${productId}/${originalName}`
+
+    console.log(`Uploading original file: ${originalPath}`);
+
+    const { error: originalError, data } = await supabase.storage
       .from('media')
       .upload(originalPath, file, {
         contentType: file.type,
@@ -72,37 +56,20 @@ serve(async (req) => {
       throw originalError;
     }
 
-    // Upload WebP version
-    const { error: webpError } = await supabase.storage
-      .from('media')
-      .upload(webpPath, webpBuffer, {
-        contentType: 'image/webp',
-        upsert: true
-      })
-
-    if (webpError) {
-      console.error('Error uploading WebP file:', webpError);
-      throw webpError;
-    }
-
-    // Get public URLs
+    // Get public URL for original file
     const { data: originalUrl } = supabase.storage
       .from('media')
       .getPublicUrl(originalPath)
 
-    const { data: webpUrl } = supabase.storage
-      .from('media')
-      .getPublicUrl(webpPath)
+    console.log('Successfully uploaded original file');
 
-    console.log('Successfully processed and uploaded both versions');
-
-    // Update product with both URLs
+    // Update product with original URL
     const { error: updateError } = await supabase
       .from('products')
       .update({
         image_url: originalUrl.publicUrl,
         media: {
-          webp: webpUrl.publicUrl
+          original: originalUrl.publicUrl
         }
       })
       .eq('id', productId)
@@ -114,14 +81,13 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        message: 'Images processed and uploaded successfully',
-        originalUrl: originalUrl.publicUrl,
-        webpUrl: webpUrl.publicUrl
+        message: 'File uploaded successfully',
+        originalUrl: originalUrl.publicUrl
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
-    console.error('Conversion error:', error);
+    console.error('Upload error:', error);
     return new Response(
       JSON.stringify({ error: 'Failed to process image', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
