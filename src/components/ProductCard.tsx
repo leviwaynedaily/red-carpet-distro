@@ -99,13 +99,20 @@ export const ProductCard = ({
         onClick={handleCardClick}
       >
         <CardHeader className="p-0 relative aspect-square">
-          {image && (
+          {image ? (
             <img
               src={image}
               alt={name}
               className={imageClasses[viewMode]}
               loading="lazy"
             />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+              <div className="text-center p-4">
+                <Image className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-sm text-gray-500">Image coming soon</p>
+              </div>
+            </div>
           )}
           {video && primary_media_type === 'video' && (
             <div className="absolute bottom-2 right-2 flex gap-2">
