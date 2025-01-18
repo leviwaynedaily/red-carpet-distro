@@ -18,8 +18,6 @@ export function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<Product>>({});
 
-  console.log('ProductManagement: Component rendered');
-
   useEffect(() => {
     fetchProducts();
   }, []);

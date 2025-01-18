@@ -1,12 +1,6 @@
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, FileDown, FileUp } from "lucide-react";
+import { Download, FileDown, FileUp } from "lucide-react";
 
 interface ProductTableFiltersProps {
   searchQuery: string;
