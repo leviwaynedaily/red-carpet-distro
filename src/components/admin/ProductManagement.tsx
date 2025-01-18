@@ -38,12 +38,18 @@ export function ProductManagement() {
 
   const fetchProducts = async () => {
     try {
+      console.log('ProductManagement: Fetching products');
       const { data, error } = await supabase
         .from("products")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('ProductManagement: Error fetching products:', error);
+        throw error;
+      }
+      
+      console.log('ProductManagement: Successfully fetched products:', data?.length);
       setProducts(data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -53,13 +59,26 @@ export function ProductManagement() {
 
   const handleDeleteProduct = async (id: string) => {
     try {
+      console.log('ProductManagement: Attempting to delete product with ID:', id);
+      
+      // Validate UUID format
+      if (!id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        console.error('ProductManagement: Invalid UUID format:', id);
+        toast.error("Invalid product ID format");
+        return;
+      }
+
       const { error } = await supabase
         .from("products")
         .delete()
         .eq("id", id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('ProductManagement: Error deleting product:', error);
+        throw error;
+      }
 
+      console.log('ProductManagement: Successfully deleted product:', id);
       toast.success("Product deleted successfully");
       fetchProducts();
     } catch (error) {
@@ -126,7 +145,7 @@ export function ProductManagement() {
 
   const handleImageUpload = async (productId: string, url: string) => {
     try {
-      console.log('🚀 Starting image upload process for product:', productId);
+      console.log('ProductManagement: Starting image upload process for product:', productId);
       
       // Find the product to get its name
       const product = products.find(p => p.id === productId);
@@ -146,18 +165,18 @@ export function ProductManagement() {
       const blob = await response.blob();
       const file = new File([blob], `${sanitizedName}.${url.split('.').pop()}`, { type: blob.type });
 
-      console.log('📦 Original file details:', {
+      console.log('ProductManagement: Original file details:', {
         name: file.name,
         type: file.type,
         size: file.size
       });
 
       // Convert to WebP
-      console.log('🔄 Converting image to WebP format');
+      console.log('ProductManagement: Converting image to WebP format');
       const { webpBlob } = await convertToWebP(file);
       const webpFile = new File([webpBlob], `${sanitizedName}.webp`, { type: 'image/webp' });
 
-      console.log('📦 WebP file details:', {
+      console.log('ProductManagement: WebP file details:', {
         name: webpFile.name,
         type: webpFile.type,
         size: webpFile.size
@@ -173,18 +192,18 @@ export function ProductManagement() {
         });
 
       if (webpError) {
-        console.error('❌ Error uploading WebP version:', webpError);
+        console.error('ProductManagement: Error uploading WebP version:', webpError);
         throw webpError;
       }
 
-      console.log('✅ WebP version uploaded successfully');
+      console.log('ProductManagement: WebP version uploaded successfully');
 
       // Get public URL for WebP
       const { data: { publicUrl: webpUrl } } = supabase.storage
         .from('media')
         .getPublicUrl(webpPath);
 
-      console.log('🔗 Generated WebP URL:', webpUrl);
+      console.log('ProductManagement: Generated WebP URL:', webpUrl);
 
       // Update product record with WebP URL only
       const { error: updateError } = await supabase
@@ -198,11 +217,11 @@ export function ProductManagement() {
         .eq("id", productId);
 
       if (updateError) {
-        console.error('❌ Error updating product record:', updateError);
+        console.error('ProductManagement: Error updating product record:', updateError);
         throw updateError;
       }
 
-      console.log('✅ Product record updated successfully');
+      console.log('ProductManagement: Product record updated successfully');
       toast.success("Image uploaded successfully");
       fetchProducts();
     } catch (error) {
@@ -213,12 +232,18 @@ export function ProductManagement() {
 
   const handleVideoUpload = async (productId: string, url: string) => {
     try {
+      console.log('ProductManagement: Uploading video for product:', productId);
       const { error } = await supabase
         .from("products")
         .update({ video_url: url })
         .eq("id", productId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('ProductManagement: Error updating video URL:', error);
+        throw error;
+      }
+
+      console.log('ProductManagement: Video URL updated successfully');
       toast.success("Video uploaded successfully");
       fetchProducts();
     } catch (error) {
@@ -229,6 +254,7 @@ export function ProductManagement() {
 
   const handleDeleteMedia = async (productId: string, type: 'image' | 'video') => {
     try {
+      console.log('ProductManagement: Deleting media for product:', productId, 'type:', type);
       const product = products.find(p => p.id === productId);
       if (!product) return;
 
@@ -241,7 +267,10 @@ export function ProductManagement() {
           .from('media')
           .remove([`products/${productId}/${fileName}`]);
 
-        if (storageError) throw storageError;
+        if (storageError) {
+          console.error('ProductManagement: Error deleting from storage:', storageError);
+          throw storageError;
+        }
       }
 
       // Update product record
@@ -254,8 +283,12 @@ export function ProductManagement() {
         .update(updateData)
         .eq("id", productId);
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('ProductManagement: Error updating product record:', dbError);
+        throw dbError;
+      }
 
+      console.log('ProductManagement: Media deleted successfully');
       toast.success(`${type === 'image' ? 'Image' : 'Video'} deleted successfully`);
       fetchProducts();
     } catch (error) {
