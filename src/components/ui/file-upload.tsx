@@ -36,7 +36,8 @@ export function FileUpload({
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
-        folderPath
+        folderPath,
+        bucket
       });
       
       // Create the final file path
@@ -79,6 +80,8 @@ export function FileUpload({
           console.log('Starting WebP conversion');
           const { webpBlob } = await convertToWebP(file);
           const webpPath = `${folderPath}/${fileName || file.name.split('.')[0]}.webp`;
+
+          console.log('Uploading WebP version to:', webpPath);
 
           // Upload WebP version
           const { error: webpError } = await supabase.storage
