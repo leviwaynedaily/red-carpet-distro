@@ -117,6 +117,8 @@ export type Database = {
           show_site_logo: boolean | null
           site_description: string | null
           storefront_password: string | null
+          toolbar_color: string | null
+          toolbar_opacity: number | null
           updated_at: string
         }
         Insert: {
@@ -151,6 +153,8 @@ export type Database = {
           show_site_logo?: boolean | null
           site_description?: string | null
           storefront_password?: string | null
+          toolbar_color?: string | null
+          toolbar_opacity?: number | null
           updated_at?: string
         }
         Update: {
@@ -185,6 +189,8 @@ export type Database = {
           show_site_logo?: boolean | null
           site_description?: string | null
           storefront_password?: string | null
+          toolbar_color?: string | null
+          toolbar_opacity?: number | null
           updated_at?: string
         }
         Relationships: []

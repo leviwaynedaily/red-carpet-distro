@@ -48,6 +48,8 @@ type SiteSettingsType = {
   site_description: string;
   header_color: string;
   header_opacity: number;
+  toolbar_color: string;
+  toolbar_opacity: number;
 };
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -83,6 +85,8 @@ export function SiteSettings() {
     site_description: "Welcome to Palmtree Smokes, your premium destination for quality cannabis products. Browse our carefully curated selection below.",
     header_color: "#FFFFFF",
     header_opacity: 1.0,
+    toolbar_color: "#FFFFFF",
+    toolbar_opacity: 1.0,
   });
 
   useEffect(() => {
@@ -146,7 +150,7 @@ export function SiteSettings() {
 
   const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
-    setSettings(prev => ({ ...prev, header_opacity: value }));
+    setSettings(prev => ({ ...prev, header_opacity: value, toolbar_opacity: value }));
     
     toast.success('Opacity updated! Save to make permanent.', {
       description: `Header opacity changed to ${value}`,
@@ -336,6 +340,43 @@ export function SiteSettings() {
                   />
                   <span className="text-sm text-muted-foreground w-12">
                     {Math.round(settings.header_opacity * 100)}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="toolbar_color">Toolbar Color</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="toolbar_color"
+                    name="toolbar_color"
+                    type="color"
+                    value={settings.toolbar_color}
+                    onChange={handleColorChange}
+                    className="w-20 h-10"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {settings.toolbar_color}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="toolbar_opacity">Toolbar Opacity</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="toolbar_opacity"
+                    name="toolbar_opacity"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={settings.toolbar_opacity}
+                    onChange={handleOpacityChange}
+                    className="w-full"
+                  />
+                  <span className="text-sm text-muted-foreground w-12">
+                    {Math.round(settings.toolbar_opacity * 100)}%
                   </span>
                 </div>
               </div>

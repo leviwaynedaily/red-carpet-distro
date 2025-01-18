@@ -30,6 +30,8 @@ export const Header = ({
   const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
   const [headerColor, setHeaderColor] = useState('#FFFFFF');
   const [headerOpacity, setHeaderOpacity] = useState(1);
+  const [toolbarColor, setToolbarColor] = useState('#FFFFFF');
+  const [toolbarOpacity, setToolbarOpacity] = useState(1);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
   const isMobile = useIsMobile();
@@ -39,12 +41,14 @@ export const Header = ({
       try {
         const { data: settings } = await supabase
           .from('site_settings')
-          .select('header_color, header_opacity, logo_url')
+          .select('header_color, header_opacity, logo_url, toolbar_color, toolbar_opacity')
           .single();
         
         if (settings) {
           setHeaderColor(settings.header_color || '#FFFFFF');
           setHeaderOpacity(settings.header_opacity || 1);
+          setToolbarColor(settings.toolbar_color || '#FFFFFF');
+          setToolbarOpacity(settings.toolbar_opacity || 1);
           setLogoUrl(settings.logo_url || 'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.png');
         }
       } catch (error) {
@@ -70,6 +74,10 @@ export const Header = ({
 
   const headerStyle = {
     backgroundColor: headerColor ? `${headerColor}${Math.round(headerOpacity * 255).toString(16).padStart(2, '0')}` : '#FFFFFF',
+  };
+
+  const toolbarStyle = {
+    backgroundColor: toolbarColor ? `${toolbarColor}${Math.round(toolbarOpacity * 255).toString(16).padStart(2, '0')}` : '#FFFFFF',
   };
 
   const FilterControls = () => (
@@ -116,11 +124,11 @@ export const Header = ({
           <img
             src={logoUrl}
             alt="Palmtree Smokes"
-            className="h-12 md:h-16 cursor-pointer transition-transform duration-200 hover:scale-105"
+            className="h-14 md:h-20 cursor-pointer transition-transform duration-200 hover:scale-105"
             onClick={onLogoClick}
           />
         </div>
-        <div className="border-t border-gray-200/30 backdrop-blur-sm bg-white/10">
+        <div className="border-t border-gray-200/30 backdrop-blur-sm" style={toolbarStyle}>
           <div className="container mx-auto px-4 py-2">
             <div className="flex items-center justify-between gap-4 max-w-3xl mx-auto">
               <div className="flex-1">
