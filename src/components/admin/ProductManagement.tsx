@@ -7,7 +7,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/ui/file-upload";
 import { convertToWebP } from "@/utils/imageUtils";
 import { AdminProductCard } from "./AdminProductCard";
-import { Button } from "@/components/ui/button";
 
 type Product = Tables<"products">;
 

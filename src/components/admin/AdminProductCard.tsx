@@ -41,7 +41,7 @@ export function AdminProductCard({
   };
 
   const renderImage = () => {
-    if (!product.image_url && !product.media?.webp) {
+    if (!product.image_url && (!product.media || typeof product.media !== 'object' || !('webp' in product.media))) {
       return (
         <div className="aspect-square flex items-center justify-center bg-gray-100">
           <div className="text-center p-4">
@@ -58,8 +58,8 @@ export function AdminProductCard({
         onClick={() => onMediaClick('image', product.image_url || '')}
       >
         <picture>
-          {product.media?.webp && (
-            <source srcSet={product.media.webp} type="image/webp" />
+          {product.media && typeof product.media === 'object' && 'webp' in product.media && (
+            <source srcSet={product.media.webp as string} type="image/webp" />
           )}
           <img
             src={product.image_url || ''}
