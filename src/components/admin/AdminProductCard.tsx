@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Image } from "lucide-react";
 
 interface AdminProductCardProps {
   id: string;
   name: string;
   description: string;
-  image: string;
-  categories: string[];
+  image_url?: string | null;
+  categories?: string[];
   strain?: string;
   stock?: number;
   regular_price?: number;
@@ -22,7 +22,7 @@ export const AdminProductCard = ({
   id,
   name,
   description,
-  image,
+  image_url,
   categories,
   strain,
   stock,
@@ -32,23 +32,40 @@ export const AdminProductCard = ({
   onEdit,
   'data-product-id': dataProductId,
 }: AdminProductCardProps) => {
+  const formatPrice = (price?: number) => {
+    if (!price) return '-';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
+  };
+
   return (
     <Card 
       className="overflow-hidden"
       data-product-id={dataProductId}
     >
       <CardHeader className="p-0 relative aspect-square">
-        <img
-          src={image}
-          alt={name}
-          className="w-full h-full object-cover"
-        />
+        {image_url ? (
+          <img
+            src={image_url}
+            alt={name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <Image className="h-8 w-8 text-gray-400" />
+          </div>
+        )}
         <div className="absolute top-2 right-2 flex gap-2">
           <Button
             size="icon"
             variant="secondary"
             className="rounded-full w-8 h-8"
-            onClick={onEdit}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
             aria-label="Edit product"
           >
             <Edit className="h-4 w-4" />
@@ -57,7 +74,10 @@ export const AdminProductCard = ({
             size="icon"
             variant="destructive"
             className="rounded-full w-8 h-8"
-            onClick={() => onDelete(id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(id);
+            }}
             aria-label="Delete product"
           >
             <Trash2 className="h-4 w-4" />
@@ -66,15 +86,15 @@ export const AdminProductCard = ({
       </CardHeader>
       <CardContent className="p-4">
         <h3 className="font-bold truncate">{name}</h3>
-        <p className="text-sm text-gray-600 line-clamp-2 mt-1" dangerouslySetInnerHTML={{ __html: description.replace(/,/g, ', ') }} />
+        <p className="text-sm text-gray-600 line-clamp-2 mt-1">{description}</p>
         <div className="mt-2 space-y-1 text-sm text-gray-600">
           {categories?.length > 0 && (
             <div>Categories: {categories.join(', ')}</div>
           )}
           {strain && <div>Strain: {strain}</div>}
           {stock !== undefined && <div>Stock: {stock}</div>}
-          {regular_price !== undefined && <div>Price: ${regular_price}</div>}
-          {shipping_price !== undefined && <div>Shipping: ${shipping_price}</div>}
+          {regular_price !== undefined && <div>Price: {formatPrice(regular_price)}</div>}
+          {shipping_price !== undefined && <div>Shipping: {formatPrice(shipping_price)}</div>}
         </div>
       </CardContent>
     </Card>

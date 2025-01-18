@@ -7,9 +7,11 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/ui/file-upload";
 import { convertToWebP } from "@/utils/imageUtils";
 import { ProductTable } from "./ProductTable";
+import { ProductMobileGrid } from "./product-table/ProductMobileGrid";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Product = Tables<"products">;
 
@@ -38,10 +40,7 @@ export function ProductManagement() {
     direction: 'desc' 
   });
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const isMobile = useIsMobile();
 
   const fetchProducts = async () => {
     try {
@@ -427,39 +426,35 @@ export function ProductManagement() {
     }));
   };
 
-  const sortProducts = (productsToSort: typeof products) => {
-    return [...productsToSort].sort((a, b) => {
-      const aValue = a[sortConfig.key as keyof typeof a];
-      const bValue = b[sortConfig.key as keyof typeof b];
-      
-      if (aValue === null || aValue === undefined) return 1;
-      if (bValue === null || bValue === undefined) return -1;
-      
-      const modifier = sortConfig.direction === 'asc' ? 1 : -1;
-      
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return aValue.localeCompare(bValue) * modifier;
-      }
-      
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return (aValue - bValue) * modifier;
-      }
-      
-      if (aValue instanceof Date && bValue instanceof Date) {
-        return (aValue.getTime() - bValue.getTime()) * modifier;
-      }
-      
-      return 0;
-    });
-  };
-
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.strain?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const sortedProducts = sortProducts(filteredProducts);
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    const aValue = a[sortConfig.key as keyof typeof a];
+    const bValue = b[sortConfig.key as keyof typeof b];
+    
+    if (aValue === null || aValue === undefined) return 1;
+    if (bValue === null || bValue === undefined) return -1;
+    
+    const modifier = sortConfig.direction === 'asc' ? 1 : -1;
+    
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return aValue.localeCompare(bValue) * modifier;
+    }
+    
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return (aValue - bValue) * modifier;
+    }
+    
+    if (aValue instanceof Date && bValue instanceof Date) {
+      return (aValue.getTime() - bValue.getTime()) * modifier;
+    }
+    
+    return 0;
+  });
 
   return (
     <div className="space-y-4">
@@ -484,23 +479,31 @@ export function ProductManagement() {
         onDownloadTemplate={handleDownloadTemplate}
       />
 
-      <ProductTable
-        products={sortedProducts}
-        visibleColumns={visibleColumns}
-        editingProduct={editingProduct}
-        editValues={editValues}
-        onEditStart={handleEditStart}
-        onEditSave={handleEditSave}
-        onEditCancel={handleEditCancel}
-        onEditChange={setEditValues}
-        onDelete={handleDeleteProduct}
-        onImageUpload={handleImageUpload}
-        onVideoUpload={handleVideoUpload}
-        onDeleteMedia={handleDeleteMedia}
-        onMediaClick={handleMediaClick}
-        sortConfig={sortConfig}
-        onSort={handleSort}
-      />
+      {isMobile ? (
+        <ProductMobileGrid
+          products={sortedProducts}
+          onEditStart={handleEditStart}
+          onDelete={handleDeleteProduct}
+        />
+      ) : (
+        <ProductTable
+          products={sortedProducts}
+          visibleColumns={visibleColumns}
+          editingProduct={editingProduct}
+          editValues={editValues}
+          onEditStart={handleEditStart}
+          onEditSave={handleEditSave}
+          onEditCancel={handleEditCancel}
+          onEditChange={setEditValues}
+          onDelete={handleDeleteProduct}
+          onImageUpload={handleImageUpload}
+          onVideoUpload={handleVideoUpload}
+          onDeleteMedia={handleDeleteMedia}
+          onMediaClick={handleMediaClick}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+        />
+      )}
 
       <Dialog open={showMedia} onOpenChange={setShowMedia}>
         <DialogContent className="max-w-4xl w-full p-0">
