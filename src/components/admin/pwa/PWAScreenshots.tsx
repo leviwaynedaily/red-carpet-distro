@@ -27,6 +27,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
 
   const fetchSettingsId = async () => {
     try {
+      console.log('Fetching settings ID...');
       const { data, error } = await supabase
         .from('site_settings')
         .select('id')
@@ -38,7 +39,11 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
       }
 
       if (data?.id) {
+        console.log('Settings ID fetched successfully:', data.id);
         setSettingsId(data.id);
+      } else {
+        console.error('No settings record found');
+        toast.error('No settings record found');
       }
     } catch (error) {
       console.error('Error in fetchSettingsId:', error);
@@ -58,7 +63,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
       return;
     }
 
-    console.log(`Handling ${type} screenshot upload:`, url);
+    console.log(`Handling ${type} screenshot upload:`, { url, settingsId });
     
     try {
       // Fetch the image once and create a blob
