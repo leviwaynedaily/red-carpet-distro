@@ -160,7 +160,7 @@ export function ProductManagement() {
         size: webpFile.size
       });
 
-      // Upload WebP version
+      // Upload WebP version only
       const webpPath = `products/${productId}/image.webp`;
       const { error: webpError, data: webpData } = await supabase.storage
         .from('media')
@@ -176,27 +176,19 @@ export function ProductManagement() {
 
       console.log('✅ WebP version uploaded successfully');
 
-      // Get public URLs
-      const { data: { publicUrl: originalUrl } } = supabase.storage
-        .from('media')
-        .getPublicUrl(url.split('media/')[1]);
-
+      // Get public URL for WebP
       const { data: { publicUrl: webpUrl } } = supabase.storage
         .from('media')
         .getPublicUrl(webpPath);
 
-      console.log('🔗 Generated public URLs:', {
-        original: originalUrl,
-        webp: webpUrl
-      });
+      console.log('🔗 Generated WebP URL:', webpUrl);
 
-      // Update product record with both URLs
+      // Update product record with WebP URL only
       const { error: updateError } = await supabase
         .from("products")
         .update({ 
-          image_url: originalUrl,
+          image_url: webpUrl,
           media: {
-            original: originalUrl,
             webp: webpUrl
           }
         })
