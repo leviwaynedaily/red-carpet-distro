@@ -40,7 +40,9 @@ type SiteSettingsType = {
   pwa_start_url: string;
   pwa_icons: PWAIcon[];
   pwa_desktop_screenshot?: string;
+  pwa_desktop_screenshot_webp?: string;
   pwa_mobile_screenshot?: string;
+  pwa_mobile_screenshot_webp?: string;
   og_title: string;
   og_description: string;
   og_image: string;
@@ -196,21 +198,21 @@ export function SiteSettings() {
     return `${url}?t=${Date.now()}`;
   };
 
-  const handlePWAIconUpload = async (url: string, size: number, purpose: 'any' | 'maskable') => {
-    console.log('Handling PWA icon upload:', { size, purpose, url });
+  const handleScreenshotUpload = async (url: string, type: 'desktop' | 'mobile') => {
+    console.log(`Handling ${type} screenshot upload:`, { url });
     
     try {
       const response = await fetch(url);
       const blob = await response.blob();
-      const originalFile = new File([blob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.png`, { type: 'image/png' });
+      const originalFile = new File([blob], `${type}-screenshot.png`, { type: 'image/png' });
       
       console.log('Converting to WebP...');
       const { webpBlob } = await convertToWebP(originalFile);
-      const webpFile = new File([webpBlob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.webp`, { type: 'image/webp' });
+      const webpFile = new File([webpBlob], `${type}-screenshot.webp`, { type: 'image/webp' });
       
       const { data: webpUpload, error: webpError } = await supabase.storage
         .from('media')
-        .upload(`sitesettings/pwa/icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.webp`, webpFile, {
+        .upload(`sitesettings/pwa/${type}-screenshot.webp`, webpFile, {
           cacheControl: '3600',
           upsert: true
         });
@@ -222,45 +224,25 @@ export function SiteSettings() {
 
       console.log('WebP version uploaded successfully');
 
-      setSettings(prev => {
-        const newIcons = [...(prev.pwa_icons || [])];
-        const fileName = purpose === 'maskable' ? `icon-${size}-maskable` : `icon-${size}`;
-        const existingIconIndex = newIcons.findIndex(
-          icon => icon.sizes === `${size}x${size}` && icon.purpose === purpose
-        );
-        
-        const newIcon = {
-          src: url,
-          sizes: `${size}x${size}`,
-          type: 'image/png',
-          purpose,
-          webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
-        };
+      setSettings(prev => ({
+        ...prev,
+        [`pwa_${type}_screenshot`]: url,
+        [`pwa_${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${type}-screenshot.webp`
+      }));
 
-        if (existingIconIndex >= 0) {
-          newIcons[existingIconIndex] = newIcon;
-        } else {
-          newIcons.push(newIcon);
-        }
-
-        return {
-          ...prev,
-          pwa_icons: newIcons
-        };
-      });
-
-      console.log('Settings updated with new icon versions');
+      console.log('Settings updated with new screenshot versions');
     } catch (error) {
-      console.error('Error in handlePWAIconUpload:', error);
-      toast.error('Failed to process icon upload');
+      console.error(`Error in handle${type}ScreenshotUpload:`, error);
+      toast.error('Failed to process screenshot upload');
     }
   };
 
-  const getIconStatus = (icon: PWAIcon | undefined) => {
-    if (!icon) return { png: false, webp: false };
+  const getScreenshotStatus = (type: 'desktop' | 'mobile') => {
+    const png = settings[`pwa_${type}_screenshot`];
+    const webp = settings[`pwa_${type}_screenshot_webp`];
     return {
-      png: !!icon.src,
-      webp: !!icon.webp
+      png: !!png,
+      webp: !!webp
     };
   };
 
@@ -551,18 +533,35 @@ export function SiteSettings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Desktop Screenshot (Wide)</Label>
-                {settings.pwa_desktop_screenshot && (
-                  <img 
-                    src={addCacheBuster(settings.pwa_desktop_screenshot)} 
-                    alt="Desktop screenshot" 
-                    className="w-full h-32 object-cover rounded-md mb-2"
-                  />
-                )}
+                <div className="flex items-center space-x-2">
+                  {settings.pwa_desktop_screenshot && (
+                    <img 
+                      src={addCacheBuster(settings.pwa_desktop_screenshot)} 
+                      alt="Desktop screenshot" 
+                      className="w-32 h-32 object-cover rounded-md"
+                    />
+                  )}
+                  <div className="flex flex-col space-y-1 text-sm">
+                    {(() => {
+                      const status = getScreenshotStatus('desktop');
+                      return (
+                        <>
+                          <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
+                            {status.png ? '✓' : '○'} PNG
+                          </span>
+                          <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
+                            {status.webp ? '✓' : '○'} WebP
+                          </span>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
                 <FileUpload
-                  onUploadComplete={(url) => setSettings(prev => ({ ...prev, pwa_desktop_screenshot: url }))}
+                  onUploadComplete={(url) => handleScreenshotUpload(url, 'desktop')}
                   accept="image/*"
                   folderPath="sitesettings/pwa"
-                  fileName="desktop_screenshot"
+                  fileName="desktop-screenshot"
                 />
                 <p className="text-sm text-muted-foreground">
                   Add a wide screenshot for desktop PWA install UI
@@ -571,18 +570,35 @@ export function SiteSettings() {
 
               <div className="space-y-2">
                 <Label>Mobile Screenshot</Label>
-                {settings.pwa_mobile_screenshot && (
-                  <img 
-                    src={addCacheBuster(settings.pwa_mobile_screenshot)} 
-                    alt="Mobile screenshot" 
-                    className="w-full h-32 object-cover rounded-md mb-2"
-                  />
-                )}
+                <div className="flex items-center space-x-2">
+                  {settings.pwa_mobile_screenshot && (
+                    <img 
+                      src={addCacheBuster(settings.pwa_mobile_screenshot)} 
+                      alt="Mobile screenshot" 
+                      className="w-32 h-32 object-cover rounded-md"
+                    />
+                  )}
+                  <div className="flex flex-col space-y-1 text-sm">
+                    {(() => {
+                      const status = getScreenshotStatus('mobile');
+                      return (
+                        <>
+                          <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
+                            {status.png ? '✓' : '○'} PNG
+                          </span>
+                          <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
+                            {status.webp ? '✓' : '○'} WebP
+                          </span>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
                 <FileUpload
-                  onUploadComplete={(url) => setSettings(prev => ({ ...prev, pwa_mobile_screenshot: url }))}
+                  onUploadComplete={(url) => handleScreenshotUpload(url, 'mobile')}
                   accept="image/*"
                   folderPath="sitesettings/pwa"
-                  fileName="mobile_screenshot"
+                  fileName="mobile-screenshot"
                 />
                 <p className="text-sm text-muted-foreground">
                   Add a mobile-optimized screenshot for PWA install UI
