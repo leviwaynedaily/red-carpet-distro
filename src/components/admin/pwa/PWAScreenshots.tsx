@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/ui/file-upload";
 import { IconStatus } from './IconStatus';
@@ -19,12 +19,45 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
   onDesktopUpload,
   onMobileUpload
 }) => {
+  const [settingsId, setSettingsId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchSettingsId();
+  }, []);
+
+  const fetchSettingsId = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('id')
+        .single();
+
+      if (error) {
+        console.error('Error fetching settings ID:', error);
+        throw error;
+      }
+
+      if (data?.id) {
+        setSettingsId(data.id);
+      }
+    } catch (error) {
+      console.error('Error in fetchSettingsId:', error);
+      toast.error('Failed to fetch settings');
+    }
+  };
+
   const addCacheBuster = (url: string | null) => {
     if (!url) return '';
     return `${url}?t=${Date.now()}`;
   };
 
   const handleScreenshotUpload = async (url: string, type: 'desktop' | 'mobile') => {
+    if (!settingsId) {
+      console.error('Settings ID not found');
+      toast.error('Could not update settings: Settings ID not found');
+      return;
+    }
+
     console.log(`Handling ${type} screenshot upload:`, url);
     
     try {
@@ -60,7 +93,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
             [`${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
           }
         })
-        .eq('id', 1);  // Assuming we're always updating the first record
+        .eq('id', settingsId);
 
       if (updateError) {
         console.error('Error updating site settings:', updateError);
