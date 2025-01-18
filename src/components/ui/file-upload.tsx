@@ -12,7 +12,9 @@ interface FileUploadProps {
   folderPath?: string;
   fileName?: string;
   className?: string;
-  buttonContent?: React.ReactNode;
+  children?: React.ReactNode;  // Added children prop
+  onClientUploadComplete?: (res: any) => void;  // Added for compatibility
+  onUploadError?: (error: Error) => void;  // Added for compatibility
 }
 
 export function FileUpload({ 
@@ -22,7 +24,9 @@ export function FileUpload({
   folderPath = "",
   fileName,
   className,
-  buttonContent = "Upload File"
+  children,
+  onClientUploadComplete,
+  onUploadError
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -105,10 +109,16 @@ export function FileUpload({
       }
 
       onUploadComplete(publicUrl);
+      if (onClientUploadComplete) {
+        onClientUploadComplete([{ url: publicUrl }]);
+      }
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('❌ Upload error:', error);
       toast.error('Failed to upload file');
+      if (onUploadError) {
+        onUploadError(error as Error);
+      }
     } finally {
       setIsUploading(false);
     }
@@ -127,7 +137,7 @@ export function FileUpload({
             Uploading...
           </>
         ) : (
-          buttonContent
+          children || "Upload File"
         )}
         <input
           type="file"
