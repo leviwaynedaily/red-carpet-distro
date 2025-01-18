@@ -21,7 +21,9 @@ const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
 type SiteSettingsType = {
   id: string;
   logo_url: string;
+  logo_url_webp?: string;
   favicon_url: string;
+  favicon_png_url?: string;
   pwa_name: string;
   pwa_description: string;
   pwa_theme_color: string;
@@ -57,7 +59,9 @@ export function SiteSettings() {
   const [settings, setSettings] = useState<SiteSettingsType>({
     id: "",
     logo_url: "",
+    logo_url_webp: "",
     favicon_url: "",
+    favicon_png_url: "",
     pwa_name: "",
     pwa_description: "",
     pwa_theme_color: "",
@@ -194,68 +198,8 @@ export function SiteSettings() {
     return `${url}?t=${Date.now()}`;
   };
 
-  const handlePWAIconUpload = async (url: string, size: number, purpose: 'any' | 'maskable') => {
-    console.log('Handling PWA icon upload:', { size, purpose, url });
-    
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const originalFile = new File([blob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.png`, { type: 'image/png' });
-      
-      console.log('Converting to WebP...');
-      const { webpBlob } = await convertToWebP(originalFile);
-      const webpFile = new File([webpBlob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.webp`, { type: 'image/webp' });
-      
-      const { data: webpUpload, error: webpError } = await supabase.storage
-        .from('media')
-        .upload(`sitesettings/pwa/icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.webp`, webpFile, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (webpError) {
-        console.error('Error uploading WebP version:', webpError);
-        throw webpError;
-      }
-
-      console.log('WebP version uploaded successfully');
-
-      setSettings(prev => {
-        const newIcons = [...(prev.pwa_icons || [])];
-        const fileName = purpose === 'maskable' ? `icon-${size}-maskable` : `icon-${size}`;
-        const existingIconIndex = newIcons.findIndex(
-          icon => icon.sizes === `${size}x${size}` && icon.purpose === purpose
-        );
-        
-        const newIcon = {
-          src: url,
-          sizes: `${size}x${size}`,
-          type: 'image/png',
-          purpose,
-          webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
-        };
-
-        if (existingIconIndex >= 0) {
-          newIcons[existingIconIndex] = newIcon;
-        } else {
-          newIcons.push(newIcon);
-        }
-
-        return {
-          ...prev,
-          pwa_icons: newIcons
-        };
-      });
-
-      console.log('Settings updated with new icon versions');
-    } catch (error) {
-      console.error('Error in handlePWAIconUpload:', error);
-      toast.error('Failed to process icon upload');
-    }
-  };
-
-  const handleOGImageUpload = async (url: string) => {
-    console.log('Handling OG image upload:', { url });
+  const handleLogoUpload = async (url: string) => {
+    console.log('Handling logo upload:', { url });
     
     try {
       const { data: settings, error: settingsError } = await supabase
@@ -274,16 +218,16 @@ export function SiteSettings() {
 
       const response = await fetch(url);
       const blob = await response.blob();
-      const originalFile = new File([blob], 'og-image.png', { type: 'image/png' });
+      const originalFile = new File([blob], 'logo.png', { type: 'image/png' });
 
       console.log('Converting to WebP...');
       const { webpBlob } = await convertToWebP(originalFile);
-      const webpFile = new File([webpBlob], 'og-image.webp', { type: 'image/webp' });
+      const webpFile = new File([webpBlob], 'logo.webp', { type: 'image/webp' });
 
       console.log('Uploading WebP version...');
       const { data: webpUpload, error: webpError } = await supabase.storage
         .from('media')
-        .upload('sitesettings/og-image.webp', webpFile, {
+        .upload('sitesettings/logo.webp', webpFile, {
           cacheControl: '3600',
           upsert: true
         });
@@ -298,8 +242,8 @@ export function SiteSettings() {
       const { error: updateError } = await supabase
         .from('site_settings')
         .update({
-          og_image: url,
-          og_image_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`
+          logo_url: url,
+          logo_url_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.webp`
         })
         .eq('id', settings.id);
 
@@ -310,14 +254,79 @@ export function SiteSettings() {
 
       setSettings(prev => ({
         ...prev,
-        og_image: url,
-        og_image_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`
+        logo_url: url,
+        logo_url_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.webp`
       }));
 
-      toast.success('Open Graph preview image uploaded successfully');
+      toast.success('Logo uploaded successfully');
     } catch (error) {
-      console.error('Error in handleOGImageUpload:', error);
-      toast.error('Failed to process Open Graph image upload');
+      console.error('Error in handleLogoUpload:', error);
+      toast.error('Failed to process logo upload');
+    }
+  };
+
+  const handleFaviconUpload = async (url: string) => {
+    console.log('Handling favicon upload:', { url });
+    
+    try {
+      const { data: settings, error: settingsError } = await supabase
+        .from('site_settings')
+        .select('*')
+        .maybeSingle();
+
+      if (settingsError) {
+        console.error('Error fetching settings:', settingsError);
+        throw settingsError;
+      }
+
+      if (!settings?.id) {
+        throw new Error('No settings record found');
+      }
+
+      // Handle PNG version
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const pngFile = new File([blob], 'favicon.png', { type: 'image/png' });
+
+      console.log('Uploading PNG version...');
+      const { data: pngUpload, error: pngError } = await supabase.storage
+        .from('media')
+        .upload('sitesettings/favicon.png', pngFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (pngError) {
+        console.error('Error uploading PNG version:', pngError);
+        throw pngError;
+      }
+
+      const pngUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/favicon.png`;
+
+      // Update settings with both URLs
+      const { error: updateError } = await supabase
+        .from('site_settings')
+        .update({
+          favicon_url: url,
+          favicon_png_url: pngUrl
+        })
+        .eq('id', settings.id);
+
+      if (updateError) {
+        console.error('Error updating site settings:', updateError);
+        throw updateError;
+      }
+
+      setSettings(prev => ({
+        ...prev,
+        favicon_url: url,
+        favicon_png_url: pngUrl
+      }));
+
+      toast.success('Favicon uploaded successfully');
+    } catch (error) {
+      console.error('Error in handleFaviconUpload:', error);
+      toast.error('Failed to process favicon upload');
     }
   };
 
@@ -511,21 +520,66 @@ export function SiteSettings() {
                 </div>
 
                 <Label>Logo</Label>
-                {settings.logo_url && (
-                  <img
-                    src={addCacheBuster(settings.logo_url)}
-                    alt="Logo"
-                    className="w-32 h-32 object-contain rounded-md mb-2"
-                  />
-                )}
-                <FileUpload
-                  onUploadComplete={(url) =>
-                    setSettings((prev) => ({ ...prev, logo_url: url }))
-                  }
-                  accept="image/*"
-                  folderPath="sitesettings"
-                  fileName="logo"
-                />
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  {settings.logo_url && (
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex-1">
+                        <img
+                          src={settings.logo_url}
+                          alt="Logo"
+                          className="w-32 h-32 object-contain rounded-md mb-2"
+                        />
+                      </div>
+                      <div className="ml-4">
+                        <IconStatus 
+                          status={{
+                            png: !!settings.logo_url,
+                            webp: !!settings.logo_url_webp
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <FileUpload
+                      onUploadComplete={handleLogoUpload}
+                      accept="image/*"
+                      folderPath="sitesettings"
+                      fileName="logo"
+                    />
+                  </div>
+                </div>
+
+                <Label>Favicon</Label>
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  {settings.favicon_url && (
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex-1">
+                        <img
+                          src={settings.favicon_url}
+                          alt="Favicon"
+                          className="w-16 h-16 object-contain rounded-md mb-2"
+                        />
+                      </div>
+                      <div className="ml-4">
+                        <IconStatus 
+                          status={{
+                            ico: !!settings.favicon_url,
+                            png: !!settings.favicon_png_url
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <FileUpload
+                      onUploadComplete={handleFaviconUpload}
+                      accept="image/*"
+                      folderPath="sitesettings"
+                      fileName="favicon"
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
