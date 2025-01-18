@@ -200,17 +200,14 @@ export function SiteSettings() {
     console.log('Handling PWA icon upload:', { size, purpose, url });
     
     try {
-      // Fetch the original file
       const response = await fetch(url);
       const blob = await response.blob();
       const originalFile = new File([blob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.png`, { type: 'image/png' });
       
-      // Convert to WebP
       console.log('Converting to WebP...');
       const { webpBlob } = await convertToWebP(originalFile);
       const webpFile = new File([webpBlob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.webp`, { type: 'image/webp' });
       
-      // Upload WebP version
       const { data: webpUpload, error: webpError } = await supabase.storage
         .from('media')
         .upload(`sitesettings/pwa/icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.webp`, webpFile, {
@@ -225,7 +222,6 @@ export function SiteSettings() {
 
       console.log('WebP version uploaded successfully');
 
-      // Update settings with both versions
       setSettings(prev => {
         const newIcons = [...(prev.pwa_icons || [])];
         const fileName = purpose === 'maskable' ? `icon-${size}-maskable` : `icon-${size}`;
@@ -234,7 +230,7 @@ export function SiteSettings() {
         );
         
         const newIcon = {
-          src: url, // PNG version
+          src: url,
           sizes: `${size}x${size}`,
           type: 'image/png',
           purpose,
@@ -258,6 +254,14 @@ export function SiteSettings() {
       console.error('Error in handlePWAIconUpload:', error);
       toast.error('Failed to process icon upload');
     }
+  };
+
+  const getIconStatus = (icon: PWAIcon | undefined) => {
+    if (!icon) return { png: false, webp: false };
+    return {
+      png: !!icon.src,
+      webp: !!icon.webp
+    };
   };
 
   return (
@@ -592,17 +596,36 @@ export function SiteSettings() {
                 <div key={size} className="space-y-4">
                   <div className="space-y-2">
                     <Label>{size}x{size} Regular Icon</Label>
-                    {settings.pwa_icons?.find(
-                      icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                    )?.src && (
-                      <img 
-                        src={addCacheBuster(settings.pwa_icons.find(
-                          icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                        )?.src)}
-                        alt={`${size}x${size} regular icon`} 
-                        className="w-16 h-16 object-contain rounded-md mb-2"
-                      />
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {settings.pwa_icons?.find(
+                        icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
+                      )?.src && (
+                        <img 
+                          src={addCacheBuster(settings.pwa_icons.find(
+                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
+                          )?.src)}
+                          alt={`${size}x${size} regular icon`} 
+                          className="w-16 h-16 object-contain rounded-md"
+                        />
+                      )}
+                      <div className="flex flex-col space-y-1 text-sm">
+                        {(() => {
+                          const status = getIconStatus(settings.pwa_icons?.find(
+                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
+                          ));
+                          return (
+                            <>
+                              <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
+                                {status.png ? '✓' : '○'} PNG
+                              </span>
+                              <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
+                                {status.webp ? '✓' : '○'} WebP
+                              </span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
                     <FileUpload
                       onUploadComplete={(url) => handlePWAIconUpload(url, size, 'any')}
                       accept="image/png"
@@ -613,17 +636,36 @@ export function SiteSettings() {
 
                   <div className="space-y-2">
                     <Label>{size}x{size} Maskable Icon</Label>
-                    {settings.pwa_icons?.find(
-                      icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                    )?.src && (
-                      <img 
-                        src={addCacheBuster(settings.pwa_icons.find(
-                          icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                        )?.src)}
-                        alt={`${size}x${size} maskable icon`} 
-                        className="w-16 h-16 object-contain rounded-md mb-2"
-                      />
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {settings.pwa_icons?.find(
+                        icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
+                      )?.src && (
+                        <img 
+                          src={addCacheBuster(settings.pwa_icons.find(
+                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
+                          )?.src)}
+                          alt={`${size}x${size} maskable icon`} 
+                          className="w-16 h-16 object-contain rounded-md"
+                        />
+                      )}
+                      <div className="flex flex-col space-y-1 text-sm">
+                        {(() => {
+                          const status = getIconStatus(settings.pwa_icons?.find(
+                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
+                          ));
+                          return (
+                            <>
+                              <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
+                                {status.png ? '✓' : '○'} PNG
+                              </span>
+                              <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
+                                {status.webp ? '✓' : '○'} WebP
+                              </span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
                     <FileUpload
                       onUploadComplete={(url) => handlePWAIconUpload(url, size, 'maskable')}
                       accept="image/png"
