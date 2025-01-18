@@ -860,9 +860,9 @@ export function SiteSettings() {
             <div className="space-y-4">
               <h3 className="text-lg font-medium">PWA Icons</h3>
               {(!mediaInfo.pwaIcons || Object.keys(mediaInfo.pwaIcons).length === 0) && (
-                <Alert variant="warning" className="mb-4">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
+                <Alert variant="default" className="mb-4 border-yellow-200 bg-yellow-50">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <AlertDescription className="text-yellow-600">
                     No PWA icons found. Please upload the required icons for better app installation experience.
                   </AlertDescription>
                 </Alert>
