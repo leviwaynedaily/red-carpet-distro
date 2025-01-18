@@ -2,7 +2,6 @@ import React from 'react';
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/ui/file-upload";
 import { IconStatus } from './IconStatus';
-import { convertToWebP } from "@/utils/imageUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -11,12 +10,6 @@ interface PWAScreenshotsProps {
   mobileScreenshot: string | null;
   onDesktopUpload: (url: string) => void;
   onMobileUpload: (url: string) => void;
-}
-
-interface Screenshot {
-  type: 'desktop' | 'mobile';
-  url: string;
-  webp?: string;
 }
 
 export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
@@ -29,33 +22,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
     console.log(`Handling ${type} screenshot upload:`, { url });
     
     try {
-      // 1. Fetch the original file
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const fileName = `${type}_screenshot`;
-      const originalFile = new File([blob], `${fileName}.png`, { type: 'image/png' });
-      
-      // 2. Convert to WebP
-      console.log('Converting to WebP...');
-      const { webpBlob } = await convertToWebP(originalFile);
-      const webpFile = new File([webpBlob], `${fileName}.webp`, { type: 'image/webp' });
-      
-      // 3. Upload WebP version
-      const { data: webpUpload, error: webpError } = await supabase.storage
-        .from('media')
-        .upload(`sitesettings/pwa/${fileName}.webp`, webpFile, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (webpError) {
-        console.error('Error uploading WebP version:', webpError);
-        throw webpError;
-      }
-
-      console.log('WebP version uploaded successfully');
-
-      // 4. Get the settings record
+      // Get the settings record
       const { data: settings, error: settingsError } = await supabase
         .from('site_settings')
         .select('*')
@@ -70,19 +37,12 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
         throw new Error('No settings record found');
       }
 
-      // 5. Update the site settings with both URLs
-      const mediaUpdate = settings.media || {};
-      const updateData: Record<string, any> = {
-        [`pwa_${type}_screenshot`]: url,
-        media: {
-          ...mediaUpdate,
-          [`${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
-        }
-      };
-
+      // Update the site settings with the URL directly
       const { error: updateError } = await supabase
         .from('site_settings')
-        .update(updateData)
+        .update({
+          [`pwa_${type}_screenshot`]: url
+        })
         .eq('id', settings.id);
 
       if (updateError) {
@@ -90,7 +50,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
         throw updateError;
       }
 
-      // 6. Update local state through callback
+      // Update local state through callback
       if (type === 'desktop') {
         onDesktopUpload(url);
       } else {
@@ -124,7 +84,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!desktopScreenshot,
-              webp: !!desktopScreenshot // We know WebP exists if PNG does
+              webp: false // We're not using WebP anymore
             }}
           />
         </div>
@@ -152,7 +112,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!mobileScreenshot,
-              webp: !!mobileScreenshot // We know WebP exists if PNG does
+              webp: false // We're not using WebP anymore
             }}
           />
         </div>
