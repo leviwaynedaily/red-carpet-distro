@@ -13,6 +13,10 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
+interface Media {
+  webp?: string;
+}
+
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -89,11 +93,16 @@ const ProductDetails = () => {
               {product.image_url ? (
                 <CarouselItem>
                   <div className="aspect-square relative">
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
+                    <picture>
+                      {product.media?.webp && (
+                        <source srcSet={product.media.webp} type="image/webp" />
+                      )}
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    </picture>
                     <Button
                       variant="secondary"
                       size="sm"
