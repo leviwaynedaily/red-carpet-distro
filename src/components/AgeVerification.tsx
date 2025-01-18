@@ -102,11 +102,14 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-4 sm:p-8 max-w-md w-full mx-4 shadow-lg animate-fade-up overflow-y-auto max-h-[90vh]">
-        <img
-          src="/lovable-uploads/3da74169-47b0-4693-aad7-82c3df307063.png"
-          alt="Palmtree Smokes Logo"
-          className="w-32 sm:w-48 mx-auto mb-4 sm:mb-6"
-        />
+        <picture>
+          <source srcSet="/lovable-uploads/3da74169-47b0-4693-aad7-82c3df307063.webp" type="image/webp" />
+          <img
+            src="/lovable-uploads/3da74169-47b0-4693-aad7-82c3df307063.png"
+            alt="Palmtree Smokes Logo"
+            className="w-32 sm:w-48 mx-auto mb-4 sm:mb-6"
+          />
+        </picture>
         {step === 'verification' ? (
           <>
             <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Verification Required</h2>

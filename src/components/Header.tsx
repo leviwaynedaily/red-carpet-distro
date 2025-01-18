@@ -34,6 +34,7 @@ export const Header = ({
   const [toolbarOpacity, setToolbarOpacity] = useState(1);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
+  const [logoWebpUrl, setLogoWebpUrl] = useState('');
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export const Header = ({
       try {
         const { data: settings } = await supabase
           .from('site_settings')
-          .select('header_color, header_opacity, logo_url, toolbar_color, toolbar_opacity')
+          .select('header_color, header_opacity, logo_url, toolbar_color, toolbar_opacity, media')
           .single();
         
         if (settings) {
@@ -50,6 +51,9 @@ export const Header = ({
           setToolbarColor(settings.toolbar_color || '#FFFFFF');
           setToolbarOpacity(settings.toolbar_opacity || 1);
           setLogoUrl(settings.logo_url || 'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.png');
+          if (settings.media && typeof settings.media === 'object' && 'webp' in settings.media) {
+            setLogoWebpUrl(settings.media.webp as string);
+          }
         }
       } catch (error) {
         console.error('Error fetching header settings:', error);
@@ -121,12 +125,17 @@ export const Header = ({
     <header className="fixed top-0 left-0 right-0 z-50 w-full shadow-sm" style={headerStyle}>
       <div className="w-full">
         <div className="flex items-center justify-center px-4 md:px-8 py-4 md:py-6 backdrop-blur-sm bg-white/10">
-          <img
-            src={logoUrl}
-            alt="Palmtree Smokes"
-            className="h-14 md:h-20 cursor-pointer transition-transform duration-200 hover:scale-105"
-            onClick={onLogoClick}
-          />
+          <picture>
+            {logoWebpUrl && (
+              <source srcSet={logoWebpUrl} type="image/webp" />
+            )}
+            <img
+              src={logoUrl}
+              alt="Palmtree Smokes"
+              className="h-14 md:h-20 cursor-pointer transition-transform duration-200 hover:scale-105"
+              onClick={onLogoClick}
+            />
+          </picture>
         </div>
         <div className="border-t border-gray-200/30 backdrop-blur-sm" style={toolbarStyle}>
           <div className="container mx-auto px-4 py-2">
