@@ -364,15 +364,17 @@ export function SiteSettings() {
 
       const webpUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/${webpPath}`;
 
-      const newIcon = {
+      const newIcon: PWAIcon = {
         src: url,
         sizes: `${size}x${size}`,
         type: 'image/png',
-        purpose: 'any' as const,
+        purpose: 'any',
         webp: webpUrl
       };
 
-      const currentIcons = Array.isArray(settingsData.pwa_icons) ? settingsData.pwa_icons : [];
+      const currentIcons = Array.isArray(settingsData.pwa_icons) 
+        ? (settingsData.pwa_icons as PWAIcon[])
+        : [];
       const updatedIcons = [...currentIcons, newIcon];
 
       const { error: updateError } = await supabase
