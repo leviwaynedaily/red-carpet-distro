@@ -11,14 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { convertToWebP } from "@/utils/imageUtils";
+import { PWAIcons } from "./pwa/PWAIcons";
+import { PWAScreenshots } from "./pwa/PWAScreenshots";
+import type { PWAIcon } from "@/types/site-settings";
 
-type PWAIcon = {
-  src: string;
-  sizes: string;
-  type: string;
-  purpose: 'any' | 'maskable';
-  webp?: string;
-};
+const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
 
 type SiteSettingsType = {
   id: string;
@@ -53,8 +50,6 @@ type SiteSettingsType = {
   toolbar_color: string;
   toolbar_opacity: number;
 };
-
-const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
 
 export function SiteSettings() {
   const [settings, setSettings] = useState<SiteSettingsType>({
@@ -254,14 +249,6 @@ export function SiteSettings() {
       console.error('Error in handlePWAIconUpload:', error);
       toast.error('Failed to process icon upload');
     }
-  };
-
-  const getIconStatus = (icon: PWAIcon | undefined) => {
-    if (!icon) return { png: false, webp: false };
-    return {
-      png: !!icon.src,
-      webp: !!icon.webp
-    };
   };
 
   return (
@@ -548,134 +535,19 @@ export function SiteSettings() {
         <TabsContent value="pwa" className="space-y-6">
           <div className="space-y-4">
             <h3 className="text-lg font-medium">PWA Screenshots</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Desktop Screenshot (Wide)</Label>
-                {settings.pwa_desktop_screenshot && (
-                  <img 
-                    src={addCacheBuster(settings.pwa_desktop_screenshot)} 
-                    alt="Desktop screenshot" 
-                    className="w-full h-32 object-cover rounded-md mb-2"
-                  />
-                )}
-                <FileUpload
-                  onUploadComplete={(url) => setSettings(prev => ({ ...prev, pwa_desktop_screenshot: url }))}
-                  accept="image/*"
-                  folderPath="sitesettings/pwa"
-                  fileName="desktop_screenshot"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Add a wide screenshot for desktop PWA install UI
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Mobile Screenshot</Label>
-                {settings.pwa_mobile_screenshot && (
-                  <img 
-                    src={addCacheBuster(settings.pwa_mobile_screenshot)} 
-                    alt="Mobile screenshot" 
-                    className="w-full h-32 object-cover rounded-md mb-2"
-                  />
-                )}
-                <FileUpload
-                  onUploadComplete={(url) => setSettings(prev => ({ ...prev, pwa_mobile_screenshot: url }))}
-                  accept="image/*"
-                  folderPath="sitesettings/pwa"
-                  fileName="mobile_screenshot"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Add a mobile-optimized screenshot for PWA install UI
-                </p>
-              </div>
-            </div>
+            <PWAScreenshots
+              desktopScreenshot={settings.pwa_desktop_screenshot || null}
+              mobileScreenshot={settings.pwa_mobile_screenshot || null}
+              onDesktopUpload={(url) => setSettings(prev => ({ ...prev, pwa_desktop_screenshot: url }))}
+              onMobileUpload={(url) => setSettings(prev => ({ ...prev, pwa_mobile_screenshot: url }))}
+            />
 
             <h3 className="text-lg font-medium mt-6">PWA Icons</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {PWA_ICON_SIZES.map((size) => (
-                <div key={size} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>{size}x{size} Regular Icon</Label>
-                    <div className="flex items-center space-x-2">
-                      {settings.pwa_icons?.find(
-                        icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                      )?.src && (
-                        <img 
-                          src={addCacheBuster(settings.pwa_icons.find(
-                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                          )?.src)}
-                          alt={`${size}x${size} regular icon`} 
-                          className="w-16 h-16 object-contain rounded-md"
-                        />
-                      )}
-                      <div className="flex flex-col space-y-1 text-sm">
-                        {(() => {
-                          const status = getIconStatus(settings.pwa_icons?.find(
-                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                          ));
-                          return (
-                            <>
-                              <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
-                                {status.png ? '✓' : '○'} PNG
-                              </span>
-                              <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
-                                {status.webp ? '✓' : '○'} WebP
-                              </span>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                    <FileUpload
-                      onUploadComplete={(url) => handlePWAIconUpload(url, size, 'any')}
-                      accept="image/png"
-                      folderPath="sitesettings/pwa"
-                      fileName={`icon-${size}`}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>{size}x{size} Maskable Icon</Label>
-                    <div className="flex items-center space-x-2">
-                      {settings.pwa_icons?.find(
-                        icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                      )?.src && (
-                        <img 
-                          src={addCacheBuster(settings.pwa_icons.find(
-                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                          )?.src)}
-                          alt={`${size}x${size} maskable icon`} 
-                          className="w-16 h-16 object-contain rounded-md"
-                        />
-                      )}
-                      <div className="flex flex-col space-y-1 text-sm">
-                        {(() => {
-                          const status = getIconStatus(settings.pwa_icons?.find(
-                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                          ));
-                          return (
-                            <>
-                              <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
-                                {status.png ? '✓' : '○'} PNG
-                              </span>
-                              <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
-                                {status.webp ? '✓' : '○'} WebP
-                              </span>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                    <FileUpload
-                      onUploadComplete={(url) => handlePWAIconUpload(url, size, 'maskable')}
-                      accept="image/png"
-                      folderPath="sitesettings/pwa"
-                      fileName={`icon-${size}-maskable`}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PWAIcons
+              icons={settings.pwa_icons}
+              onIconUpload={handlePWAIconUpload}
+              sizes={PWA_ICON_SIZES}
+            />
           </div>
         </TabsContent>
 
