@@ -29,18 +29,18 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
     console.log(`Handling ${type} screenshot upload:`, { url });
     
     try {
-      // 1. Fetch the original file - exactly like PWA icons
+      // 1. Fetch the original file
       const response = await fetch(url);
       const blob = await response.blob();
       const fileName = `${type}_screenshot`;
       const originalFile = new File([blob], `${fileName}.png`, { type: 'image/png' });
       
-      // 2. Convert to WebP - exactly like PWA icons
+      // 2. Convert to WebP
       console.log('Converting to WebP...');
       const { webpBlob } = await convertToWebP(originalFile);
       const webpFile = new File([webpBlob], `${fileName}.webp`, { type: 'image/webp' });
       
-      // 3. Upload WebP version - exactly like PWA icons
+      // 3. Upload WebP version
       const { data: webpUpload, error: webpError } = await supabase.storage
         .from('media')
         .upload(`sitesettings/pwa/${fileName}.webp`, webpFile, {
@@ -55,7 +55,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
 
       console.log('WebP version uploaded successfully');
 
-      // 4. Get the settings record - exactly like PWA icons
+      // 4. Get the settings record
       const { data: settings, error: settingsError } = await supabase
         .from('site_settings')
         .select('*')
@@ -70,16 +70,19 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
         throw new Error('No settings record found');
       }
 
-      // 5. Update the site settings with both URLs - exactly like PWA icons
+      // 5. Update the site settings with both URLs
+      const mediaUpdate = settings.media || {};
+      const updateData: Record<string, any> = {
+        [`pwa_${type}_screenshot`]: url,
+        media: {
+          ...mediaUpdate,
+          [`${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
+        }
+      };
+
       const { error: updateError } = await supabase
         .from('site_settings')
-        .update({
-          [`pwa_${type}_screenshot`]: url,
-          media: {
-            ...settings.media,
-            [`${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
-          }
-        })
+        .update(updateData)
         .eq('id', settings.id);
 
       if (updateError) {
@@ -87,7 +90,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
         throw updateError;
       }
 
-      // 6. Update local state through callback - exactly like PWA icons
+      // 6. Update local state through callback
       if (type === 'desktop') {
         onDesktopUpload(url);
       } else {
