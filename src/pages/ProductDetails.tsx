@@ -3,6 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/ProductCard";
 
+interface Media {
+  webp?: string;
+}
+
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>();
 
@@ -72,7 +76,7 @@ export default function ProductDetails() {
         {...product}
         image={product.image_url || ''}
         video={product.video_url || ''}
-        media={product.media}
+        media={product.media as Media}
         viewMode="large"
       />
     </div>
