@@ -108,12 +108,13 @@ export function CategoryManagement() {
       );
 
       for (const product of productsToUpdate) {
-        const uniqueCategories = Array.from(new Set(product.categories))
-          .map(cat => cat === oldName ? newName : cat);
+        const updatedCategories = (product.categories || []).map(cat => 
+          cat === oldName ? newName : cat
+        );
 
         const { error: productError } = await supabase
           .from("products")
-          .update({ categories: uniqueCategories })
+          .update({ categories: updatedCategories })
           .eq("id", product.id);
 
         if (productError) {
@@ -144,7 +145,39 @@ export function CategoryManagement() {
         return;
       }
 
-      // Delete the category
+      // Update products to remove the deleted category
+      const { data: products, error: fetchError } = await supabase
+        .from("products")
+        .select("id, categories");
+
+      if (fetchError) {
+        console.error("Error fetching products:", fetchError);
+        toast.error("Failed to update products before category deletion");
+        return;
+      }
+
+      // Update products that contain the category being deleted
+      const productsToUpdate = products.filter(product => 
+        product.categories && product.categories.includes(categoryToDelete.name)
+      );
+
+      for (const product of productsToUpdate) {
+        const updatedCategories = (product.categories || []).filter(cat => 
+          cat !== categoryToDelete.name
+        );
+
+        const { error: productError } = await supabase
+          .from("products")
+          .update({ categories: updatedCategories })
+          .eq("id", product.id);
+
+        if (productError) {
+          console.error("Error updating product categories:", productError);
+          toast.error("Failed to update some products during category deletion");
+        }
+      }
+
+      // Finally delete the category
       const { error: deleteError } = await supabase
         .from("categories")
         .delete()
@@ -154,36 +187,6 @@ export function CategoryManagement() {
         console.error("Error deleting category:", deleteError);
         toast.error("Failed to delete category: " + deleteError.message);
         return;
-      }
-
-      // Update products to remove the deleted category
-      const { data: products, error: fetchError } = await supabase
-        .from("products")
-        .select("id, categories");
-
-      if (fetchError) {
-        console.error("Error fetching products:", fetchError);
-        toast.error("Failed to update products after category deletion");
-        return;
-      }
-
-      // Update products that contain the deleted category
-      const productsToUpdate = products.filter(product => 
-        product.categories && product.categories.includes(categoryToDelete.name)
-      );
-
-      for (const product of productsToUpdate) {
-        const updatedCategories = product.categories.filter(cat => cat !== categoryToDelete.name);
-
-        const { error: productError } = await supabase
-          .from("products")
-          .update({ categories: updatedCategories })
-          .eq("id", product.id);
-
-        if (productError) {
-          console.error("Error updating product categories:", productError);
-          toast.error("Failed to update some products after category deletion");
-        }
       }
 
       toast.success("Category deleted successfully");
