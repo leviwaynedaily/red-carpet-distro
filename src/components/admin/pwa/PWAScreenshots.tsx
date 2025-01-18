@@ -61,6 +61,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
     console.log(`Handling ${type} screenshot upload:`, url);
     
     try {
+      // Fetch the image once and create a blob
       const response = await fetch(url);
       const blob = await response.blob();
       const fileName = `${type}_screenshot`;
@@ -84,7 +85,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
 
       console.log('WebP version uploaded successfully');
 
-      // Update the site settings with the new URLs
+      // Update the site settings with both URLs
       const { error: updateError } = await supabase
         .from('site_settings')
         .update({
