@@ -2,6 +2,9 @@ import React from 'react';
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/ui/file-upload";
 import { IconStatus } from './IconStatus';
+import { convertToWebP } from "@/utils/imageUtils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface PWAScreenshotsProps {
   desktopScreenshot: string | null;
@@ -21,6 +24,62 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
     return `${url}?t=${Date.now()}`;
   };
 
+  const handleScreenshotUpload = async (url: string, type: 'desktop' | 'mobile') => {
+    console.log(`Handling ${type} screenshot upload:`, url);
+    
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const fileName = `${type}_screenshot`;
+      const originalFile = new File([blob], `${fileName}.png`, { type: 'image/png' });
+      
+      console.log('Converting to WebP...');
+      const { webpBlob } = await convertToWebP(originalFile);
+      const webpFile = new File([webpBlob], `${fileName}.webp`, { type: 'image/webp' });
+      
+      const { data: webpUpload, error: webpError } = await supabase.storage
+        .from('media')
+        .upload(`sitesettings/pwa/${fileName}.webp`, webpFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (webpError) {
+        console.error('Error uploading WebP version:', webpError);
+        throw webpError;
+      }
+
+      console.log('WebP version uploaded successfully');
+
+      // Update the site settings with the new URLs
+      const { error: updateError } = await supabase
+        .from('site_settings')
+        .update({
+          [`pwa_${type}_screenshot`]: url,
+          media: {
+            [`${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
+          }
+        })
+        .eq('id', 1);  // Assuming we're always updating the first record
+
+      if (updateError) {
+        console.error('Error updating site settings:', updateError);
+        throw updateError;
+      }
+
+      if (type === 'desktop') {
+        onDesktopUpload(url);
+      } else {
+        onMobileUpload(url);
+      }
+
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} screenshot uploaded successfully`);
+    } catch (error) {
+      console.error(`Error in handle${type}ScreenshotUpload:`, error);
+      toast.error(`Failed to process ${type} screenshot upload`);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
@@ -36,12 +95,12 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!desktopScreenshot,
-              webp: !!desktopScreenshot?.includes('.webp')
+              webp: !!desktopScreenshot
             }}
           />
         </div>
         <FileUpload
-          onUploadComplete={onDesktopUpload}
+          onUploadComplete={(url) => handleScreenshotUpload(url, 'desktop')}
           accept="image/*"
           folderPath="sitesettings/pwa"
           fileName="desktop_screenshot"
@@ -64,12 +123,12 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!mobileScreenshot,
-              webp: !!mobileScreenshot?.includes('.webp')
+              webp: !!mobileScreenshot
             }}
           />
         </div>
         <FileUpload
-          onUploadComplete={onMobileUpload}
+          onUploadComplete={(url) => handleScreenshotUpload(url, 'mobile')}
           accept="image/*"
           folderPath="sitesettings/pwa"
           fileName="mobile_screenshot"
