@@ -223,6 +223,34 @@ export function SiteSettings() {
     }
   };
 
+  const handlePWAIconUpload = (url: string, size: number, purpose: 'any' | 'maskable') => {
+    setSettings(prev => {
+      const newIcons = [...(prev.pwa_icons || [])];
+      const fileName = purpose === 'maskable' ? `icon-${size}-maskable` : `icon-${size}`;
+      const existingIconIndex = newIcons.findIndex(
+        icon => icon.sizes === `${size}x${size}` && icon.purpose === purpose
+      );
+      
+      const newIcon = {
+        src: url,
+        sizes: `${size}x${size}`,
+        type: 'image/png',
+        purpose
+      };
+
+      if (existingIconIndex >= 0) {
+        newIcons[existingIconIndex] = newIcon;
+      } else {
+        newIcons.push(newIcon);
+      }
+
+      return {
+        ...prev,
+        pwa_icons: newIcons
+      };
+    });
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
       <Tabs defaultValue="colors" className="w-full">
