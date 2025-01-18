@@ -8,6 +8,8 @@ import { Check, X } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { convertToWebP } from "@/utils/imageUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 
 type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
 
@@ -24,6 +26,20 @@ export function SiteSettings() {
     secondary: "",
     header: "",
     toolbar: "",
+  });
+  const [opacitySettings, setOpacitySettings] = useState({
+    header: 1.0,
+    toolbar: 1.0
+  });
+  const [siteDescription, setSiteDescription] = useState({
+    content: "",
+    show: true
+  });
+  const [ogSettings, setOgSettings] = useState({
+    title: "",
+    description: "",
+    url: "",
+    image: ""
   });
   const [pwaSettings, setPwaSettings] = useState({
     name: "",
@@ -59,6 +75,26 @@ export function SiteSettings() {
         secondary: data.secondary_color || "",
         header: data.header_color || "",
         toolbar: data.toolbar_color || "",
+      });
+
+      // Set opacity
+      setOpacitySettings({
+        header: data.header_opacity || 1.0,
+        toolbar: data.toolbar_opacity || 1.0
+      });
+
+      // Set site description
+      setSiteDescription({
+        content: data.site_description || "",
+        show: data.show_site_description ?? true
+      });
+
+      // Set OG settings
+      setOgSettings({
+        title: data.og_title || "",
+        description: data.og_description || "",
+        url: data.og_url || "",
+        image: data.og_image || ""
       });
 
       // Set PWA settings
@@ -172,6 +208,119 @@ export function SiteSettings() {
     }
   };
 
+  const handleFaviconUpload = async (file: File) => {
+    try {
+      console.log('Starting favicon upload process');
+      
+      // Convert to WebP
+      const { webpBlob } = await convertToWebP(file);
+      
+      // Upload original file
+      const originalResponse = await supabase.storage
+        .from("media")
+        .upload(`sitesettings/favicon.${file.name.split('.').pop()}`, file, {
+          upsert: true
+        });
+
+      if (originalResponse.error) throw originalResponse.error;
+
+      // Upload PNG version for broader compatibility
+      const pngResponse = await supabase.storage
+        .from("media")
+        .upload('sitesettings/favicon.png', file, {
+          contentType: 'image/png',
+          upsert: true
+        });
+
+      if (pngResponse.error) throw pngResponse.error;
+
+      // Get public URLs
+      const { data: originalUrl } = supabase.storage
+        .from("media")
+        .getPublicUrl(`sitesettings/favicon.${file.name.split('.').pop()}`);
+
+      const { data: pngUrl } = supabase.storage
+        .from("media")
+        .getPublicUrl('sitesettings/favicon.png');
+
+      // Update database
+      const { error } = await supabase
+        .from("site_settings")
+        .update({
+          favicon_url: originalUrl.publicUrl,
+          favicon_png_url: pngUrl.publicUrl
+        })
+        .eq("id", settings.id);
+
+      if (error) throw error;
+      toast.success("Favicon updated successfully");
+      fetchSettings();
+    } catch (error) {
+      console.error("Error updating favicon:", error);
+      toast.error("Failed to update favicon");
+    }
+  };
+
+  const handleOpacityUpdate = async (type: 'header' | 'toolbar', value: number) => {
+    try {
+      const updateData = {
+        [type === 'header' ? 'header_opacity' : 'toolbar_opacity']: value
+      };
+
+      const { error } = await supabase
+        .from("site_settings")
+        .update(updateData)
+        .eq("id", settings.id);
+
+      if (error) throw error;
+      setOpacitySettings(prev => ({ ...prev, [type]: value }));
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} opacity updated`);
+    } catch (error) {
+      console.error(`Error updating ${type} opacity:`, error);
+      toast.error(`Failed to update ${type} opacity`);
+    }
+  };
+
+  const handleSiteDescriptionUpdate = async (field: 'content' | 'show', value: string | boolean) => {
+    try {
+      const updateData = {
+        [field === 'content' ? 'site_description' : 'show_site_description']: value
+      };
+
+      const { error } = await supabase
+        .from("site_settings")
+        .update(updateData)
+        .eq("id", settings.id);
+
+      if (error) throw error;
+      setSiteDescription(prev => ({ ...prev, [field]: value }));
+      toast.success("Site description settings updated");
+    } catch (error) {
+      console.error("Error updating site description settings:", error);
+      toast.error("Failed to update site description settings");
+    }
+  };
+
+  const handleOGUpdate = async (field: keyof typeof ogSettings, value: string) => {
+    try {
+      const updateData = {
+        [`og_${field}`]: value
+      };
+
+      const { error } = await supabase
+        .from("site_settings")
+        .update(updateData)
+        .eq("id", settings.id);
+
+      if (error) throw error;
+      setOgSettings(prev => ({ ...prev, [field]: value }));
+      toast.success("Open Graph settings updated");
+    } catch (error) {
+      console.error("Error updating Open Graph settings:", error);
+      toast.error("Failed to update Open Graph settings");
+    }
+  };
+
   const handlePasswordUpdate = async () => {
     if (!adminPassword) {
       toast.error("Password cannot be empty");
@@ -244,7 +393,9 @@ export function SiteSettings() {
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="colors">Colors</TabsTrigger>
+          <TabsTrigger value="description">Description</TabsTrigger>
           <TabsTrigger value="pwa">PWA Settings</TabsTrigger>
+          <TabsTrigger value="meta">Meta Tags</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
@@ -407,6 +558,52 @@ export function SiteSettings() {
           </div>
         </TabsContent>
 
+        <TabsContent value="description" className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Site Description</h3>
+              <Switch
+                checked={siteDescription.show}
+                onCheckedChange={(checked) => handleSiteDescriptionUpdate('show', checked)}
+              />
+            </div>
+            <Textarea
+              value={siteDescription.content}
+              onChange={(e) => handleSiteDescriptionUpdate('content', e.target.value)}
+              placeholder="Enter site description"
+              className="min-h-[100px]"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Header & Toolbar Opacity</h3>
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Header Opacity</label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={opacitySettings.header}
+                  onChange={(e) => handleOpacityUpdate('header', parseFloat(e.target.value))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Toolbar Opacity</label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={opacitySettings.toolbar}
+                  onChange={(e) => handleOpacityUpdate('toolbar', parseFloat(e.target.value))}
+                />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
         <TabsContent value="pwa" className="space-y-4">
           <div className="grid gap-4">
             <div className="space-y-2">
@@ -513,6 +710,68 @@ export function SiteSettings() {
                 onChange={(e) => handlePWAUpdate('start_url', e.target.value)}
                 placeholder="/"
               />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="meta" className="space-y-4">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Favicon</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                {settings?.favicon_url && (
+                  <img
+                    src={settings.favicon_url}
+                    alt="Current Favicon"
+                    className="w-16 h-16 object-contain border rounded-md"
+                  />
+                )}
+                <FileUpload
+                  onUploadComplete={handleFaviconUpload}
+                  accept="image/*"
+                  bucket="media"
+                  folderPath="sitesettings"
+                  fileName="favicon"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Open Graph Settings</h3>
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Title</label>
+                <Input
+                  value={ogSettings.title}
+                  onChange={(e) => handleOGUpdate('title', e.target.value)}
+                  placeholder="OG Title"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Textarea
+                  value={ogSettings.description}
+                  onChange={(e) => handleOGUpdate('description', e.target.value)}
+                  placeholder="OG Description"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">URL</label>
+                <Input
+                  value={ogSettings.url}
+                  onChange={(e) => handleOGUpdate('url', e.target.value)}
+                  placeholder="OG URL"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Image URL</label>
+                <Input
+                  value={ogSettings.image}
+                  onChange={(e) => handleOGUpdate('image', e.target.value)}
+                  placeholder="OG Image URL"
+                />
+              </div>
             </div>
           </div>
         </TabsContent>
