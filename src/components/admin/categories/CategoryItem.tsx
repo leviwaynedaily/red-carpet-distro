@@ -27,17 +27,18 @@ export function CategoryItem({ category, onEdit, onDelete }: CategoryItemProps) 
   };
 
   return (
-    <div className="flex items-center justify-between p-3 border rounded-lg">
+    <div className="flex items-center justify-between border rounded-lg px-2 py-1 min-w-[120px] max-w-fit bg-background">
       {isEditing ? (
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex items-center gap-1 flex-1">
           <Input
             value={editingName}
             onChange={(e) => setEditingName(e.target.value)}
-            className="flex-1"
+            className="h-8 flex-1 min-w-[80px]"
           />
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8"
             onClick={handleSave}
           >
             <Check className="h-4 w-4" />
@@ -45,6 +46,7 @@ export function CategoryItem({ category, onEdit, onDelete }: CategoryItemProps) 
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8"
             onClick={handleCancel}
           >
             <X className="h-4 w-4" />
@@ -52,11 +54,12 @@ export function CategoryItem({ category, onEdit, onDelete }: CategoryItemProps) 
         </div>
       ) : (
         <>
-          <span>{category.name}</span>
-          <div className="flex gap-2">
+          <span className="text-sm px-1">{category.name}</span>
+          <div className="flex gap-1">
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8"
               onClick={() => setIsEditing(true)}
             >
               <Pencil className="h-4 w-4" />
@@ -64,6 +67,7 @@ export function CategoryItem({ category, onEdit, onDelete }: CategoryItemProps) 
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8"
               onClick={() => onDelete(category.id)}
             >
               <Trash2 className="h-4 w-4" />
