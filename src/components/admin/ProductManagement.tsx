@@ -26,7 +26,7 @@ const COLUMNS = [
 ];
 
 export function ProductManagement() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<(Product & { categories: string[] })[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleColumns, setVisibleColumns] = useState(COLUMNS.map(c => c.key));
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -42,18 +42,31 @@ export function ProductManagement() {
   const fetchProducts = async () => {
     try {
       console.log('ProductManagement: Fetching products');
-      const { data, error } = await supabase
+      const { data: productsData, error: productsError } = await supabase
         .from("products")
-        .select("*")
+        .select(`
+          *,
+          product_categories (
+            category:categories(name)
+          )
+        `)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error('ProductManagement: Error fetching products:', error);
-        throw error;
+      if (productsError) {
+        console.error('ProductManagement: Error fetching products:', productsError);
+        throw productsError;
       }
       
-      console.log('ProductManagement: Successfully fetched products:', data?.length);
-      setProducts(data || []);
+      // Transform the data to include categories array
+      const transformedProducts = productsData.map(product => ({
+        ...product,
+        categories: product.product_categories
+          ?.map(pc => pc.category?.name)
+          .filter(Boolean) || []
+      }));
+      
+      console.log('ProductManagement: Successfully fetched products:', transformedProducts.length);
+      setProducts(transformedProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load products");
@@ -159,12 +172,25 @@ export function ProductManagement() {
     if (!editingProduct || !editValues) return;
 
     try {
-      const { error } = await supabase
+      console.log('ProductManagement: Saving product edits:', editValues);
+      
+      // Update the product basic information
+      const { error: updateError } = await supabase
         .from("products")
-        .update(editValues)
+        .update({
+          name: editValues.name,
+          description: editValues.description,
+          strain: editValues.strain,
+          stock: editValues.stock,
+          regular_price: editValues.regular_price,
+          shipping_price: editValues.shipping_price,
+        })
         .eq("id", editingProduct);
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('ProductManagement: Error updating product:', updateError);
+        throw updateError;
+      }
 
       toast.success("Product updated successfully");
       setEditingProduct(null);
