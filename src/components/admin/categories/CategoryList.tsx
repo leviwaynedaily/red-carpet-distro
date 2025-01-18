@@ -98,7 +98,7 @@ export function CategoryList() {
         return;
       }
 
-      // Update products to remove the deleted category
+      // First, update all products to remove this category
       const { data: products, error: fetchError } = await supabase
         .from("products")
         .select("id, categories");
@@ -112,6 +112,8 @@ export function CategoryList() {
       const productsToUpdate = products.filter(product => 
         product.categories && product.categories.includes(categoryToDelete.name)
       );
+
+      console.log("Products to update:", productsToUpdate.length);
 
       for (const product of productsToUpdate) {
         const updatedCategories = (product.categories || []).filter(cat => 
@@ -129,7 +131,7 @@ export function CategoryList() {
         }
       }
 
-      // Finally delete the category
+      // Then delete the category
       const { error: deleteError } = await supabase
         .from("categories")
         .delete()
@@ -142,7 +144,6 @@ export function CategoryList() {
       }
 
       toast.success("Category deleted successfully");
-      // Invalidate both products and categories queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (error) {
