@@ -139,7 +139,11 @@ export function SiteSettings() {
             }))
           : [];
 
-        const welcomeInstructions = data.welcome_instructions || {
+        const welcomeInstructions = typeof data.welcome_instructions === 'object' ? {
+          title: data.welcome_instructions?.title || "Welcome to Palmtree Smokes",
+          subtitle: data.welcome_instructions?.subtitle || "Please take a moment to review our store guidelines:",
+          guidelines: data.welcome_instructions?.guidelines || ""
+        } : {
           title: "Welcome to Palmtree Smokes",
           subtitle: "Please take a moment to review our store guidelines:",
           guidelines: ""
@@ -325,5 +329,4 @@ export function SiteSettings() {
         Save Settings
       </Button>
     </form>
-  );
 }

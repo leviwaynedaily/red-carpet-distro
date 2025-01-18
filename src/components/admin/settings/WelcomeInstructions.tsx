@@ -10,7 +10,7 @@ type WelcomeInstructionsProps = {
       title: string;
       subtitle: string;
       guidelines: string;
-    } | null;
+    };
   };
   onSettingChange: (name: string, value: any) => void;
 };
