@@ -120,9 +120,9 @@ export const ProductCard = ({
   const renderImage = () => {
     if (!image && !media?.webp) {
       return (
-        <div className="w-full h-full flex items-center justify-center bg-gray-100">
-          <div className="text-center p-4">
-            <Image className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+        <div className={`${imageContainerClasses[viewMode]} flex items-center justify-center`}>
+          <div className="text-center p-4 w-full h-full flex flex-col items-center justify-center bg-gray-100">
+            <Image className="h-8 w-8 mb-2 text-gray-400" />
             <p className="text-sm text-gray-500">Image coming soon</p>
           </div>
         </div>
