@@ -40,10 +40,12 @@ export const ProductCard = ({
   primary_media_type,
   media,
 }: ProductCardProps) => {
+  console.log('ProductCard: Rendering with media:', media);
   const navigate = useNavigate();
   const [showMedia, setShowMedia] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
 
@@ -62,6 +64,17 @@ export const ProductCard = ({
   const toggleMediaType = () => {
     setShowVideo(!showVideo);
     setIsPlaying(!showVideo);
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Failed to load product image:', e);
+    setImageError(true);
+    e.currentTarget.src = '/placeholder.svg';
+  };
+
+  const handleWebPError = (e: React.SyntheticEvent<HTMLSourceElement, Event>) => {
+    console.log('WebP image failed to load, falling back to PNG:', e);
+    e.currentTarget.remove();
   };
 
   const cardClasses = {
@@ -96,6 +109,38 @@ export const ProductCard = ({
     }
   };
 
+  const renderImage = () => {
+    if (!image && !media?.webp) {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          <div className="text-center p-4">
+            <Image className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+            <p className="text-sm text-gray-500">Image coming soon</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <picture>
+        {media?.webp && (
+          <source
+            srcSet={media.webp}
+            type="image/webp"
+            onError={handleWebPError}
+          />
+        )}
+        <img
+          src={image}
+          alt={name}
+          className={imageClasses[viewMode]}
+          loading="lazy"
+          onError={handleImageError}
+        />
+      </picture>
+    );
+  };
+
   return (
     <>
       <Card 
@@ -103,26 +148,7 @@ export const ProductCard = ({
         onClick={handleCardClick}
       >
         <CardHeader className="p-0 relative aspect-square">
-          {image ? (
-            <picture>
-              {media?.webp && (
-                <source srcSet={media.webp} type="image/webp" />
-              )}
-              <img
-                src={image}
-                alt={name}
-                className={imageClasses[viewMode]}
-                loading="lazy"
-              />
-            </picture>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100">
-              <div className="text-center p-4">
-                <Image className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-500">Image coming soon</p>
-              </div>
-            </div>
-          )}
+          {renderImage()}
           {video && primary_media_type === 'video' && (
             <div className="absolute bottom-2 right-2 flex gap-2">
               <Button
@@ -205,13 +231,21 @@ export const ProductCard = ({
               className="w-full h-full object-contain"
             />
           ) : (
-            image && (
+            <picture>
+              {media?.webp && (
+                <source
+                  srcSet={media.webp}
+                  type="image/webp"
+                  onError={handleWebPError}
+                />
+              )}
               <img
                 src={image}
                 alt={name}
                 className="w-full h-full object-contain"
+                onError={handleImageError}
               />
-            )
+            </picture>
           )}
         </DialogContent>
       </Dialog>
