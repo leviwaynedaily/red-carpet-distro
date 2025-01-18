@@ -55,7 +55,7 @@ type SiteSettingsType = {
     title: string;
     subtitle: string;
     guidelines: string;
-  } | null;
+  };
 };
 
 export function SiteSettings() {
@@ -97,14 +97,7 @@ export function SiteSettings() {
     welcome_instructions: {
       title: "Welcome to Palmtree Smokes",
       subtitle: "Please take a moment to review our store guidelines:",
-      guidelines: [
-        "Browse our selection of premium products at your leisure",
-        "For purchases or inquiries, text or call us directly",
-        "Business Hours: Monday - Friday, 8:00 AM - 5:00 PM",
-        "Same-day delivery available for orders placed before 3 PM",
-        "Customer support available during business hours",
-        "All prices include applicable taxes"
-      ]
+      guidelines: ""
     }
   });
 
@@ -146,9 +139,16 @@ export function SiteSettings() {
             }))
           : [];
 
+        const welcomeInstructions = data.welcome_instructions || {
+          title: "Welcome to Palmtree Smokes",
+          subtitle: "Please take a moment to review our store guidelines:",
+          guidelines: ""
+        };
+
         setSettings({
           ...data,
-          pwa_icons: parsedIcons
+          pwa_icons: parsedIcons,
+          welcome_instructions: welcomeInstructions
         });
       }
     } catch (error) {
