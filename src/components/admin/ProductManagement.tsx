@@ -59,31 +59,56 @@ export function ProductManagement() {
 
   const handleDeleteProduct = async (id: string) => {
     try {
-      console.log('ProductManagement: Attempting to delete product with ID:', id);
+      console.log('ProductManagement: Starting product deletion for ID:', id);
       
-      // Validate UUID format
-      if (!id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      // Basic validation
+      if (!id) {
+        console.error('ProductManagement: Invalid product ID - empty or undefined');
+        toast.error("Invalid product ID");
+        return;
+      }
+
+      // UUID format validation
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
         console.error('ProductManagement: Invalid UUID format:', id);
         toast.error("Invalid product ID format");
         return;
       }
 
-      const { error } = await supabase
+      // Get product details before deletion (for logging)
+      const { data: product, error: fetchError } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) {
+        console.error('ProductManagement: Error fetching product before deletion:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('ProductManagement: Found product to delete:', product);
+
+      // Perform the deletion
+      const { error: deleteError } = await supabase
         .from("products")
         .delete()
         .eq("id", id);
 
-      if (error) {
-        console.error('ProductManagement: Error deleting product:', error);
-        throw error;
+      if (deleteError) {
+        console.error('ProductManagement: Error deleting product:', deleteError);
+        throw deleteError;
       }
 
       console.log('ProductManagement: Successfully deleted product:', id);
       toast.success("Product deleted successfully");
-      fetchProducts();
+      
+      // Refresh the products list
+      await fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
-      toast.error("Failed to delete product");
+      toast.error("Failed to delete product. Please try again.");
     }
   };
 
