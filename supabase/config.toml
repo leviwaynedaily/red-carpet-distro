@@ -26,5 +26,5 @@ enabled = true
 enabled = true
 
 [[functions]]
-name = "convert-image"
+[functions.convert-image]
 verify_jwt = false
