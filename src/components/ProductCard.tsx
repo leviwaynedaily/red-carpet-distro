@@ -112,7 +112,8 @@ export const ProductCard = ({
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (!target.closest('button')) {
-      navigate(`/product/${id}`);
+      console.log('ProductCard: Navigating to product details:', id);
+      navigate(`/products/${id}`);
     }
   };
 
