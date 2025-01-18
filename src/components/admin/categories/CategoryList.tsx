@@ -63,27 +63,7 @@ export function CategoryList({ onCategoryChange }: CategoryListProps) {
     try {
       console.log('CategoryList: Starting category deletion:', id);
       
-      // First, get all products that have this category
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('id, categories');
-      
-      if (productsError) throw productsError;
-
-      // Update each product to remove the category
-      for (const product of products || []) {
-        if (product.categories?.includes(id)) {
-          const updatedCategories = product.categories.filter((catId: string) => catId !== id);
-          const { error: updateError } = await supabase
-            .from('products')
-            .update({ categories: updatedCategories })
-            .eq('id', product.id);
-          
-          if (updateError) throw updateError;
-        }
-      }
-
-      // Then delete the category
+      // Delete the category (cascade will handle product_categories relationships)
       const { error: deleteError } = await supabase
         .from('categories')
         .delete()

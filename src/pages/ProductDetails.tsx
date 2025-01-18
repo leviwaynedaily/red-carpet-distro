@@ -22,7 +22,12 @@ const ProductDetails = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select(`
+          *,
+          product_categories (
+            category:categories(name)
+          )
+        `)
         .eq("id", id)
         .single();
 
@@ -31,7 +36,13 @@ const ProductDetails = () => {
         throw error;
       }
 
-      return data;
+      // Transform the data to match the expected format
+      const transformedProduct = {
+        ...data,
+        categories: data.product_categories?.map(pc => pc.category?.name).filter(Boolean) || []
+      };
+
+      return transformedProduct;
     },
   });
 

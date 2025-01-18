@@ -23,31 +23,17 @@ export const updateProductFields = async (productId: string, updates: Record<str
 };
 
 // Update specific product to remove a category
-export const removeProductCategory = async (productId: string, categoryToRemove: string) => {
+export const removeProductCategory = async (productId: string, categoryId: string) => {
   try {
-    console.log('Removing category:', categoryToRemove, 'from product:', productId);
+    console.log('Removing category:', categoryId, 'from product:', productId);
     
-    // First get the current product data
-    const { data: product, error: fetchError } = await supabase
-      .from('products')
-      .select('categories')
-      .eq('id', productId)
-      .single();
+    const { error: deleteError } = await supabase
+      .from('product_categories')
+      .delete()
+      .eq('product_id', productId)
+      .eq('category_id', categoryId);
 
-    if (fetchError) throw fetchError;
-
-    // Filter out the category we want to remove
-    const updatedCategories = (product.categories || []).filter(
-      (category: string) => category !== categoryToRemove
-    );
-
-    // Update the product with the new categories array
-    const { error: updateError } = await supabase
-      .from('products')
-      .update({ categories: updatedCategories })
-      .eq('id', productId);
-
-    if (updateError) throw updateError;
+    if (deleteError) throw deleteError;
 
     console.log('Category removed successfully');
     toast.success('Category removed successfully');
