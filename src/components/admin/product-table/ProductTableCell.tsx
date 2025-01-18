@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
 import { FileUpload } from "@/components/ui/file-upload";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Play, Upload, Trash2 } from "lucide-react";
+import { Play, Upload, Trash2, Image } from "lucide-react";
 import { formatPrice } from "@/utils/formatPrice";
 import { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -101,7 +101,7 @@ export function ProductTableCell({
       case 'image':
         return (
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            {product.image_url && (
+            {product.image_url ? (
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -134,6 +134,12 @@ export function ProductTableCell({
                   </Button>
                 )}
               </div>
+            ) : (
+              isEditing && (
+                <div className="flex items-center justify-center w-16 h-16 bg-gray-100 rounded-md">
+                  <Image className="h-6 w-6 text-gray-400" />
+                </div>
+              )
             )}
             {isEditing && (
               <FileUpload
