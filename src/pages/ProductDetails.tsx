@@ -12,6 +12,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import type { Database } from "@/integrations/supabase/types";
+
+type Product = Database['public']['Tables']['products']['Row'];
 
 interface Media {
   webp?: string;
@@ -74,6 +77,7 @@ const ProductDetails = () => {
 
   const validCategories = product.categories?.filter(category => category && category.trim()) || [];
   const hasMultipleMedia = product.image_url && product.video_url;
+  const media = product.media as Media;
 
   return (
     <div className="container py-8">
@@ -94,8 +98,8 @@ const ProductDetails = () => {
                 <CarouselItem>
                   <div className="aspect-square relative">
                     <picture>
-                      {product.media?.webp && (
-                        <source srcSet={product.media.webp} type="image/webp" />
+                      {media?.webp && (
+                        <source srcSet={media.webp} type="image/webp" />
                       )}
                       <img
                         src={product.image_url}
@@ -107,7 +111,7 @@ const ProductDetails = () => {
                       variant="secondary"
                       size="sm"
                       className="absolute bottom-4 right-4"
-                      onClick={() => handleDownload(product.image_url, `${product.name}-image.${product.image_url.split('.').pop()}`)}
+                      onClick={() => handleDownload(product.image_url!, `${product.name}-image.${product.image_url!.split('.').pop()}`)}
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download Image
@@ -138,7 +142,7 @@ const ProductDetails = () => {
                       variant="secondary"
                       size="sm"
                       className="absolute bottom-4 right-4"
-                      onClick={() => handleDownload(product.video_url, `${product.name}-video.${product.video_url.split('.').pop()}`)}
+                      onClick={() => handleDownload(product.video_url!, `${product.name}-video.${product.video_url!.split('.').pop()}`)}
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download Video
