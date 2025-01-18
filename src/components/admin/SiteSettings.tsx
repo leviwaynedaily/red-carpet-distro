@@ -16,6 +16,12 @@ import type { PWAIcon } from "@/types/site-settings";
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
 
+interface WelcomeInstructionsType {
+  title: string;
+  subtitle: string;
+  guidelines: string;
+}
+
 type SiteSettingsType = {
   id: string;
   logo_url: string;
@@ -51,12 +57,18 @@ type SiteSettingsType = {
   header_opacity: number;
   toolbar_color: string;
   toolbar_opacity: number;
-  welcome_instructions: {
-    title: string;
-    subtitle: string;
-    guidelines: string;
-  };
+  welcome_instructions: WelcomeInstructionsType;
 };
+
+function isWelcomeInstructions(value: any): value is WelcomeInstructionsType {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof value.title === 'string' &&
+    typeof value.subtitle === 'string' &&
+    typeof value.guidelines === 'string'
+  );
+}
 
 export function SiteSettings() {
   const [settings, setSettings] = useState<SiteSettingsType>({
@@ -139,15 +151,15 @@ export function SiteSettings() {
             }))
           : [];
 
-        const welcomeInstructions = typeof data.welcome_instructions === 'object' ? {
-          title: data.welcome_instructions?.title || "Welcome to Palmtree Smokes",
-          subtitle: data.welcome_instructions?.subtitle || "Please take a moment to review our store guidelines:",
-          guidelines: data.welcome_instructions?.guidelines || ""
-        } : {
+        const defaultWelcomeInstructions: WelcomeInstructionsType = {
           title: "Welcome to Palmtree Smokes",
           subtitle: "Please take a moment to review our store guidelines:",
           guidelines: ""
         };
+
+        const welcomeInstructions = isWelcomeInstructions(data.welcome_instructions)
+          ? data.welcome_instructions
+          : defaultWelcomeInstructions;
 
         setSettings({
           ...data,
