@@ -116,13 +116,13 @@ export default function ProductDetails() {
                 src={product.video_url}
                 controls
                 autoPlay={isPlaying}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             ) : (
               <img
                 src={product.image_url}
                 alt={product.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             )}
           </div>
@@ -220,13 +220,13 @@ export default function ProductDetails() {
               src={product.video_url}
               controls
               autoPlay={isPlaying}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
           ) : (
             <img
               src={product.image_url}
               alt={product.name}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
           )}
         </DialogContent>
