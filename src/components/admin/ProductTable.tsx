@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Play, Upload } from "lucide-react";
 import { FileUpload } from "@/components/ui/file-upload";
 import { formatPrice } from "@/utils/formatPrice";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Product = Tables<"products">;
 
@@ -58,6 +61,32 @@ export function ProductTable({
     { key: "regular_price", label: "Price" },
     { key: "shipping_price", label: "Shipping" },
   ];
+
+  // Fetch categories
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleCategoryToggle = (categoryName: string, checked: boolean) => {
+    const currentCategories = editValues.categories || [];
+    let newCategories;
+    
+    if (checked) {
+      newCategories = [...currentCategories, categoryName];
+    } else {
+      newCategories = currentCategories.filter(cat => cat !== categoryName);
+    }
+    
+    onEditChange({ categories: newCategories });
+  };
 
   return (
     <div className="rounded-md border">
@@ -210,7 +239,31 @@ export function ProductTable({
                 </TableCell>
               )}
               {visibleColumns.includes('categories') && (
-                <TableCell>{product.categories?.join(", ") || '-'}</TableCell>
+                <TableCell>
+                  {editingProduct === product.id ? (
+                    <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                      {categories?.map((category) => (
+                        <div key={category.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`category-${category.id}`}
+                            checked={(editValues.categories || []).includes(category.name)}
+                            onCheckedChange={(checked) => 
+                              handleCategoryToggle(category.name, checked as boolean)
+                            }
+                          />
+                          <label
+                            htmlFor={`category-${category.id}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {category.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div>{product.categories?.join(", ") || '-'}</div>
+                  )}
+                </TableCell>
               )}
               {visibleColumns.includes('stock') && (
                 <TableCell>
