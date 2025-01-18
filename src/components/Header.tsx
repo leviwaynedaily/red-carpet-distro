@@ -35,6 +35,7 @@ export const Header = ({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
   const [logoUrlWebp, setLogoUrlWebp] = useState('');
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -59,7 +60,28 @@ export const Header = ({
       }
     };
 
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('id, name')
+          .order('name');
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          console.log('Header: Fetched categories:', data);
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
     fetchHeaderSettings();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -94,9 +116,11 @@ export const Header = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Categories</SelectItem>
-          <SelectItem value="flower">Flower</SelectItem>
-          <SelectItem value="edibles">Edibles</SelectItem>
-          <SelectItem value="concentrates">Concentrates</SelectItem>
+          {categories.map((category) => (
+            <SelectItem key={category.id} value={category.name.toLowerCase()}>
+              {category.name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
       <Select value={sortBy} onValueChange={(value) => {
