@@ -15,6 +15,7 @@ type PWAIcon = {
   src: string;
   sizes: string;
   type: string;
+  purpose: 'any' | 'maskable';
 };
 
 type SiteSettingsType = {
@@ -116,7 +117,8 @@ export function SiteSettings() {
           ? data.pwa_icons.map((icon: any) => ({
               src: icon.src || "",
               sizes: icon.sizes || "",
-              type: icon.type || ""
+              type: icon.type || "",
+              purpose: icon.purpose || 'any'
             }))
           : [];
 
@@ -187,15 +189,19 @@ export function SiteSettings() {
     return `${url}?t=${Date.now()}`;
   };
 
-  const handlePWAIconUpload = (url: string, size: number) => {
+  const handlePWAIconUpload = (url: string, size: number, purpose: 'any' | 'maskable') => {
     setSettings(prev => {
       const newIcons = [...(prev.pwa_icons || [])];
-      const existingIconIndex = newIcons.findIndex(icon => icon.sizes === `${size}x${size}`);
+      const fileName = purpose === 'maskable' ? `icon-${size}-maskable` : `icon-${size}`;
+      const existingIconIndex = newIcons.findIndex(
+        icon => icon.sizes === `${size}x${size}` && icon.purpose === purpose
+      );
       
       const newIcon = {
         src: url,
         sizes: `${size}x${size}`,
-        type: 'image/png'
+        type: 'image/png',
+        purpose
       };
 
       if (existingIconIndex >= 0) {
@@ -502,30 +508,51 @@ export function SiteSettings() {
 
             <h3 className="text-lg font-medium mt-6">PWA Icons</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {PWA_ICON_SIZES.map((size) => {
-                const currentIcon = settings.pwa_icons?.find(
-                  (icon) => icon.sizes === `${size}x${size}`
-                );
-                
-                return (
-                  <div key={size} className="space-y-2">
-                    <Label>{size}x{size} Icon</Label>
-                    {currentIcon?.src && (
+              {PWA_ICON_SIZES.map((size) => (
+                <div key={size} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>{size}x{size} Regular Icon</Label>
+                    {settings.pwa_icons?.find(
+                      icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
+                    )?.src && (
                       <img 
-                        src={addCacheBuster(currentIcon.src)}
-                        alt={`${size}x${size} icon`} 
+                        src={addCacheBuster(settings.pwa_icons.find(
+                          icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
+                        )?.src)}
+                        alt={`${size}x${size} regular icon`} 
                         className="w-16 h-16 object-contain rounded-md mb-2"
                       />
                     )}
                     <FileUpload
-                      onUploadComplete={(url) => handlePWAIconUpload(url, size)}
+                      onUploadComplete={(url) => handlePWAIconUpload(url, size, 'any')}
                       accept="image/png"
                       folderPath="sitesettings/pwa"
                       fileName={`icon-${size}`}
                     />
                   </div>
-                );
-              })}
+
+                  <div className="space-y-2">
+                    <Label>{size}x{size} Maskable Icon</Label>
+                    {settings.pwa_icons?.find(
+                      icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
+                    )?.src && (
+                      <img 
+                        src={addCacheBuster(settings.pwa_icons.find(
+                          icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
+                        )?.src)}
+                        alt={`${size}x${size} maskable icon`} 
+                        className="w-16 h-16 object-contain rounded-md mb-2"
+                      />
+                    )}
+                    <FileUpload
+                      onUploadComplete={(url) => handlePWAIconUpload(url, size, 'maskable')}
+                      accept="image/png"
+                      folderPath="sitesettings/pwa"
+                      fileName={`icon-${size}-maskable`}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </TabsContent>

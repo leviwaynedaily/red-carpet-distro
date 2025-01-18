@@ -104,6 +104,7 @@ export type Database = {
           pwa_desktop_screenshot: string | null
           pwa_display: string | null
           pwa_icons: Json | null
+          pwa_icons_maskable: Json | null
           pwa_mobile_screenshot: string | null
           pwa_name: string | null
           pwa_orientation: string | null
@@ -137,6 +138,7 @@ export type Database = {
           pwa_desktop_screenshot?: string | null
           pwa_display?: string | null
           pwa_icons?: Json | null
+          pwa_icons_maskable?: Json | null
           pwa_mobile_screenshot?: string | null
           pwa_name?: string | null
           pwa_orientation?: string | null
@@ -170,6 +172,7 @@ export type Database = {
           pwa_desktop_screenshot?: string | null
           pwa_display?: string | null
           pwa_icons?: Json | null
+          pwa_icons_maskable?: Json | null
           pwa_mobile_screenshot?: string | null
           pwa_name?: string | null
           pwa_orientation?: string | null
