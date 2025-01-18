@@ -141,6 +141,7 @@ export function CategoryList() {
       }
 
       toast.success("Category deleted successfully");
+      // Invalidate both products and categories queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (error) {
