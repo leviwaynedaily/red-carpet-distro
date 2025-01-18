@@ -88,14 +88,12 @@ export type Database = {
         Row: {
           admin_password: string | null
           created_at: string
-          favicon_png_url: string | null
           favicon_url: string | null
           font_family: string | null
           header_color: string | null
           header_opacity: number | null
           id: string
           logo_url: string | null
-          media: Json | null
           og_description: string | null
           og_image: string | null
           og_title: string | null
@@ -126,14 +124,12 @@ export type Database = {
         Insert: {
           admin_password?: string | null
           created_at?: string
-          favicon_png_url?: string | null
           favicon_url?: string | null
           font_family?: string | null
           header_color?: string | null
           header_opacity?: number | null
           id?: string
           logo_url?: string | null
-          media?: Json | null
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
@@ -164,14 +160,12 @@ export type Database = {
         Update: {
           admin_password?: string | null
           created_at?: string
-          favicon_png_url?: string | null
           favicon_url?: string | null
           font_family?: string | null
           header_color?: string | null
           header_opacity?: number | null
           id?: string
           logo_url?: string | null
-          media?: Json | null
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null

@@ -6,9 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { Database } from "@/integrations/supabase/types";
-
-type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
 
 interface HeaderProps {
   isSticky: boolean;
@@ -37,37 +34,25 @@ export const Header = ({
   const [toolbarOpacity, setToolbarOpacity] = useState(1);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
-  const [logoWebpUrl, setLogoWebpUrl] = useState('');
   const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchHeaderSettings = async () => {
       try {
-        const { data: settings, error } = await supabase
+        const { data: settings } = await supabase
           .from('site_settings')
-          .select('*')
+          .select('header_color, header_opacity, logo_url, toolbar_color, toolbar_opacity')
           .single();
         
-        if (error) {
-          console.error('Error fetching site settings:', error);
-          return;
-        }
-
         if (settings) {
-          const typedSettings = settings as SiteSettings;
-          setHeaderColor(typedSettings.header_color || '#FFFFFF');
-          setHeaderOpacity(typedSettings.header_opacity || 1);
-          setToolbarColor(typedSettings.toolbar_color || '#FFFFFF');
-          setToolbarOpacity(typedSettings.toolbar_opacity || 1);
-          setLogoUrl(typedSettings.logo_url || 'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.png');
-          
-          // Check if media exists and contains webp property
-          if (typedSettings.media && typeof typedSettings.media === 'object' && 'webp' in typedSettings.media) {
-            setLogoWebpUrl(typedSettings.media.webp as string);
-          }
+          setHeaderColor(settings.header_color || '#FFFFFF');
+          setHeaderOpacity(settings.header_opacity || 1);
+          setToolbarColor(settings.toolbar_color || '#FFFFFF');
+          setToolbarOpacity(settings.toolbar_opacity || 1);
+          setLogoUrl(settings.logo_url || 'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.png');
         }
       } catch (error) {
-        console.error('Error in fetchHeaderSettings:', error);
+        console.error('Error fetching header settings:', error);
       }
     };
 
@@ -136,17 +121,12 @@ export const Header = ({
     <header className="fixed top-0 left-0 right-0 z-50 w-full shadow-sm" style={headerStyle}>
       <div className="w-full">
         <div className="flex items-center justify-center px-4 md:px-8 py-4 md:py-6 backdrop-blur-sm bg-white/10">
-          <picture>
-            {logoWebpUrl && (
-              <source srcSet={logoWebpUrl} type="image/webp" />
-            )}
-            <img
-              src={logoUrl}
-              alt="Palmtree Smokes"
-              className="h-14 md:h-20 cursor-pointer transition-transform duration-200 hover:scale-105"
-              onClick={onLogoClick}
-            />
-          </picture>
+          <img
+            src={logoUrl}
+            alt="Palmtree Smokes"
+            className="h-14 md:h-20 cursor-pointer transition-transform duration-200 hover:scale-105"
+            onClick={onLogoClick}
+          />
         </div>
         <div className="border-t border-gray-200/30 backdrop-blur-sm" style={toolbarStyle}>
           <div className="container mx-auto px-4 py-2">

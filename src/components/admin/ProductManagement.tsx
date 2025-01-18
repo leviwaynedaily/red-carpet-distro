@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/ui/file-upload";
 
-type Product = Tables<"products", never>;
+type Product = Tables<"products">;
 
 const COLUMNS = [
   { key: "name", label: "Name" },
@@ -133,33 +133,11 @@ export function ProductManagement() {
     setShowMedia(true);
   };
 
-  const handleImageUpload = async (productId: string, file: File) => {
+  const handleImageUpload = async (productId: string, url: string) => {
     try {
-      const sanitizedName = file.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-
-      const fileExt = file.name.split('.').pop();
-      const filePath = `products/${productId}/${sanitizedName}`;
-
-      const { error: uploadError, data } = await supabase.storage
-        .from('media')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('media')
-        .getPublicUrl(filePath);
-
       const { error } = await supabase
         .from("products")
-        .update({ image_url: publicUrl })
+        .update({ image_url: url })
         .eq("id", productId);
 
       if (error) throw error;
@@ -171,33 +149,11 @@ export function ProductManagement() {
     }
   };
 
-  const handleVideoUpload = async (productId: string, file: File) => {
+  const handleVideoUpload = async (productId: string, url: string) => {
     try {
-      const sanitizedName = file.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-
-      const fileExt = file.name.split('.').pop();
-      const filePath = `products/${productId}/${sanitizedName}`;
-
-      const { error: uploadError, data } = await supabase.storage
-        .from('media')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('media')
-        .getPublicUrl(filePath);
-
       const { error } = await supabase
         .from("products")
-        .update({ video_url: publicUrl })
+        .update({ video_url: url })
         .eq("id", productId);
 
       if (error) throw error;
@@ -370,7 +326,7 @@ export function ProductManagement() {
                       )}
                       {editingProduct === product.id && (
                         <FileUpload
-                          onUploadComplete={(file) => handleImageUpload(product.id, file)}
+                          onUploadComplete={(url) => handleImageUpload(product.id, url)}
                           accept="image/*"
                           bucket="media"
                           folderPath={`products/${product.id}`}
@@ -415,7 +371,7 @@ export function ProductManagement() {
                       )}
                       {editingProduct === product.id && (
                         <FileUpload
-                          onUploadComplete={(file) => handleVideoUpload(product.id, file)}
+                          onUploadComplete={(url) => handleVideoUpload(product.id, url)}
                           accept="video/*"
                           bucket="media"
                           folderPath={`products/${product.id}`}
