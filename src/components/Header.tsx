@@ -31,6 +31,7 @@ export const Header = ({
   const [headerColor, setHeaderColor] = useState('#FFFFFF');
   const [headerOpacity, setHeaderOpacity] = useState(1);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -38,12 +39,13 @@ export const Header = ({
       try {
         const { data: settings } = await supabase
           .from('site_settings')
-          .select('header_color, header_opacity')
+          .select('header_color, header_opacity, logo_url')
           .single();
         
         if (settings) {
           setHeaderColor(settings.header_color || '#FFFFFF');
           setHeaderOpacity(settings.header_opacity || 1);
+          setLogoUrl(settings.logo_url || 'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.png');
         }
       } catch (error) {
         console.error('Error fetching header settings:', error);
@@ -112,7 +114,7 @@ export const Header = ({
       <div className="w-full">
         <div className="flex items-center justify-center px-4 md:px-8 py-3 backdrop-blur-sm bg-white/10">
           <img
-            src="/lovable-uploads/edfd3dc9-231d-4b8e-be61-2d59fa6acac4.png"
+            src={logoUrl}
             alt="Palmtree Smokes"
             className="h-8 md:h-12 cursor-pointer"
             onClick={onLogoClick}
