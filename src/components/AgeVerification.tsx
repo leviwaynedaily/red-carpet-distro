@@ -16,6 +16,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
   const [storefrontPassword, setStorefrontPassword] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const [settings, setSettings] = useState<any>(null); // Add state for settings
 
   useEffect(() => {
     fetchStorefrontPassword();
@@ -148,17 +149,19 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
           </>
         ) : (
           <>
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-left">Welcome to Palmtree Smokes</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-left">
+              {settings?.welcome_instructions?.title || "Welcome to Palmtree Smokes"}
+            </h2>
             <div className="space-y-4 text-xs sm:text-sm text-gray-600">
-              <p className="text-left">Please take a moment to review our store guidelines:</p>
-              <ul className="list-disc pl-5 space-y-2 text-left">
-                <li>Browse our selection of premium products at your leisure</li>
-                <li>For purchases or inquiries, text or call us directly</li>
-                <li>Business Hours: Monday - Friday, 8:00 AM - 5:00 PM</li>
-                <li>Same-day delivery available for orders placed before 3 PM</li>
-                <li>Customer support available during business hours</li>
-                <li>All prices include applicable taxes</li>
-              </ul>
+              <p className="text-left">
+                {settings?.welcome_instructions?.subtitle || "Please take a moment to review our store guidelines:"}
+              </p>
+              <div 
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ 
+                  __html: settings?.welcome_instructions?.guidelines || "" 
+                }} 
+              />
               <form onSubmit={handleSubmit}>
                 <Button type="submit" className="w-full bg-primary hover:bg-primary/90 mt-6">
                   Enter Site

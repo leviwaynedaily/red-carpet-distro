@@ -54,7 +54,7 @@ type SiteSettingsType = {
   welcome_instructions: {
     title: string;
     subtitle: string;
-    guidelines: string[];
+    guidelines: string;
   } | null;
 };
 
