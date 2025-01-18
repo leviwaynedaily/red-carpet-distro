@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ export function CategoryManagement() {
   const [newCategory, setNewCategory] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: categories, refetch } = useQuery({
     queryKey: ["categories"],
@@ -63,24 +64,69 @@ export function CategoryManagement() {
     if (!editingName.trim()) return;
 
     try {
-      const { error } = await supabase
+      console.log("Editing category:", id, "new name:", editingName);
+      const categoryToUpdate = categories?.find(cat => cat.id === id);
+      
+      if (!categoryToUpdate) {
+        toast.error("Category not found");
+        return;
+      }
+
+      const oldName = categoryToUpdate.name;
+      const newName = editingName.trim();
+
+      // First update the category name
+      const { error: categoryError } = await supabase
         .from("categories")
-        .update({ name: editingName.trim() })
+        .update({ name: newName })
         .eq("id", id);
 
-      if (error) {
-        console.error("Error updating category:", error);
-        if (error.code === '23505') {
+      if (categoryError) {
+        console.error("Error updating category:", categoryError);
+        if (categoryError.code === '23505') {
           toast.error("A category with this name already exists");
         } else {
-          toast.error("Failed to update category: " + error.message);
+          toast.error("Failed to update category: " + categoryError.message);
         }
         return;
       }
 
-      toast.success("Category updated successfully");
+      // Then update all products that use this category
+      const { data: products, error: fetchError } = await supabase
+        .from("products")
+        .select("id, categories");
+
+      if (fetchError) {
+        console.error("Error fetching products:", fetchError);
+        toast.error("Failed to update products with new category name");
+        return;
+      }
+
+      // Update products that contain the old category name
+      const productsToUpdate = products.filter(product => 
+        product.categories && product.categories.includes(oldName)
+      );
+
+      for (const product of productsToUpdate) {
+        const updatedCategories = product.categories.map((cat: string) => 
+          cat === oldName ? newName : cat
+        );
+
+        const { error: productError } = await supabase
+          .from("products")
+          .update({ categories: updatedCategories })
+          .eq("id", product.id);
+
+        if (productError) {
+          console.error("Error updating product categories:", productError);
+          toast.error("Failed to update some products with new category name");
+        }
+      }
+
+      toast.success("Category and products updated successfully");
       setEditingId(null);
       setEditingName("");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       refetch();
     } catch (error) {
       console.error("Error updating category:", error);
