@@ -1,4 +1,4 @@
-const CACHE_NAME = 'palmtree-smokes-v6';
+const CACHE_NAME = 'palmtree-smokes-v7';
 const urlsToCache = [
   '/',
   '/index.html',
