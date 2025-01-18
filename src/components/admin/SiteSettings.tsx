@@ -180,9 +180,19 @@ export function SiteSettings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Convert the settings object to match Supabase's expected format
+      const supabaseSettings = {
+        ...settings,
+        welcome_instructions: {
+          title: settings.welcome_instructions.title,
+          subtitle: settings.welcome_instructions.subtitle,
+          guidelines: settings.welcome_instructions.guidelines
+        }
+      };
+
       const { error } = await supabase
         .from("site_settings")
-        .update(settings)
+        .update(supabaseSettings)
         .eq("id", settings.id);
 
       if (error) throw error;
