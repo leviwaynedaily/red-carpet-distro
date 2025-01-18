@@ -20,7 +20,8 @@ export const ProductGrid = ({
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['products', 'product_categories'],
     queryFn: async () => {
-      console.log('ProductGrid: Fetching products with categories');
+      console.log('ProductGrid: Starting to fetch products with categories');
+      
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
@@ -34,21 +35,32 @@ export const ProductGrid = ({
         console.error('ProductGrid: Error fetching products:', productsError);
         throw productsError;
       }
+
+      console.log('ProductGrid: Raw products data:', productsData);
       
       // Transform the data to match the expected format
-      const transformedProducts = productsData.map(product => ({
-        ...product,
-        categories: product.product_categories
-          ?.map(pc => pc.category?.name)
-          .filter(Boolean) || []
-      }));
+      const transformedProducts = productsData.map(product => {
+        console.log('ProductGrid: Transforming product:', product.id, product.name);
+        return {
+          ...product,
+          categories: product.product_categories
+            ?.map(pc => {
+              console.log('ProductGrid: Processing category for product:', product.id, pc);
+              return pc.category?.name;
+            })
+            .filter(Boolean) || []
+        };
+      });
       
-      console.log('ProductGrid: Fetched and transformed products:', transformedProducts);
+      console.log('ProductGrid: Transformed products:', transformedProducts);
       return transformedProducts;
-    }
+    },
+    retry: 1, // Retry once if the query fails
+    refetchOnWindowFocus: false // Prevent refetching when window gains focus
   });
 
   if (isLoading) {
+    console.log('ProductGrid: Loading products...');
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <p className="text-gray-500">Loading products...</p>
@@ -79,11 +91,11 @@ export const ProductGrid = ({
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Modified category filter logic to show products without categories when "all" is selected
     const matchesCategory = categoryFilter === 'all' || 
       (product.categories && product.categories.includes(categoryFilter));
 
     console.log('ProductGrid: Filtering product:', {
+      productId: product.id,
       productName: product.name,
       productCategories: product.categories,
       categoryFilter,
@@ -91,7 +103,7 @@ export const ProductGrid = ({
       matchesCategory
     });
     
-    return matchesSearch && (categoryFilter === 'all' || matchesCategory);
+    return matchesSearch && matchesCategory;
   });
 
   // Sort products based on selected option
@@ -118,10 +130,13 @@ export const ProductGrid = ({
     }
   });
 
-  console.log('ProductGrid: Rendering filtered products:', {
+  console.log('ProductGrid: Final render state:', {
     totalProducts: products.length,
     filteredCount: filteredProducts.length,
-    sortedCount: sortedProducts.length
+    sortedCount: sortedProducts.length,
+    searchTerm,
+    categoryFilter,
+    sortBy
   });
 
   return (
