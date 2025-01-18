@@ -85,13 +85,13 @@ export function ProductTable({
       newCategories = currentCategories.filter(cat => cat !== categoryName);
     }
     
-    onEditChange({ categories: newCategories });
+    onEditChange({ ...editValues, categories: newCategories });
   };
 
   const handleInputChange = (field: keyof Product, value: any) => {
     console.log('Updating field:', field, 'with value:', value);
-    // Save the value immediately when it changes
-    onEditChange({ [field]: value });
+    // Preserve all existing values and update only the changed field
+    onEditChange({ ...editValues, [field]: value });
   };
 
   return (
