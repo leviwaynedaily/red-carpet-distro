@@ -91,9 +91,9 @@ export const ProductCard = ({
   };
 
   const imageClasses = {
-    small: "w-full h-full object-contain",
-    medium: "w-full h-full object-contain",
-    large: "w-full h-full object-contain"
+    small: "w-full h-full object-cover",
+    medium: "w-full h-full object-cover",
+    large: "w-full h-full object-cover"
   };
 
   const contentClasses = {
