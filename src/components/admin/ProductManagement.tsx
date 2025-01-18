@@ -2,22 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CategoryManagement } from "./CategoryManagement";
 import { ProductTableFilters } from "./ProductTableFilters";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Tables } from "@/integrations/supabase/types";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Edit, Trash2, Play, Upload, Image } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/ui/file-upload";
 import { convertToWebP } from "@/utils/imageUtils";
+import { ProductTable } from "./ProductTable";
 
 type Product = Tables<"products">;
 
@@ -280,14 +270,6 @@ export function ProductManagement() {
     product.strain?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const formatPrice = (price: number | null) => {
-    if (price === null) return "-";
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(price);
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -305,250 +287,21 @@ export function ProductManagement() {
         onDownloadTemplate={handleDownloadTemplate}
       />
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {COLUMNS.filter(col => visibleColumns.includes(col.key)).map((column) => (
-                <TableHead key={column.key}>{column.label}</TableHead>
-              ))}
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProducts.map((product) => (
-              <TableRow 
-                key={product.id}
-                className="cursor-pointer"
-                onClick={() => !editingProduct && handleEditStart(product)}
-              >
-                {visibleColumns.includes('name') && (
-                  <TableCell>
-                    {editingProduct === product.id ? (
-                      <Input
-                        value={editValues.name || ''}
-                        onChange={(e) => setEditValues(prev => ({ ...prev, name: e.target.value }))}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      product.name
-                    )}
-                  </TableCell>
-                )}
-                {visibleColumns.includes('strain') && (
-                  <TableCell>
-                    {editingProduct === product.id ? (
-                      <Input
-                        value={editValues.strain || ''}
-                        onChange={(e) => setEditValues(prev => ({ ...prev, strain: e.target.value }))}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      product.strain || '-'
-                    )}
-                  </TableCell>
-                )}
-                {visibleColumns.includes('description') && (
-                  <TableCell>
-                    {editingProduct === product.id ? (
-                      <Input
-                        value={editValues.description || ''}
-                        onChange={(e) => setEditValues(prev => ({ ...prev, description: e.target.value }))}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      product.description || '-'
-                    )}
-                  </TableCell>
-                )}
-                {visibleColumns.includes('image') && (
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {product.image_url && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMediaClick('image', product.image_url!);
-                            }}
-                          >
-                            <img
-                              src={product.image_url}
-                              alt={product.name}
-                              className="w-16 h-16 object-cover rounded-md"
-                            />
-                          </Button>
-                          {editingProduct === product.id && (
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteMedia(product.id, 'image');
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                      {editingProduct === product.id && (
-                        <FileUpload
-                          onUploadComplete={(url) => handleImageUpload(product.id, url)}
-                          accept="image/*"
-                          bucket="media"
-                          folderPath={`products/${product.id}`}
-                          fileName="image"
-                          className="w-8"
-                          buttonContent={<Upload className="h-4 w-4" />}
-                        />
-                      )}
-                    </div>
-                  </TableCell>
-                )}
-                {visibleColumns.includes('video_url') && (
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {product.video_url && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMediaClick('video', product.video_url!);
-                            }}
-                          >
-                            <Play className="h-4 w-4" />
-                          </Button>
-                          {editingProduct === product.id && (
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteMedia(product.id, 'video');
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                      {editingProduct === product.id && (
-                        <FileUpload
-                          onUploadComplete={(url) => handleVideoUpload(product.id, url)}
-                          accept="video/*"
-                          bucket="media"
-                          folderPath={`products/${product.id}`}
-                          fileName="video"
-                          className="w-8"
-                          buttonContent={<Upload className="h-4 w-4" />}
-                        />
-                      )}
-                    </div>
-                  </TableCell>
-                )}
-                {visibleColumns.includes('categories') && (
-                  <TableCell>{product.categories?.join(", ") || '-'}</TableCell>
-                )}
-                {visibleColumns.includes('stock') && (
-                  <TableCell>
-                    {editingProduct === product.id ? (
-                      <Input
-                        type="number"
-                        value={editValues.stock || 0}
-                        onChange={(e) => setEditValues(prev => ({ ...prev, stock: parseInt(e.target.value) }))}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      product.stock || '-'
-                    )}
-                  </TableCell>
-                )}
-                {visibleColumns.includes('regular_price') && (
-                  <TableCell>
-                    {editingProduct === product.id ? (
-                      <Input
-                        type="number"
-                        value={editValues.regular_price || 0}
-                        onChange={(e) => setEditValues(prev => ({ ...prev, regular_price: parseFloat(e.target.value) }))}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      formatPrice(product.regular_price)
-                    )}
-                  </TableCell>
-                )}
-                {visibleColumns.includes('shipping_price') && (
-                  <TableCell>
-                    {editingProduct === product.id ? (
-                      <Input
-                        type="number"
-                        value={editValues.shipping_price || 0}
-                        onChange={(e) => setEditValues(prev => ({ ...prev, shipping_price: parseFloat(e.target.value) }))}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      formatPrice(product.shipping_price)
-                    )}
-                  </TableCell>
-                )}
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {editingProduct === product.id ? (
-                      <>
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          className="h-8 w-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditSave();
-                          }}
-                          aria-label="Save changes"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="h-8 w-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditCancel();
-                          }}
-                          aria-label="Cancel editing"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="h-8 w-8"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteProduct(product.id);
-                        }}
-                        aria-label="Delete product"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <ProductTable
+        products={filteredProducts}
+        visibleColumns={visibleColumns}
+        editingProduct={editingProduct}
+        editValues={editValues}
+        onEditStart={handleEditStart}
+        onEditSave={handleEditSave}
+        onEditCancel={handleEditCancel}
+        onEditChange={setEditValues}
+        onDelete={handleDeleteProduct}
+        onImageUpload={handleImageUpload}
+        onVideoUpload={handleVideoUpload}
+        onDeleteMedia={handleDeleteMedia}
+        onMediaClick={handleMediaClick}
+      />
 
       <Dialog open={showMedia} onOpenChange={setShowMedia}>
         <DialogContent className="max-w-4xl w-full p-0">
