@@ -44,13 +44,15 @@ export function ProductManagement() {
 
   const fetchProducts = async () => {
     try {
-      console.log('ProductManagement: Fetching products with categories');
+      console.log('ProductManagement: Starting to fetch all products');
+      
+      // First fetch all products
       const { data: productsData, error: productsError } = await supabase
         .from("products")
         .select(`
           *,
           product_categories!left (
-            categories (
+            categories!left (
               name
             )
           )
@@ -61,6 +63,8 @@ export function ProductManagement() {
         throw productsError;
       }
 
+      console.log('ProductManagement: Raw products data:', productsData);
+
       // Transform the data to include categories array, handling products without categories
       const transformedProducts = productsData.map(product => ({
         ...product,
@@ -69,7 +73,7 @@ export function ProductManagement() {
           .filter(Boolean) || []
       }));
 
-      console.log('ProductManagement: Successfully fetched products:', transformedProducts);
+      console.log('ProductManagement: Transformed products:', transformedProducts);
       setProducts(transformedProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
