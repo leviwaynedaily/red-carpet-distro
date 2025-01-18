@@ -128,32 +128,41 @@ export function SiteSettings() {
         await fetchFileInfo(data.favicon_png_url, 'faviconPng');
       }
 
-      // Only fetch icons that exist in the database
-      const storedIcons = data.pwa_icons || [];
-      const storedMaskableIcons = data.pwa_icons_maskable || [];
-      
+      // Parse PWA icons data
       const pwaIconsInfo: Record<string, { type: string; size: number; url: string }> = {};
       const pwaMaskableIconsInfo: Record<string, { type: string; size: number; url: string }> = {};
 
-      console.log('Fetching PWA icons from database:', { storedIcons, storedMaskableIcons });
+      console.log('PWA icons data from database:', {
+        icons: data.pwa_icons,
+        maskableIcons: data.pwa_icons_maskable
+      });
 
-      // Only fetch icons that are stored in the database
-      for (const icon of storedIcons) {
-        const size = icon.sizes?.split('x')[0];
-        if (size) {
-          const iconInfo = await fetchPWAIconInfo(size, false);
-          if (iconInfo) {
-            pwaIconsInfo[size] = iconInfo;
+      // Safely handle regular icons
+      if (Array.isArray(data.pwa_icons)) {
+        for (const icon of data.pwa_icons) {
+          if (icon && typeof icon === 'object' && 'sizes' in icon) {
+            const size = icon.sizes?.toString().split('x')[0];
+            if (size) {
+              const iconInfo = await fetchPWAIconInfo(size, false);
+              if (iconInfo) {
+                pwaIconsInfo[size] = iconInfo;
+              }
+            }
           }
         }
       }
 
-      for (const icon of storedMaskableIcons) {
-        const size = icon.sizes?.split('x')[0];
-        if (size) {
-          const maskableIconInfo = await fetchPWAIconInfo(size, true);
-          if (maskableIconInfo) {
-            pwaMaskableIconsInfo[size] = maskableIconInfo;
+      // Safely handle maskable icons
+      if (Array.isArray(data.pwa_icons_maskable)) {
+        for (const icon of data.pwa_icons_maskable) {
+          if (icon && typeof icon === 'object' && 'sizes' in icon) {
+            const size = icon.sizes?.toString().split('x')[0];
+            if (size) {
+              const maskableIconInfo = await fetchPWAIconInfo(size, true);
+              if (maskableIconInfo) {
+                pwaMaskableIconsInfo[size] = maskableIconInfo;
+              }
+            }
           }
         }
       }
@@ -196,17 +205,20 @@ export function SiteSettings() {
     const url = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-${size}${isMaskable ? '-maskable' : ''}.webp`;
     
     try {
-      console.log(`Fetching PWA icon ${size} (${iconType}):`, url);
+      console.log(`Attempting to fetch PWA icon ${size} (${iconType}):`, url);
       const response = await fetch(url);
+      
       if (!response.ok) {
         console.log(`PWA icon not found for size ${size} (${iconType}):`, url);
         return null;
       }
+      
       const blob = await response.blob();
       console.log(`Successfully fetched PWA icon ${size} (${iconType}):`, {
         type: blob.type,
         size: blob.size
       });
+      
       return {
         type: blob.type,
         size: blob.size,
