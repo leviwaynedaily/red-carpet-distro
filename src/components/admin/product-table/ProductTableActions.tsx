@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
-import { Check, X, Trash2 } from "lucide-react";
+import { Check, X, Trash2, Edit } from "lucide-react";
 
 interface ProductTableActionsProps {
   productId: string;
@@ -8,6 +8,7 @@ interface ProductTableActionsProps {
   onSave: () => void;
   onCancel: () => void;
   onDelete: (id: string) => void;
+  onEdit: () => void;
 }
 
 export function ProductTableActions({
@@ -16,6 +17,7 @@ export function ProductTableActions({
   onSave,
   onCancel,
   onDelete,
+  onEdit,
 }: ProductTableActionsProps) {
   return (
     <TableCell className="text-right">
@@ -48,18 +50,32 @@ export function ProductTableActions({
             </Button>
           </>
         ) : (
-          <Button
-            size="icon"
-            variant="destructive"
-            className="h-8 w-8"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(productId);
-            }}
-            aria-label="Delete product"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              aria-label="Edit product"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="destructive"
+              className="h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(productId);
+              }}
+              aria-label="Delete product"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </div>
     </TableCell>

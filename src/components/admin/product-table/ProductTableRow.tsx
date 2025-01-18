@@ -81,7 +81,6 @@ export function ProductTableRow({
     <TableRow 
       key={product.id}
       className={`cursor-pointer ${isEditing ? 'bg-muted/50' : ''}`}
-      onClick={() => !isEditing && onEditStart(product)}
       onKeyDown={handleKeyDown}
     >
       {visibleColumns.map((column) => (
@@ -105,6 +104,7 @@ export function ProductTableRow({
         onSave={handleSave}
         onCancel={onEditCancel}
         onDelete={onDelete}
+        onEdit={() => onEditStart(product)}
       />
     </TableRow>
   );
