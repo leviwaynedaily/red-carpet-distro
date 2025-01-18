@@ -1,17 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductTableFilters } from "./ProductTableFilters";
 import { toast } from "sonner";
 import { Tables } from "@/integrations/supabase/types";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { FileUpload } from "@/components/ui/file-upload";
-import { convertToWebP } from "@/utils/imageUtils";
-import { ProductTable } from "./ProductTable";
-import { ProductMobileGrid } from "./product-table/ProductMobileGrid";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { ProductsList } from "./product-table/ProductsList";
 
 type Product = Tables<"products">;
 
@@ -28,7 +24,6 @@ const COLUMNS = [
 ];
 
 export function ProductManagement() {
-  const [products, setProducts] = useState<(Product & { categories: string[] })[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleColumns, setVisibleColumns] = useState(COLUMNS.map(c => c.key));
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -40,46 +35,6 @@ export function ProductManagement() {
     direction: 'desc' 
   });
   const queryClient = useQueryClient();
-  const isMobile = useIsMobile();
-
-  const fetchProducts = async () => {
-    try {
-      console.log('ProductManagement: Starting to fetch all products');
-      
-      // First fetch all products
-      const { data: productsData, error: productsError } = await supabase
-        .from("products")
-        .select(`
-          *,
-          product_categories!left (
-            categories!left (
-              name
-            )
-          )
-        `);
-
-      if (productsError) {
-        console.error('ProductManagement: Error fetching products:', productsError);
-        throw productsError;
-      }
-
-      console.log('ProductManagement: Raw products data:', productsData);
-
-      // Transform the data to include categories array, handling products without categories
-      const transformedProducts = productsData.map(product => ({
-        ...product,
-        categories: product.product_categories
-          ?.map(pc => pc.categories?.name)
-          .filter(Boolean) || []
-      }));
-
-      console.log('ProductManagement: Transformed products:', transformedProducts);
-      setProducts(transformedProducts);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      toast.error("Failed to load products");
-    }
-  };
 
   const handleAddProduct = async () => {
     try {
@@ -104,7 +59,7 @@ export function ProductManagement() {
 
       console.log('ProductManagement: Product created successfully:', data);
       toast.success("Product created successfully");
-      await fetchProducts();
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       
       // Start editing the new product immediately
       if (data) {
@@ -144,7 +99,7 @@ export function ProductManagement() {
 
       console.log('ProductManagement: Successfully deleted product:', id);
       toast.success("Product deleted successfully");
-      await fetchProducts();
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     } catch (error) {
       console.error("Error deleting product:", error);
       toast.error("Failed to delete product");
@@ -185,30 +140,20 @@ export function ProductManagement() {
 
       // Handle categories update
       if (editValues.categories) {
-        // First, get category IDs for the selected names
-        const { data: categoryData, error: categoryError } = await supabase
+        // Get category IDs for the selected names
+        const { data: categoryData } = await supabase
           .from('categories')
           .select('id, name')
           .in('name', editValues.categories);
 
-        if (categoryError) {
-          console.error('ProductManagement: Error fetching category IDs:', categoryError);
-          throw categoryError;
-        }
+        if (categoryData) {
+          // Delete existing category relationships
+          await supabase
+            .from('product_categories')
+            .delete()
+            .eq('product_id', editingProduct);
 
-        // Delete existing category relationships
-        const { error: deleteError } = await supabase
-          .from('product_categories')
-          .delete()
-          .eq('product_id', editingProduct);
-
-        if (deleteError) {
-          console.error('ProductManagement: Error deleting existing categories:', deleteError);
-          throw deleteError;
-        }
-
-        // Insert new category relationships
-        if (categoryData && categoryData.length > 0) {
+          // Insert new category relationships
           const categoryRelations = categoryData.map(category => ({
             product_id: editingProduct,
             category_id: category.id
@@ -229,7 +174,7 @@ export function ProductManagement() {
       toast.success("Product updated successfully");
       setEditingProduct(null);
       setEditValues({});
-      fetchProducts();
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     } catch (error) {
       console.error("Error updating product:", error);
       toast.error("Failed to update product");
@@ -249,18 +194,6 @@ export function ProductManagement() {
     );
   };
 
-  const handleImport = () => {
-    toast.info("Import functionality coming soon");
-  };
-
-  const handleExport = () => {
-    toast.info("Export functionality coming soon");
-  };
-
-  const handleDownloadTemplate = () => {
-    toast.info("Template download coming soon");
-  };
-
   const handleMediaClick = (type: 'image' | 'video', url: string) => {
     setSelectedMedia({ type, url });
     setShowMedia(true);
@@ -271,7 +204,12 @@ export function ProductManagement() {
       console.log('ProductManagement: Starting image upload process for product:', productId);
       
       // Find the product to get its name
-      const product = products.find(p => p.id === productId);
+      const { data: product } = await supabase
+        .from("products")
+        .select()
+        .eq('id', productId)
+        .single();
+
       if (!product) {
         throw new Error('Product not found');
       }
@@ -283,58 +221,13 @@ export function ProductManagement() {
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '');
 
-      // Fetch the uploaded file
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const file = new File([blob], `${sanitizedName}.${url.split('.').pop()}`, { type: blob.type });
-
-      console.log('ProductManagement: Original file details:', {
-        name: file.name,
-        type: file.type,
-        size: file.size
-      });
-
-      // Convert to WebP
-      console.log('ProductManagement: Converting image to WebP format');
-      const { webpBlob } = await convertToWebP(file);
-      const webpFile = new File([webpBlob], `${sanitizedName}.webp`, { type: 'image/webp' });
-
-      console.log('ProductManagement: WebP file details:', {
-        name: webpFile.name,
-        type: webpFile.type,
-        size: webpFile.size
-      });
-
-      // Upload WebP version only
-      const webpPath = `products/${productId}/${sanitizedName}.webp`;
-      const { error: webpError, data: webpData } = await supabase.storage
-        .from('media')
-        .upload(webpPath, webpFile, {
-          contentType: 'image/webp',
-          upsert: true
-        });
-
-      if (webpError) {
-        console.error('ProductManagement: Error uploading WebP version:', webpError);
-        throw webpError;
-      }
-
-      console.log('ProductManagement: WebP version uploaded successfully');
-
-      // Get public URL for WebP
-      const { data: { publicUrl: webpUrl } } = supabase.storage
-        .from('media')
-        .getPublicUrl(webpPath);
-
-      console.log('ProductManagement: Generated WebP URL:', webpUrl);
-
-      // Update product record with WebP URL only
+      // Update product record with URL
       const { error: updateError } = await supabase
         .from("products")
         .update({ 
-          image_url: webpUrl,
+          image_url: url,
           media: {
-            webp: webpUrl
+            webp: url
           }
         })
         .eq("id", productId);
@@ -346,7 +239,7 @@ export function ProductManagement() {
 
       console.log('ProductManagement: Product record updated successfully');
       toast.success("Image uploaded successfully");
-      fetchProducts();
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     } catch (error) {
       console.error("Error updating product image:", error);
       toast.error("Failed to update product image");
@@ -368,7 +261,7 @@ export function ProductManagement() {
 
       console.log('ProductManagement: Video URL updated successfully');
       toast.success("Video uploaded successfully");
-      fetchProducts();
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     } catch (error) {
       console.error("Error updating product video:", error);
       toast.error("Failed to update product video");
@@ -378,28 +271,11 @@ export function ProductManagement() {
   const handleDeleteMedia = async (productId: string, type: 'image' | 'video') => {
     try {
       console.log('ProductManagement: Deleting media for product:', productId, 'type:', type);
-      const product = products.find(p => p.id === productId);
-      if (!product) return;
-
-      // Delete from storage first
-      const filePath = type === 'image' ? product.image_url : product.video_url;
-      if (filePath) {
-        const filePathParts = filePath.split('/');
-        const fileName = filePathParts[filePathParts.length - 1];
-        const { error: storageError } = await supabase.storage
-          .from('media')
-          .remove([`products/${productId}/${fileName}`]);
-
-        if (storageError) {
-          console.error('ProductManagement: Error deleting from storage:', storageError);
-          throw storageError;
-        }
-      }
-
+      
       // Update product record
       const updateData = type === 'image' 
         ? { image_url: null, media: null }
-        : { video_url: null, primary_media_type: 'image' };
+        : { video_url: null };
 
       const { error: dbError } = await supabase
         .from("products")
@@ -413,7 +289,7 @@ export function ProductManagement() {
 
       console.log('ProductManagement: Media deleted successfully');
       toast.success(`${type === 'image' ? 'Image' : 'Video'} deleted successfully`);
-      fetchProducts();
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     } catch (error) {
       console.error(`Error deleting ${type}:`, error);
       toast.error(`Failed to delete ${type}`);
@@ -429,36 +305,6 @@ export function ProductManagement() {
           : 'asc',
     }));
   };
-
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.strain?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    const aValue = a[sortConfig.key as keyof typeof a];
-    const bValue = b[sortConfig.key as keyof typeof b];
-    
-    if (aValue === null || aValue === undefined) return 1;
-    if (bValue === null || bValue === undefined) return -1;
-    
-    const modifier = sortConfig.direction === 'asc' ? 1 : -1;
-    
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return aValue.localeCompare(bValue) * modifier;
-    }
-    
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return (aValue - bValue) * modifier;
-    }
-    
-    if (aValue instanceof Date && bValue instanceof Date) {
-      return (aValue.getTime() - bValue.getTime()) * modifier;
-    }
-    
-    return 0;
-  });
 
   return (
     <div className="space-y-4">
@@ -478,36 +324,25 @@ export function ProductManagement() {
         columns={COLUMNS}
         visibleColumns={visibleColumns}
         onColumnToggle={handleColumnToggle}
-        onImport={handleImport}
-        onExport={handleExport}
-        onDownloadTemplate={handleDownloadTemplate}
       />
 
-      {isMobile ? (
-        <ProductMobileGrid
-          products={sortedProducts}
-          onEditStart={handleEditStart}
-          onDelete={handleDeleteProduct}
-        />
-      ) : (
-        <ProductTable
-          products={sortedProducts}
-          visibleColumns={visibleColumns}
-          editingProduct={editingProduct}
-          editValues={editValues}
-          onEditStart={handleEditStart}
-          onEditSave={handleEditSave}
-          onEditCancel={handleEditCancel}
-          onEditChange={setEditValues}
-          onDelete={handleDeleteProduct}
-          onImageUpload={handleImageUpload}
-          onVideoUpload={handleVideoUpload}
-          onDeleteMedia={handleDeleteMedia}
-          onMediaClick={handleMediaClick}
-          sortConfig={sortConfig}
-          onSort={handleSort}
-        />
-      )}
+      <ProductsList
+        searchQuery={searchQuery}
+        visibleColumns={visibleColumns}
+        editingProduct={editingProduct}
+        editValues={editValues}
+        sortConfig={sortConfig}
+        onEditStart={handleEditStart}
+        onEditSave={handleEditSave}
+        onEditCancel={handleEditCancel}
+        onEditChange={setEditValues}
+        onDelete={handleDeleteProduct}
+        onImageUpload={handleImageUpload}
+        onVideoUpload={handleVideoUpload}
+        onDeleteMedia={handleDeleteMedia}
+        onMediaClick={handleMediaClick}
+        onSort={handleSort}
+      />
 
       <Dialog open={showMedia} onOpenChange={setShowMedia}>
         <DialogContent className="max-w-4xl w-full p-0">
