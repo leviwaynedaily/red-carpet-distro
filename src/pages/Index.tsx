@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Header } from "@/components/Header";
 
 const Index = () => {
+  console.log('Index: Rendering Index component');
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name-asc");
@@ -16,22 +17,27 @@ const Index = () => {
   const isMobile = useIsMobile();
 
   const handleVerification = () => {
+    console.log('Index: Age verification successful');
     setIsVerified(true);
   };
 
   const handleSearchChange = (value: string) => {
+    console.log('Index: Search term changed:', value);
     setSearchTerm(value);
   };
 
   const handleCategoryChange = (value: string) => {
+    console.log('Index: Category filter changed:', value);
     setCategoryFilter(value);
   };
 
   const handleSortChange = (value: string) => {
+    console.log('Index: Sort order changed:', value);
     setSortBy(value);
   };
 
   const handleLogoClick = () => {
+    console.log('Index: Logo clicked, scrolling to top');
     const container = document.getElementById('root');
     if (container) {
       container.scrollTo({ top: 0, behavior: 'smooth' });
@@ -39,9 +45,11 @@ const Index = () => {
   };
 
   if (!isVerified) {
+    console.log('Index: User not age verified, showing verification prompt');
     return <AgeVerification onVerified={handleVerification} />;
   }
 
+  console.log('Index: Rendering main content');
   return (
     <div className="min-h-screen bg-background">
       <Header
