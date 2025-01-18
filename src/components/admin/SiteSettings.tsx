@@ -246,6 +246,64 @@ export function SiteSettings() {
     };
   };
 
+  const getIconStatus = (icon?: PWAIcon) => {
+    return {
+      png: !!icon?.src,
+      webp: !!icon?.webp
+    };
+  };
+
+  const handlePWAIconUpload = async (url: string, size: number, purpose: 'any' | 'maskable') => {
+    console.log(`Handling PWA icon upload for size ${size}x${size}, purpose: ${purpose}`);
+    
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const originalFile = new File([blob], `icon-${size}-${purpose}.png`, { type: 'image/png' });
+      
+      console.log('Converting to WebP...');
+      const { webpBlob } = await convertToWebP(originalFile);
+      const webpFile = new File([webpBlob], `icon-${size}-${purpose}.webp`, { type: 'image/webp' });
+      
+      const { data: webpUpload, error: webpError } = await supabase.storage
+        .from('media')
+        .upload(`sitesettings/pwa/icon-${size}-${purpose}.webp`, webpFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (webpError) {
+        console.error('Error uploading WebP version:', webpError);
+        throw webpError;
+      }
+
+      console.log('WebP version uploaded successfully');
+
+      const newIcon: PWAIcon = {
+        src: url,
+        sizes: `${size}x${size}`,
+        type: 'image/png',
+        purpose: purpose,
+        webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-${size}-${purpose}.webp`
+      };
+
+      setSettings(prev => ({
+        ...prev,
+        pwa_icons: [
+          ...prev.pwa_icons.filter(icon => 
+            !(icon.sizes === `${size}x${size}` && icon.purpose === purpose)
+          ),
+          newIcon
+        ]
+      }));
+
+      console.log('Settings updated with new icon versions');
+    } catch (error) {
+      console.error(`Error in handlePWAIconUpload:`, error);
+      toast.error('Failed to process icon upload');
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
       <Tabs defaultValue="colors" className="w-full">
