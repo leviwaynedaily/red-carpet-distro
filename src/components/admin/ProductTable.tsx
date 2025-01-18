@@ -192,8 +192,8 @@ export function ProductTable({
           </div>
 
           <div className="flex gap-2">
-            <FileUpload onUpload={(url) => onImageUpload(product.id, url)} />
-            <FileUpload onUpload={(url) => onVideoUpload(product.id, url)} />
+            <FileUpload onUploadComplete={(url) => onImageUpload(product.id, url)} />
+            <FileUpload onUploadComplete={(url) => onVideoUpload(product.id, url)} />
           </div>
         </div>
       ))}
