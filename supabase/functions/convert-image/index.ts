@@ -7,6 +7,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -32,6 +33,7 @@ serve(async (req) => {
     // Generate filenames
     const originalName = file.name.replace(/[^\x00-\x7F]/g, '')
     const baseName = originalName.split('.')[0]
+    const fileExt = originalName.split('.').pop()
     const webpFileName = `${baseName}.webp`
     
     // Upload paths
