@@ -88,6 +88,16 @@ export function ProductTable({
     onEditChange({ categories: newCategories });
   };
 
+  const handleInputChange = (field: keyof Product, value: any) => {
+    console.log('Updating field:', field, 'with value:', value);
+    onEditChange({ [field]: value });
+  };
+
+  const handleInputBlur = (field: keyof Product, value: any) => {
+    console.log('Field blur:', field, 'with value:', value);
+    onEditChange({ [field]: value });
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -111,7 +121,8 @@ export function ProductTable({
                   {editingProduct === product.id ? (
                     <Input
                       value={editValues.name || ''}
-                      onChange={(e) => onEditChange({ name: e.target.value })}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      onBlur={(e) => handleInputBlur('name', e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -124,7 +135,8 @@ export function ProductTable({
                   {editingProduct === product.id ? (
                     <Input
                       value={editValues.strain || ''}
-                      onChange={(e) => onEditChange({ strain: e.target.value })}
+                      onChange={(e) => handleInputChange('strain', e.target.value)}
+                      onBlur={(e) => handleInputBlur('strain', e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -137,7 +149,8 @@ export function ProductTable({
                   {editingProduct === product.id ? (
                     <Input
                       value={editValues.description || ''}
-                      onChange={(e) => onEditChange({ description: e.target.value })}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      onBlur={(e) => handleInputBlur('description', e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -271,7 +284,8 @@ export function ProductTable({
                     <Input
                       type="number"
                       value={editValues.stock || 0}
-                      onChange={(e) => onEditChange({ stock: parseInt(e.target.value) })}
+                      onChange={(e) => handleInputChange('stock', parseInt(e.target.value))}
+                      onBlur={(e) => handleInputBlur('stock', parseInt(e.target.value))}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -285,7 +299,8 @@ export function ProductTable({
                     <Input
                       type="number"
                       value={editValues.regular_price || 0}
-                      onChange={(e) => onEditChange({ regular_price: parseFloat(e.target.value) })}
+                      onChange={(e) => handleInputChange('regular_price', parseFloat(e.target.value))}
+                      onBlur={(e) => handleInputBlur('regular_price', parseFloat(e.target.value))}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -299,7 +314,8 @@ export function ProductTable({
                     <Input
                       type="number"
                       value={editValues.shipping_price || 0}
-                      onChange={(e) => onEditChange({ shipping_price: parseFloat(e.target.value) })}
+                      onChange={(e) => handleInputChange('shipping_price', parseFloat(e.target.value))}
+                      onBlur={(e) => handleInputBlur('shipping_price', parseFloat(e.target.value))}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
