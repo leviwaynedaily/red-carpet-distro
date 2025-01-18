@@ -1,54 +1,91 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
-import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
-import "./App.css";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import { supabase } from "./integrations/supabase/client";
 
 function App() {
-  console.log('App.tsx: Initializing App component');
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
-    const updateFavicon = async () => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('App: Captured beforeinstallprompt event');
+      setDeferredPrompt(window.deferredPrompt);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Check if we already have a deferred prompt
+    if (window.deferredPrompt) {
+      setDeferredPrompt(window.deferredPrompt);
+      setShowInstallPrompt(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
       try {
         const { data: settings } = await supabase
           .from('site_settings')
-          .select('favicon_webp_url, favicon_png_url, favicon_url')
+          .select('favicon_url, favicon_webp_url, favicon_png_url')
           .single();
 
         if (settings) {
-          // Update favicon links
-          const links = document.getElementsByTagName('link');
-          for (let i = 0; i < links.length; i++) {
-            const link = links[i];
-            if (link.rel === 'icon') {
-              if (link.type === 'image/webp' && settings.favicon_webp_url) {
-                console.log('App.tsx: Setting WebP favicon:', settings.favicon_webp_url);
-                link.href = settings.favicon_webp_url;
-              } else if (link.type === 'image/png' && settings.favicon_png_url) {
-                console.log('App.tsx: Setting PNG favicon:', settings.favicon_png_url);
-                link.href = settings.favicon_png_url;
-              } else if (link.type === 'image/x-icon' && settings.favicon_url) {
-                console.log('App.tsx: Setting ICO favicon:', settings.favicon_url);
-                link.href = settings.favicon_url;
-              }
-            }
-          }
+          // Set WebP favicon with PNG fallback
+          const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+          link.type = 'image/x-icon';
+          link.rel = 'shortcut icon';
+          link.href = settings.favicon_url;
+          document.getElementsByTagName('head')[0].appendChild(link);
+
+          // Set PNG favicon
+          console.log('App.tsx: Setting PNG favicon:', settings.favicon_png_url);
+          const pngLink = document.createElement('link');
+          pngLink.type = 'image/png';
+          pngLink.rel = 'icon';
+          pngLink.href = settings.favicon_png_url;
+          document.getElementsByTagName('head')[0].appendChild(pngLink);
+
+          // Set WebP favicon
+          console.log('App.tsx: Setting WebP favicon:', settings.favicon_webp_url);
+          const webpLink = document.createElement('link');
+          webpLink.type = 'image/webp';
+          webpLink.rel = 'icon';
+          webpLink.href = settings.favicon_webp_url;
+          document.getElementsByTagName('head')[0].appendChild(webpLink);
         }
       } catch (error) {
-        console.error('Error updating favicon:', error);
+        console.error('Error fetching favicon settings:', error);
       }
     };
 
-    updateFavicon();
+    fetchSettings();
   }, []);
 
-  console.log('App.tsx: Rendering App component');
-  
+  const handleCloseInstallPrompt = () => {
+    console.log('App: Closing install prompt');
+    setShowInstallPrompt(false);
+  };
+
   return (
     <>
       <RouterProvider router={router} />
+      {showInstallPrompt && deferredPrompt && (
+        <PWAInstallPrompt
+          deferredPrompt={deferredPrompt}
+          onClose={handleCloseInstallPrompt}
+        />
+      )}
       <Toaster />
+      <SonnerToaster position="top-center" />
     </>
   );
 }

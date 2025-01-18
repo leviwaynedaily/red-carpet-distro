@@ -19,12 +19,46 @@ const queryClient = new QueryClient({
   },
 });
 
+// Initialize deferredPrompt for use later to show browser install prompt.
+declare global {
+  interface Window {
+    deferredPrompt: any;
+  }
+}
+
+window.deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('PWA: beforeinstallprompt event fired');
+  // Prevent Chrome 67 and earlier from automatically showing the prompt
+  e.preventDefault();
+  // Stash the event so it can be triggered later.
+  window.deferredPrompt = e;
+});
+
+window.addEventListener('appinstalled', () => {
+  console.log('PWA: Application was installed');
+  window.deferredPrompt = null;
+});
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     console.log('Attempting to register service worker...');
     navigator.serviceWorker.register('/sw.js')
       .then(registration => {
         console.log('ServiceWorker registration successful with scope:', registration.scope);
+        
+        // Check for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('New content is available; please refresh.');
+              }
+            });
+          }
+        });
       })
       .catch(err => {
         console.error('ServiceWorker registration failed: ', err);

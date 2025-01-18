@@ -1,4 +1,4 @@
-const CACHE_NAME = 'palmtree-smokes-v8';
+const CACHE_NAME = 'palmtree-smokes-v9';
 const SUPABASE_URL = 'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings';
 const urlsToCache = [
   '/',
@@ -101,3 +101,4 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
+
