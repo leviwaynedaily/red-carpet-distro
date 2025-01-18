@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/ui/file-upload";
 import { IconStatus } from './IconStatus';
 import { PWAIcon } from '@/types/site-settings';
+import { convertToWebP } from "@/utils/imageUtils";
 
 interface PWAIconsProps {
   icons: PWAIcon[];
@@ -12,11 +13,29 @@ interface PWAIconsProps {
 
 export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }) => {
   const getIconStatus = (icon: PWAIcon | undefined) => {
-    if (!icon) return { png: false, webp: false };
+    if (!icon) return { webp: false };
     return {
-      png: !!icon.src,
       webp: !!icon.webp
     };
+  };
+
+  const handleUpload = async (url: string, size: number, purpose: 'any' | 'maskable') => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const file = new File([blob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.png`, { type: 'image/png' });
+      
+      const { webpBlob } = await convertToWebP(file);
+      const webpFile = new File([webpBlob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.webp`, { type: 'image/webp' });
+      
+      // Upload WebP version
+      const formData = new FormData();
+      formData.append('file', webpFile);
+      
+      onIconUpload(url, size, purpose);
+    } catch (error) {
+      console.error('Error processing icon:', error);
+    }
   };
 
   const addCacheBuster = (url: string | null) => {
@@ -33,11 +52,11 @@ export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }
             <div className="flex items-center space-x-2">
               {icons?.find(
                 icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-              )?.src && (
+              )?.webp && (
                 <img 
                   src={addCacheBuster(icons.find(
                     icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                  )?.src || '')}
+                  )?.webp || '')}
                   alt={`${size}x${size} regular icon`} 
                   className="w-16 h-16 object-contain rounded-md"
                 />
@@ -49,7 +68,7 @@ export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }
               />
             </div>
             <FileUpload
-              onUploadComplete={(url) => onIconUpload(url, size, 'any')}
+              onUploadComplete={(url) => handleUpload(url, size, 'any')}
               accept="image/png"
               folderPath="sitesettings/pwa"
               fileName={`icon-${size}`}
@@ -61,11 +80,11 @@ export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }
             <div className="flex items-center space-x-2">
               {icons?.find(
                 icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-              )?.src && (
+              )?.webp && (
                 <img 
                   src={addCacheBuster(icons.find(
                     icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                  )?.src || '')}
+                  )?.webp || '')}
                   alt={`${size}x${size} maskable icon`} 
                   className="w-16 h-16 object-contain rounded-md"
                 />
@@ -77,7 +96,7 @@ export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }
               />
             </div>
             <FileUpload
-              onUploadComplete={(url) => onIconUpload(url, size, 'maskable')}
+              onUploadComplete={(url) => handleUpload(url, size, 'maskable')}
               accept="image/png"
               folderPath="sitesettings/pwa"
               fileName={`icon-${size}-maskable`}

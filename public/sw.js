@@ -1,10 +1,11 @@
-const CACHE_NAME = 'palmtree-smokes-v5';
+const CACHE_NAME = 'palmtree-smokes-v6';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-192.png',
-  'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-512.png'
+  '/favicon.ico',
+  'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-192.webp',
+  'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-512.webp'
 ];
 
 self.addEventListener('install', (event) => {
