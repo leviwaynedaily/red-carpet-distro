@@ -148,7 +148,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
           </>
         ) : (
           <>
-            <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Welcome to Palmtree Smokes</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Welcome to Palmtree Smokes</h2>
             <div className="space-y-4 text-xs sm:text-sm text-gray-600">
               <p>Please take a moment to review our store guidelines:</p>
               <ul className="list-disc pl-5 space-y-2">
