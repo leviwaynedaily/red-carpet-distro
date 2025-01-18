@@ -85,9 +85,20 @@ export const ProductGrid = ({
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Modified category filter logic to show products without categories when "all" is selected
     const matchesCategory = categoryFilter === 'all' || 
       (product.categories && product.categories.includes(categoryFilter));
-    return matchesSearch && matchesCategory;
+
+    console.log('ProductGrid: Filtering product:', {
+      productName: product.name,
+      productCategories: product.categories,
+      categoryFilter,
+      matchesSearch,
+      matchesCategory
+    });
+    
+    return matchesSearch && (categoryFilter === 'all' || matchesCategory);
   });
 
   // Sort products based on selected option
@@ -114,7 +125,11 @@ export const ProductGrid = ({
     }
   });
 
-  console.log('ProductGrid: Rendering filtered products:', sortedProducts.length);
+  console.log('ProductGrid: Rendering filtered products:', {
+    totalProducts: products.length,
+    filteredCount: filteredProducts.length,
+    sortedCount: sortedProducts.length
+  });
 
   return (
     <div className="space-y-4">
