@@ -46,11 +46,12 @@ export const Header = ({
           .single();
         
         if (settings) {
+          console.log('Header: Fetched settings:', settings);
           setHeaderColor(settings.header_color || '#FFFFFF');
           setHeaderOpacity(settings.header_opacity || 1);
           setToolbarColor(settings.toolbar_color || '#FFFFFF');
           setToolbarOpacity(settings.toolbar_opacity || 1);
-          setLogoUrl(settings.logo_url || 'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.png');
+          setLogoUrl(settings.logo_url || '');
           setLogoUrlWebp(settings.logo_url_webp || '');
         }
       } catch (error) {
@@ -125,13 +126,24 @@ export const Header = ({
         <div className="flex items-center justify-center px-4 md:px-8 py-4 md:py-6 backdrop-blur-sm bg-white/10">
           <picture>
             {logoUrlWebp && (
-              <source srcSet={logoUrlWebp} type="image/webp" />
+              <source 
+                srcSet={logoUrlWebp} 
+                type="image/webp" 
+                onError={(e) => {
+                  console.log('WebP logo failed to load, falling back to PNG');
+                  e.currentTarget.remove();
+                }}
+              />
             )}
             <img
               src={logoUrl}
               alt="Palmtree Smokes"
               className="h-14 md:h-20 cursor-pointer transition-transform duration-200 hover:scale-105"
               onClick={onLogoClick}
+              onError={(e) => {
+                console.error('Failed to load logo:', e);
+                e.currentTarget.src = '/placeholder.svg';
+              }}
             />
           </picture>
         </div>
