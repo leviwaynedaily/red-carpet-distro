@@ -10,12 +10,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { convertToWebP } from "@/utils/imageUtils";
 
 type PWAIcon = {
   src: string;
   sizes: string;
   type: string;
   purpose: 'any' | 'maskable';
+  webp?: string;
 };
 
 type SiteSettingsType = {
@@ -122,7 +124,8 @@ export function SiteSettings() {
               src: icon.src || "",
               sizes: icon.sizes || "",
               type: icon.type || "",
-              purpose: icon.purpose || 'any'
+              purpose: icon.purpose || 'any',
+              webp: icon.webp || ''
             }))
           : [];
 
@@ -193,32 +196,68 @@ export function SiteSettings() {
     return `${url}?t=${Date.now()}`;
   };
 
-  const handlePWAIconUpload = (url: string, size: number, purpose: 'any' | 'maskable') => {
-    setSettings(prev => {
-      const newIcons = [...(prev.pwa_icons || [])];
-      const fileName = purpose === 'maskable' ? `icon-${size}-maskable` : `icon-${size}`;
-      const existingIconIndex = newIcons.findIndex(
-        icon => icon.sizes === `${size}x${size}` && icon.purpose === purpose
-      );
+  const handlePWAIconUpload = async (url: string, size: number, purpose: 'any' | 'maskable') => {
+    console.log('Handling PWA icon upload:', { size, purpose, url });
+    
+    try {
+      // Fetch the original file
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const originalFile = new File([blob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.png`, { type: 'image/png' });
       
-      const newIcon = {
-        src: url,
-        sizes: `${size}x${size}`,
-        type: 'image/png',
-        purpose
-      };
+      // Convert to WebP
+      console.log('Converting to WebP...');
+      const { webpBlob } = await convertToWebP(originalFile);
+      const webpFile = new File([webpBlob], `icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.webp`, { type: 'image/webp' });
+      
+      // Upload WebP version
+      const { data: webpUpload, error: webpError } = await supabase.storage
+        .from('media')
+        .upload(`sitesettings/pwa/icon-${size}${purpose === 'maskable' ? '-maskable' : ''}.webp`, webpFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
-      if (existingIconIndex >= 0) {
-        newIcons[existingIconIndex] = newIcon;
-      } else {
-        newIcons.push(newIcon);
+      if (webpError) {
+        console.error('Error uploading WebP version:', webpError);
+        throw webpError;
       }
 
-      return {
-        ...prev,
-        pwa_icons: newIcons
-      };
-    });
+      console.log('WebP version uploaded successfully');
+
+      // Update settings with both versions
+      setSettings(prev => {
+        const newIcons = [...(prev.pwa_icons || [])];
+        const fileName = purpose === 'maskable' ? `icon-${size}-maskable` : `icon-${size}`;
+        const existingIconIndex = newIcons.findIndex(
+          icon => icon.sizes === `${size}x${size}` && icon.purpose === purpose
+        );
+        
+        const newIcon = {
+          src: url, // PNG version
+          sizes: `${size}x${size}`,
+          type: 'image/png',
+          purpose,
+          webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
+        };
+
+        if (existingIconIndex >= 0) {
+          newIcons[existingIconIndex] = newIcon;
+        } else {
+          newIcons.push(newIcon);
+        }
+
+        return {
+          ...prev,
+          pwa_icons: newIcons
+        };
+      });
+
+      console.log('Settings updated with new icon versions');
+    } catch (error) {
+      console.error('Error in handlePWAIconUpload:', error);
+      toast.error('Failed to process icon upload');
+    }
   };
 
   return (
