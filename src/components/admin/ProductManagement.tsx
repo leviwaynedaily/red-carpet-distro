@@ -165,6 +165,43 @@ export function ProductManagement() {
     }
   };
 
+  const handleDeleteMedia = async (productId: string, type: 'image' | 'video') => {
+    try {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      // Delete from storage first
+      const filePath = type === 'image' ? product.image_url : product.video_url;
+      if (filePath) {
+        const filePathParts = filePath.split('/');
+        const fileName = filePathParts[filePathParts.length - 1];
+        const { error: storageError } = await supabase.storage
+          .from('media')
+          .remove([`products/${productId}/${fileName}`]);
+
+        if (storageError) throw storageError;
+      }
+
+      // Update product record
+      const updateData = type === 'image' 
+        ? { image_url: null, media: null }
+        : { video_url: null, primary_media_type: 'image' };
+
+      const { error: dbError } = await supabase
+        .from("products")
+        .update(updateData)
+        .eq("id", productId);
+
+      if (dbError) throw dbError;
+
+      toast.success(`${type === 'image' ? 'Image' : 'Video'} deleted successfully`);
+      fetchProducts();
+    } catch (error) {
+      console.error(`Error deleting ${type}:`, error);
+      toast.error(`Failed to delete ${type}`);
+    }
+  };
+
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -256,21 +293,36 @@ export function ProductManagement() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {product.image_url && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMediaClick('image', product.image_url!);
-                          }}
-                        >
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="w-16 h-16 object-cover rounded-md"
-                          />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMediaClick('image', product.image_url!);
+                            }}
+                          >
+                            <img
+                              src={product.image_url}
+                              alt={product.name}
+                              className="w-16 h-16 object-cover rounded-md"
+                            />
+                          </Button>
+                          {editingProduct === product.id && (
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteMedia(product.id, 'image');
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       )}
                       {editingProduct === product.id && (
                         <FileUpload
@@ -290,16 +342,31 @@ export function ProductManagement() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {product.video_url && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMediaClick('video', product.video_url!);
-                          }}
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMediaClick('video', product.video_url!);
+                            }}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                          {editingProduct === product.id && (
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteMedia(product.id, 'video');
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       )}
                       {editingProduct === product.id && (
                         <FileUpload
