@@ -193,32 +193,34 @@ export function SiteSettings() {
     return `${url}?t=${Date.now()}`;
   };
 
-  const handlePWAIconUpload = (url: string, size: number, purpose: 'any' | 'maskable') => {
-    setSettings(prev => {
-      const newIcons = [...(prev.pwa_icons || [])];
-      const fileName = purpose === 'maskable' ? `icon-${size}-maskable` : `icon-${size}`;
-      const existingIconIndex = newIcons.findIndex(
-        icon => icon.sizes === `${size}x${size}` && icon.purpose === purpose
-      );
-      
-      const newIcon = {
-        src: url,
-        sizes: `${size}x${size}`,
-        type: 'image/png',
-        purpose
-      };
+  const handleFaviconUpload = async (url: string, fileType: string) => {
+    console.log('Handling favicon upload:', { url, fileType });
+    
+    // Determine the correct filename based on file type
+    const fileName = fileType === 'image/x-icon' ? 'favicon.ico' : 'favicon.png';
+    
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .update({
+          favicon_url: url
+        })
+        .eq('id', settings.id);
 
-      if (existingIconIndex >= 0) {
-        newIcons[existingIconIndex] = newIcon;
-      } else {
-        newIcons.push(newIcon);
+      if (error) throw error;
+
+      // Update favicon in the document head
+      const existingFavicon = document.querySelector("link[rel='icon']");
+      if (existingFavicon) {
+        existingFavicon.setAttribute('href', url);
       }
 
-      return {
-        ...prev,
-        pwa_icons: newIcons
-      };
-    });
+      toast.success('Favicon updated successfully');
+      console.log('Favicon updated:', { url, fileName });
+    } catch (error) {
+      console.error('Error updating favicon:', error);
+      toast.error('Failed to update favicon');
+    }
   };
 
   return (
@@ -459,6 +461,55 @@ export function SiteSettings() {
                     placeholder="Enter site description"
                     className="min-h-[100px]"
                   />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Favicon Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>ICO Favicon</Label>
+                    {settings.favicon_url && settings.favicon_url.endsWith('.ico') && (
+                      <img
+                        src={addCacheBuster(settings.favicon_url)}
+                        alt="ICO Favicon"
+                        className="w-16 h-16 object-contain rounded-md mb-2"
+                      />
+                    )}
+                    <FileUpload
+                      onUploadComplete={(url) => handleFaviconUpload(url, 'image/x-icon')}
+                      accept=".ico"
+                      folderPath="sitesettings"
+                      fileName="favicon"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Upload .ico file for better browser compatibility
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>PNG Favicon</Label>
+                    {settings.favicon_url && settings.favicon_url.endsWith('.png') && (
+                      <img
+                        src={addCacheBuster(settings.favicon_url)}
+                        alt="PNG Favicon"
+                        className="w-16 h-16 object-contain rounded-md mb-2"
+                      />
+                    )}
+                    <FileUpload
+                      onUploadComplete={(url) => handleFaviconUpload(url, 'image/png')}
+                      accept=".png"
+                      folderPath="sitesettings"
+                      fileName="favicon"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Upload .png file for high-resolution displays
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
