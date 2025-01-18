@@ -8,6 +8,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/ui/file-upload";
 import { convertToWebP } from "@/utils/imageUtils";
 import { ProductTable } from "./ProductTable";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 type Product = Tables<"products">;
 
@@ -54,6 +56,41 @@ export function ProductManagement() {
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load products");
+    }
+  };
+
+  const handleAddProduct = async () => {
+    try {
+      console.log('ProductManagement: Creating new product');
+      const newProduct = {
+        name: "New Product",
+        stock: 0,
+        regular_price: 0,
+        shipping_price: 0,
+      };
+
+      const { data, error } = await supabase
+        .from("products")
+        .insert([newProduct])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('ProductManagement: Error creating product:', error);
+        throw error;
+      }
+
+      console.log('ProductManagement: Product created successfully:', data);
+      toast.success("Product created successfully");
+      await fetchProducts();
+      
+      // Start editing the new product immediately
+      if (data) {
+        handleEditStart(data);
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+      toast.error("Failed to create product");
     }
   };
 
@@ -332,6 +369,13 @@ export function ProductManagement() {
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <CategoryManagement />
+        <Button 
+          onClick={handleAddProduct}
+          className="w-full md:w-auto"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Product
+        </Button>
       </div>
 
       <ProductTableFilters
