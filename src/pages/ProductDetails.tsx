@@ -31,11 +31,15 @@ export default function ProductDetails() {
         throw productError;
       }
 
+      // Transform the data to include categories and handle media
       const transformedProduct = {
         ...productData,
         categories: productData.product_categories
           ?.map(pc => pc.category?.name)
-          .filter(Boolean) || []
+          .filter(Boolean) || [],
+        media: typeof productData.media === 'string' 
+          ? JSON.parse(productData.media)
+          : productData.media
       };
 
       console.log('ProductDetails: Successfully fetched product:', transformedProduct);
