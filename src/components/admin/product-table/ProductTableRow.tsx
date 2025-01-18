@@ -49,7 +49,7 @@ export function ProductTableRow({
   return (
     <TableRow 
       key={product.id}
-      className="cursor-pointer"
+      className={`cursor-pointer ${isEditing ? 'bg-muted/50' : ''}`}
       onClick={() => !isEditing && onEditStart(product)}
       onKeyDown={handleKeyDown}
     >

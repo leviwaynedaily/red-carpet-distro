@@ -42,15 +42,25 @@ export function ProductTableCell({
 
   const handleCategoryToggle = (categoryName: string, checked: boolean) => {
     const currentCategories = editValues.categories || [];
-    let newCategories: string[];
-    
-    if (checked) {
-      newCategories = [...currentCategories, categoryName];
-    } else {
-      newCategories = currentCategories.filter(cat => cat !== categoryName);
-    }
+    const newCategories: string[] = checked 
+      ? [...currentCategories, categoryName]
+      : currentCategories.filter(cat => cat !== categoryName);
     
     onEditChange({ ...editValues, categories: newCategories });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    e.stopPropagation();
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      // Let the parent handle tab navigation
+      const nextInput = e.shiftKey 
+        ? e.currentTarget.parentElement?.previousElementSibling?.querySelector('input')
+        : e.currentTarget.parentElement?.nextElementSibling?.querySelector('input');
+      if (nextInput instanceof HTMLElement) {
+        nextInput.focus();
+      }
+    }
   };
 
   const renderCell = (): ReactNode => {
@@ -63,7 +73,8 @@ export function ProductTableCell({
             value={editValues[column as keyof Product]?.toString() || ''}
             onChange={(e) => handleInputChange(column as keyof Product, e.target.value)}
             onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
           />
         ) : (
           product[column as keyof Product]?.toString() || '-'
@@ -71,7 +82,7 @@ export function ProductTableCell({
 
       case 'image':
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             {product.image_url && (
               <div className="flex items-center gap-2">
                 <Button
@@ -82,6 +93,7 @@ export function ProductTableCell({
                     e.stopPropagation();
                     onMediaClick?.('image', product.image_url!);
                   }}
+                  tabIndex={isEditing ? 0 : -1}
                 >
                   <img
                     src={product.image_url}
@@ -98,6 +110,7 @@ export function ProductTableCell({
                       e.stopPropagation();
                       onDeleteMedia?.(product.id, 'image');
                     }}
+                    tabIndex={0}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -120,7 +133,7 @@ export function ProductTableCell({
 
       case 'video_url':
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             {product.video_url && (
               <div className="flex items-center gap-2">
                 <Button
@@ -130,6 +143,7 @@ export function ProductTableCell({
                     e.stopPropagation();
                     onMediaClick?.('video', product.video_url!);
                   }}
+                  tabIndex={isEditing ? 0 : -1}
                 >
                   <Play className="h-4 w-4" />
                 </Button>
@@ -142,6 +156,7 @@ export function ProductTableCell({
                       e.stopPropagation();
                       onDeleteMedia?.(product.id, 'video');
                     }}
+                    tabIndex={0}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -173,6 +188,7 @@ export function ProductTableCell({
                   onCheckedChange={(checked) => 
                     handleCategoryToggle(category.name, checked === true)
                   }
+                  tabIndex={0}
                 />
                 <label
                   htmlFor={`category-${category.id}`}
@@ -194,7 +210,8 @@ export function ProductTableCell({
             value={editValues.stock?.toString() || '0'}
             onChange={(e) => handleInputChange('stock', parseInt(e.target.value))}
             onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
           />
         ) : (
           product.stock?.toString() || '-'
@@ -208,7 +225,8 @@ export function ProductTableCell({
             value={editValues[column as keyof Product]?.toString() || '0'}
             onChange={(e) => handleInputChange(column as keyof Product, parseFloat(e.target.value))}
             onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
           />
         ) : (
           formatPrice(product[column as keyof Product] as number)
