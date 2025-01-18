@@ -8,8 +8,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Header } from "@/components/Header";
 
-console.log('Index.tsx: Component loading');
-
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -59,7 +57,7 @@ const Index = () => {
         onSortChange={handleSortChange}
         onLogoClick={handleLogoClick}
       />
-      <main className="container mx-auto px-4 mt-40 md:mt-48">
+      <main className="container mx-auto px-4 pt-[calc(theme(spacing.40)+theme(spacing.24))] md:pt-[calc(theme(spacing.48)+theme(spacing.24))]">
         <ProductGrid
           searchTerm={searchTerm}
           categoryFilter={categoryFilter}
