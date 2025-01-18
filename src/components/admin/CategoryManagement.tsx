@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/ui/file-upload";
 import { toast } from "sonner";
+import { Upload } from "lucide-react"; // Add this import
 
 interface Category {
   id: string;

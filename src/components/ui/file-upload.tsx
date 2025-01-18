@@ -59,7 +59,11 @@ export function FileUpload({
         const input = document.createElement("input");
         input.type = "file";
         input.accept = accept;
-        input.onchange = (e) => handleFileChange(e as React.ChangeEvent<HTMLInputElement>);
+        input.onchange = (e) => {
+          // Cast the event to the correct type
+          const inputEvent = e as unknown as React.ChangeEvent<HTMLInputElement>;
+          handleFileChange(inputEvent);
+        };
         input.click();
       }}
     >
