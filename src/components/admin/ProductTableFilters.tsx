@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, FileDown, FileUp } from "lucide-react";
+import { Download, Upload, FileDown } from "lucide-react";
 
 interface Column {
   label: string;
@@ -19,9 +19,9 @@ interface ProductTableFiltersProps {
   columns: Column[];
   visibleColumns: string[];
   onColumnToggle: (column: string) => void;
-  onImport: () => void;
-  onExport: () => void;
-  onDownloadTemplate: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
+  onDownloadTemplate?: () => void;
 }
 
 export function ProductTableFilters({
@@ -62,18 +62,24 @@ export function ProductTableFilters({
         </DropdownMenu>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="outline" onClick={onDownloadTemplate}>
-          <FileDown className="h-4 w-4 mr-2" />
-          Template
-        </Button>
-        <Button variant="outline" onClick={onImport}>
-          <FileUp className="h-4 w-4 mr-2" />
-          Import
-        </Button>
-        <Button variant="outline" onClick={onExport}>
-          <Download className="h-4 w-4 mr-2" />
-          Export
-        </Button>
+        {onDownloadTemplate && (
+          <Button variant="outline" onClick={onDownloadTemplate}>
+            <FileDown className="h-4 w-4 mr-2" />
+            Template
+          </Button>
+        )}
+        {onImport && (
+          <Button variant="outline" onClick={onImport}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import
+          </Button>
+        )}
+        {onExport && (
+          <Button variant="outline" onClick={onExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        )}
       </div>
     </div>
   );

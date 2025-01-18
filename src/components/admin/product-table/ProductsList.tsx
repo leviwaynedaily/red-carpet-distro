@@ -2,8 +2,8 @@ import { ProductTable } from "./ProductTable";
 import { ProductMobileGrid } from "./ProductMobileGrid";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProducts } from "@/hooks/useProducts";
-import { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
 
