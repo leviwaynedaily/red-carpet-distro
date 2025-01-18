@@ -673,18 +673,22 @@ export function SiteSettings() {
                 <Label>Preview Image</Label>
                 <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                   {settings.og_image && (
-                    <div className="flex items-center space-x-2">
-                      <img
-                        src={`https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.png`}
-                        alt="Open Graph preview"
-                        className="w-full h-48 object-cover rounded-md mb-2"
-                      />
-                      <IconStatus 
-                        status={{
-                          png: !!settings.og_image,
-                          webp: !!settings.og_image_webp
-                        }}
-                      />
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex-1">
+                        <img
+                          src={settings.og_image}
+                          alt="Open Graph preview"
+                          className="w-full h-48 object-cover rounded-md mb-2"
+                        />
+                      </div>
+                      <div className="ml-4">
+                        <IconStatus 
+                          status={{
+                            png: !!settings.og_image,
+                            webp: !!settings.og_image_webp
+                          }}
+                        />
+                      </div>
                     </div>
                   )}
                   <div className="p-4">
