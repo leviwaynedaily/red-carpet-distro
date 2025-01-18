@@ -40,9 +40,7 @@ type SiteSettingsType = {
   pwa_start_url: string;
   pwa_icons: PWAIcon[];
   pwa_desktop_screenshot?: string;
-  pwa_desktop_screenshot_webp?: string;
   pwa_mobile_screenshot?: string;
-  pwa_mobile_screenshot_webp?: string;
   og_title: string;
   og_description: string;
   og_image: string;
@@ -204,104 +202,54 @@ export function SiteSettings() {
     try {
       const response = await fetch(url);
       const blob = await response.blob();
-      const originalFile = new File([blob], `${type}-screenshot.png`, { type: 'image/png' });
+      const originalFile = new File([blob], `${type}_screenshot.png`, { type: 'image/png' });
       
       console.log('Converting to WebP...');
       const { webpBlob } = await convertToWebP(originalFile);
-      const webpFile = new File([webpBlob], `${type}-screenshot.webp`, { type: 'image/webp' });
+      const webpFile = new File([webpBlob], `${type}_screenshot.webp`, { type: 'image/webp' });
       
-      const { data: webpUpload, error: webpError } = await supabase.storage
+      // Upload WebP version
+      const { error: webpError } = await supabase.storage
         .from('media')
-        .upload(`sitesettings/pwa/${type}-screenshot.webp`, webpFile, {
+        .upload(`sitesettings/pwa/${type}_screenshot.webp`, webpFile, {
+          contentType: 'image/webp',
           cacheControl: '3600',
           upsert: true
         });
 
       if (webpError) {
-        console.error('Error uploading WebP version:', webpError);
+        console.error('Error uploading WebP screenshot:', webpError);
         throw webpError;
       }
 
       console.log('WebP version uploaded successfully');
 
+      // Update settings with both URLs
       setSettings(prev => ({
         ...prev,
         [`pwa_${type}_screenshot`]: url,
-        [`pwa_${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${type}-screenshot.webp`
+        media: {
+          ...prev.media,
+          [`${type}_screenshot`]: {
+            png: url,
+            webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${type}_screenshot.webp`
+          }
+        }
       }));
 
       console.log('Settings updated with new screenshot versions');
     } catch (error) {
-      console.error(`Error in handle${type}ScreenshotUpload:`, error);
+      console.error('Error in handleScreenshotUpload:', error);
       toast.error('Failed to process screenshot upload');
     }
   };
 
   const getScreenshotStatus = (type: 'desktop' | 'mobile') => {
-    const png = settings[`pwa_${type}_screenshot`];
-    const webp = settings[`pwa_${type}_screenshot_webp`];
+    const mediaData = settings.media as Record<string, { png: string; webp: string; }> | null;
     return {
-      png: !!png,
-      webp: !!webp
+      png: !!settings[`pwa_${type}_screenshot`],
+      webp: !!(mediaData?.[`${type}_screenshot`]?.webp)
     };
-  };
-
-  const getIconStatus = (icon?: PWAIcon) => {
-    return {
-      png: !!icon?.src,
-      webp: !!icon?.webp
-    };
-  };
-
-  const handlePWAIconUpload = async (url: string, size: number, purpose: 'any' | 'maskable') => {
-    console.log(`Handling PWA icon upload for size ${size}x${size}, purpose: ${purpose}`);
-    
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const originalFile = new File([blob], `icon-${size}-${purpose}.png`, { type: 'image/png' });
-      
-      console.log('Converting to WebP...');
-      const { webpBlob } = await convertToWebP(originalFile);
-      const webpFile = new File([webpBlob], `icon-${size}-${purpose}.webp`, { type: 'image/webp' });
-      
-      const { data: webpUpload, error: webpError } = await supabase.storage
-        .from('media')
-        .upload(`sitesettings/pwa/icon-${size}-${purpose}.webp`, webpFile, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (webpError) {
-        console.error('Error uploading WebP version:', webpError);
-        throw webpError;
-      }
-
-      console.log('WebP version uploaded successfully');
-
-      const newIcon: PWAIcon = {
-        src: url,
-        sizes: `${size}x${size}`,
-        type: 'image/png',
-        purpose: purpose,
-        webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-${size}-${purpose}.webp`
-      };
-
-      setSettings(prev => ({
-        ...prev,
-        pwa_icons: [
-          ...prev.pwa_icons.filter(icon => 
-            !(icon.sizes === `${size}x${size}` && icon.purpose === purpose)
-          ),
-          newIcon
-        ]
-      }));
-
-      console.log('Settings updated with new icon versions');
-    } catch (error) {
-      console.error(`Error in handlePWAIconUpload:`, error);
-      toast.error('Failed to process icon upload');
-    }
   };
 
   return (
@@ -591,164 +539,89 @@ export function SiteSettings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Desktop Screenshot (Wide)</Label>
-                <div className="flex items-center space-x-2">
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                   {settings.pwa_desktop_screenshot && (
-                    <img 
-                      src={addCacheBuster(settings.pwa_desktop_screenshot)} 
-                      alt="Desktop screenshot" 
-                      className="w-32 h-32 object-cover rounded-md"
-                    />
+                    <div className="relative">
+                      <img 
+                        src={addCacheBuster(settings.pwa_desktop_screenshot)} 
+                        alt="Desktop screenshot" 
+                        className="w-full h-32 object-cover rounded-md mb-2"
+                      />
+                      <div className="absolute top-2 right-2 bg-black/70 rounded px-2 py-1">
+                        <div className="flex flex-col space-y-1 text-sm text-white">
+                          {(() => {
+                            const status = getScreenshotStatus('desktop');
+                            return (
+                              <>
+                                <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
+                                  {status.png ? '✓' : '○'} PNG
+                                </span>
+                                <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
+                                  {status.webp ? '✓' : '○'} WebP
+                                </span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </div>
                   )}
-                  <div className="flex flex-col space-y-1 text-sm">
-                    {(() => {
-                      const status = getScreenshotStatus('desktop');
-                      return (
-                        <>
-                          <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
-                            {status.png ? '✓' : '○'} PNG
-                          </span>
-                          <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
-                            {status.webp ? '✓' : '○'} WebP
-                          </span>
-                        </>
-                      );
-                    })()}
+                  <div className="p-4">
+                    <FileUpload
+                      onUploadComplete={(url) => handleScreenshotUpload(url, 'desktop')}
+                      accept="image/*"
+                      folderPath="sitesettings/pwa"
+                      fileName="desktop_screenshot.png"
+                    />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Add a wide screenshot for desktop PWA install UI
+                    </p>
                   </div>
                 </div>
-                <FileUpload
-                  onUploadComplete={(url) => handleScreenshotUpload(url, 'desktop')}
-                  accept="image/*"
-                  folderPath="sitesettings/pwa"
-                  fileName="desktop-screenshot"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Add a wide screenshot for desktop PWA install UI
-                </p>
               </div>
 
               <div className="space-y-2">
                 <Label>Mobile Screenshot</Label>
-                <div className="flex items-center space-x-2">
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                   {settings.pwa_mobile_screenshot && (
-                    <img 
-                      src={addCacheBuster(settings.pwa_mobile_screenshot)} 
-                      alt="Mobile screenshot" 
-                      className="w-32 h-32 object-cover rounded-md"
-                    />
+                    <div className="relative">
+                      <img 
+                        src={addCacheBuster(settings.pwa_mobile_screenshot)} 
+                        alt="Mobile screenshot" 
+                        className="w-full h-32 object-cover rounded-md mb-2"
+                      />
+                      <div className="absolute top-2 right-2 bg-black/70 rounded px-2 py-1">
+                        <div className="flex flex-col space-y-1 text-sm text-white">
+                          {(() => {
+                            const status = getScreenshotStatus('mobile');
+                            return (
+                              <>
+                                <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
+                                  {status.png ? '✓' : '○'} PNG
+                                </span>
+                                <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
+                                  {status.webp ? '✓' : '○'} WebP
+                                </span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </div>
                   )}
-                  <div className="flex flex-col space-y-1 text-sm">
-                    {(() => {
-                      const status = getScreenshotStatus('mobile');
-                      return (
-                        <>
-                          <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
-                            {status.png ? '✓' : '○'} PNG
-                          </span>
-                          <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
-                            {status.webp ? '✓' : '○'} WebP
-                          </span>
-                        </>
-                      );
-                    })()}
+                  <div className="p-4">
+                    <FileUpload
+                      onUploadComplete={(url) => handleScreenshotUpload(url, 'mobile')}
+                      accept="image/*"
+                      folderPath="sitesettings/pwa"
+                      fileName="mobile_screenshot.png"
+                    />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Add a mobile-optimized screenshot for PWA install UI
+                    </p>
                   </div>
                 </div>
-                <FileUpload
-                  onUploadComplete={(url) => handleScreenshotUpload(url, 'mobile')}
-                  accept="image/*"
-                  folderPath="sitesettings/pwa"
-                  fileName="mobile-screenshot"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Add a mobile-optimized screenshot for PWA install UI
-                </p>
               </div>
-            </div>
-
-            <h3 className="text-lg font-medium mt-6">PWA Icons</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {PWA_ICON_SIZES.map((size) => (
-                <div key={size} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>{size}x{size} Regular Icon</Label>
-                    <div className="flex items-center space-x-2">
-                      {settings.pwa_icons?.find(
-                        icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                      )?.src && (
-                        <img 
-                          src={addCacheBuster(settings.pwa_icons.find(
-                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                          )?.src)}
-                          alt={`${size}x${size} regular icon`} 
-                          className="w-16 h-16 object-contain rounded-md"
-                        />
-                      )}
-                      <div className="flex flex-col space-y-1 text-sm">
-                        {(() => {
-                          const status = getIconStatus(settings.pwa_icons?.find(
-                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                          ));
-                          return (
-                            <>
-                              <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
-                                {status.png ? '✓' : '○'} PNG
-                              </span>
-                              <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
-                                {status.webp ? '✓' : '○'} WebP
-                              </span>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                    <FileUpload
-                      onUploadComplete={(url) => handlePWAIconUpload(url, size, 'any')}
-                      accept="image/png"
-                      folderPath="sitesettings/pwa"
-                      fileName={`icon-${size}`}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>{size}x{size} Maskable Icon</Label>
-                    <div className="flex items-center space-x-2">
-                      {settings.pwa_icons?.find(
-                        icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                      )?.src && (
-                        <img 
-                          src={addCacheBuster(settings.pwa_icons.find(
-                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                          )?.src)}
-                          alt={`${size}x${size} maskable icon`} 
-                          className="w-16 h-16 object-contain rounded-md"
-                        />
-                      )}
-                      <div className="flex flex-col space-y-1 text-sm">
-                        {(() => {
-                          const status = getIconStatus(settings.pwa_icons?.find(
-                            icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                          ));
-                          return (
-                            <>
-                              <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
-                                {status.png ? '✓' : '○'} PNG
-                              </span>
-                              <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
-                                {status.webp ? '✓' : '○'} WebP
-                              </span>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                    <FileUpload
-                      onUploadComplete={(url) => handlePWAIconUpload(url, size, 'maskable')}
-                      accept="image/png"
-                      folderPath="sitesettings/pwa"
-                      fileName={`icon-${size}-maskable`}
-                    />
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </TabsContent>
