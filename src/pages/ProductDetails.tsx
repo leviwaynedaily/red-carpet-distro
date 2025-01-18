@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Image } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -86,7 +86,7 @@ const ProductDetails = () => {
         <div className="relative">
           <Carousel className="w-full max-w-[600px]">
             <CarouselContent>
-              {product.image_url && (
+              {product.image_url ? (
                 <CarouselItem>
                   <div className="aspect-square relative">
                     <img
@@ -103,6 +103,17 @@ const ProductDetails = () => {
                       <Download className="mr-2 h-4 w-4" />
                       Download Image
                     </Button>
+                  </div>
+                </CarouselItem>
+              ) : (
+                <CarouselItem>
+                  <div className="aspect-square relative rounded-lg bg-gray-100">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center p-4">
+                        <Image className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                        <p className="text-sm text-gray-500">Image coming soon</p>
+                      </div>
+                    </div>
                   </div>
                 </CarouselItem>
               )}
