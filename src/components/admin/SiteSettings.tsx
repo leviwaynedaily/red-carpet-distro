@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { updateRootColors } from "@/utils/colorUtils";
+import { convertToWebP } from "@/utils/imageUtils";
 import { ColorSettings } from "./settings/ColorSettings";
 import { LogoSettings } from "./settings/LogoSettings";
 import { DescriptionSettings } from "./settings/DescriptionSettings";
