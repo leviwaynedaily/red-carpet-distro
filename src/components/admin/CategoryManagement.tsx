@@ -108,13 +108,13 @@ export function CategoryManagement() {
       );
 
       for (const product of productsToUpdate) {
-        const updatedCategories = product.categories.map((cat: string) => 
-          cat === oldName ? newName : cat
-        );
+        // Remove duplicates and replace old category name with new one
+        const uniqueCategories = Array.from(new Set(product.categories))
+          .map(cat => cat === oldName ? newName : cat);
 
         const { error: productError } = await supabase
           .from("products")
-          .update({ categories: updatedCategories })
+          .update({ categories: uniqueCategories })
           .eq("id", product.id);
 
         if (productError) {
