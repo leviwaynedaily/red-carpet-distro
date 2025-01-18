@@ -1,182 +1,82 @@
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { FileUpload } from "@/components/ui/file-upload";
-import { Tables } from "@/integrations/supabase/types";
-import { Badge } from "@/components/ui/badge";
-import { Image, Play, Upload } from "lucide-react";
-
-type Product = Tables<"products">;
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Edit, Trash2 } from "lucide-react";
 
 interface AdminProductCardProps {
-  product: Product;
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  categories: string[];
+  strain?: string;
+  stock?: number;
+  regular_price?: number;
+  shipping_price?: number;
+  onUpdate: () => void;
+  onDelete: (id: string) => void;
   onEdit: () => void;
-  onDelete: () => void;
-  onImageUpload: (productId: string, url: string) => void;
-  onVideoUpload: (productId: string, url: string) => void;
-  onMediaClick: (type: 'image' | 'video', url: string) => void;
-  isEditing: boolean;
-  editValues: Partial<Product>;
-  onEditChange: (values: Partial<Product>) => void;
-  onEditSave: () => void;
-  onEditCancel: () => void;
+  'data-product-id'?: string;
 }
 
-export function AdminProductCard({
-  product,
-  onEdit,
+export const AdminProductCard = ({
+  id,
+  name,
+  description,
+  image,
+  categories,
+  strain,
+  stock,
+  regular_price,
+  shipping_price,
   onDelete,
-  onImageUpload,
-  onVideoUpload,
-  onMediaClick,
-  isEditing,
-  editValues,
-  onEditChange,
-  onEditSave,
-  onEditCancel
-}: AdminProductCardProps) {
-  const handleChange = (field: keyof Product, value: any) => {
-    onEditChange({ ...editValues, [field]: value });
-  };
-
-  const renderImage = () => {
-    if (!product.image_url && (!product.media || typeof product.media !== 'object' || !('webp' in product.media))) {
-      return (
-        <div className="aspect-square flex items-center justify-center bg-gray-100">
-          <div className="text-center p-4">
-            <Image className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-            <p className="text-sm text-gray-500">Image coming soon</p>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div 
-        className="aspect-square cursor-pointer"
-        onClick={() => onMediaClick('image', product.image_url || '')}
-      >
-        <picture>
-          {product.media && typeof product.media === 'object' && 'webp' in product.media && (
-            <source srcSet={product.media.webp as string} type="image/webp" />
-          )}
-          <img
-            src={product.image_url || ''}
-            alt={product.name}
-            className="w-full h-full object-cover"
-          />
-        </picture>
-      </div>
-    );
-  };
-
-  if (isEditing) {
-    return (
-      <Card className="overflow-hidden">
-        <CardContent className="p-4 space-y-4">
-          <Input
-            value={editValues.name || ''}
-            onChange={(e) => handleChange('name', e.target.value)}
-            placeholder="Product name"
-          />
-          <Textarea
-            value={editValues.description || ''}
-            onChange={(e) => handleChange('description', e.target.value)}
-            placeholder="Description"
-          />
-          <Input
-            value={editValues.strain || ''}
-            onChange={(e) => handleChange('strain', e.target.value)}
-            placeholder="Strain"
-          />
-          <Input
-            type="number"
-            value={editValues.regular_price || ''}
-            onChange={(e) => handleChange('regular_price', parseFloat(e.target.value))}
-            placeholder="Price"
-          />
-          <Input
-            type="number"
-            value={editValues.shipping_price || ''}
-            onChange={(e) => handleChange('shipping_price', parseFloat(e.target.value))}
-            placeholder="Shipping"
-          />
-          <Input
-            type="number"
-            value={editValues.stock || ''}
-            onChange={(e) => handleChange('stock', parseInt(e.target.value))}
-            placeholder="Stock"
-          />
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2 p-4">
-          <Button variant="outline" onClick={onEditCancel}>Cancel</Button>
-          <Button onClick={onEditSave}>Save</Button>
-        </CardFooter>
-      </Card>
-    );
-  }
-
+  onEdit,
+  'data-product-id': dataProductId,
+}: AdminProductCardProps) => {
   return (
-    <Card className="overflow-hidden">
-      {renderImage()}
-      <CardContent className="p-4">
-        <div className="mb-2">
-          {product.categories?.map((category) => (
-            <Badge key={category} variant="secondary" className="mr-1">
-              {category}
-            </Badge>
-          ))}
+    <Card 
+      className="overflow-hidden"
+      data-product-id={dataProductId}
+    >
+      <CardHeader className="p-0 relative aspect-square">
+        <img
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute top-2 right-2 flex gap-2">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="rounded-full w-8 h-8"
+            onClick={onEdit}
+            aria-label="Edit product"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="destructive"
+            className="rounded-full w-8 h-8"
+            onClick={() => onDelete(id)}
+            aria-label="Delete product"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
-        <h3 className="font-semibold mb-1">{product.name}</h3>
-        <p className="text-sm text-gray-600 mb-2 line-clamp-2">{product.description}</p>
-        {product.strain && (
-          <p className="text-sm text-gray-600">Strain: {product.strain}</p>
-        )}
-        <div className="mt-2">
-          {product.regular_price && (
-            <p className="font-medium">${product.regular_price}</p>
+      </CardHeader>
+      <CardContent className="p-4">
+        <h3 className="font-bold truncate">{name}</h3>
+        <p className="text-sm text-gray-600 line-clamp-2 mt-1" dangerouslySetInnerHTML={{ __html: description.replace(/,/g, ', ') }} />
+        <div className="mt-2 space-y-1 text-sm text-gray-600">
+          {categories?.length > 0 && (
+            <div>Categories: {categories.join(', ')}</div>
           )}
-          {product.shipping_price && (
-            <p className="text-sm text-gray-600">+${product.shipping_price} shipping</p>
-          )}
-          {product.stock && (
-            <p className="text-sm text-gray-600">{product.stock} in stock</p>
-          )}
+          {strain && <div>Strain: {strain}</div>}
+          {stock !== undefined && <div>Stock: {stock}</div>}
+          {regular_price !== undefined && <div>Price: ${regular_price}</div>}
+          {shipping_price !== undefined && <div>Shipping: ${shipping_price}</div>}
         </div>
       </CardContent>
-      <CardFooter className="p-4 flex flex-wrap gap-2">
-        <FileUpload
-          onUploadComplete={(url) => onImageUpload(product.id, url)}
-          accept="image/*"
-          bucket="media"
-          folderPath={`products/${product.id}`}
-          fileName="image"
-        >
-          <Button variant="outline" size="sm">
-            <Upload className="h-4 w-4 mr-2" />
-            Image
-          </Button>
-        </FileUpload>
-        <FileUpload
-          onUploadComplete={(url) => onVideoUpload(product.id, url)}
-          accept="video/*"
-          bucket="media"
-          folderPath={`products/${product.id}`}
-          fileName="video"
-        >
-          <Button variant="outline" size="sm">
-            <Play className="h-4 w-4 mr-2" />
-            Video
-          </Button>
-        </FileUpload>
-        <Button variant="outline" size="sm" onClick={onEdit}>
-          Edit
-        </Button>
-        <Button variant="destructive" size="sm" onClick={onDelete}>
-          Delete
-        </Button>
-      </CardFooter>
     </Card>
   );
-}
+};
