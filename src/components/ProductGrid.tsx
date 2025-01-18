@@ -18,7 +18,7 @@ export const ProductGrid = ({
   sortBy,
 }: ProductGridProps) => {
   const { data: products, isLoading, error } = useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', 'categories'],
     queryFn: async () => {
       console.log('ProductGrid: Fetching products');
       const { data, error } = await supabase
