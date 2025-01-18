@@ -330,6 +330,134 @@ export function SiteSettings() {
     }
   };
 
+  const handlePWAIconUpload = async (url: string, size: number) => {
+    console.log('Handling PWA icon upload:', { url, size });
+    try {
+      const { data: settings } = await supabase
+        .from('site_settings')
+        .select('pwa_icons')
+        .single();
+
+      const currentIcons = settings?.pwa_icons || [];
+
+      // Convert the uploaded image to WebP
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const originalFile = new File([blob], 'icon.png', { type: 'image/png' });
+
+      console.log('Converting to WebP...');
+      const { webpBlob } = await convertToWebP(originalFile);
+      const webpFile = new File([webpBlob], 'icon.webp', { type: 'image/webp' });
+
+      // Upload WebP version
+      const webpPath = `pwa/icons/icon-${size}x${size}.webp`;
+      const { data: webpUpload, error: webpError } = await supabase.storage
+        .from('media')
+        .upload(webpPath, webpFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (webpError) throw webpError;
+
+      const webpUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/${webpPath}`;
+
+      const newIcon = {
+        src: url,
+        sizes: `${size}x${size}`,
+        type: 'image/png',
+        purpose: 'any',
+        webp: webpUrl
+      };
+
+      const updatedIcons = [...currentIcons, newIcon];
+
+      const { error: updateError } = await supabase
+        .from('site_settings')
+        .update({ pwa_icons: updatedIcons })
+        .eq('id', settings.id);
+
+      if (updateError) throw updateError;
+
+      setSettings(prev => ({
+        ...prev,
+        pwa_icons: updatedIcons
+      }));
+
+      toast.success('PWA icon uploaded successfully');
+    } catch (error) {
+      console.error('Error in handlePWAIconUpload:', error);
+      toast.error('Failed to process PWA icon upload');
+    }
+  };
+
+  const handleOGImageUpload = async (url: string) => {
+    console.log('Handling OG image upload:', { url });
+    
+    try {
+      const { data: settings, error: settingsError } = await supabase
+        .from('site_settings')
+        .select('*')
+        .maybeSingle();
+
+      if (settingsError) {
+        console.error('Error fetching settings:', settingsError);
+        throw settingsError;
+      }
+
+      if (!settings?.id) {
+        throw new Error('No settings record found');
+      }
+
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const originalFile = new File([blob], 'og-image.png', { type: 'image/png' });
+
+      console.log('Converting to WebP...');
+      const { webpBlob } = await convertToWebP(originalFile);
+      const webpFile = new File([webpBlob], 'og-image.webp', { type: 'image/webp' });
+
+      console.log('Uploading WebP version...');
+      const { data: webpUpload, error: webpError } = await supabase.storage
+        .from('media')
+        .upload('sitesettings/og-image.webp', webpFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (webpError) {
+        console.error('Error uploading WebP version:', webpError);
+        throw webpError;
+      }
+
+      console.log('WebP version uploaded successfully');
+
+      const { error: updateError } = await supabase
+        .from('site_settings')
+        .update({
+          og_image: url,
+          og_image_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`
+        })
+        .eq('id', settings.id);
+
+      if (updateError) {
+        console.error('Error updating site settings:', updateError);
+        throw updateError;
+      }
+
+      setSettings(prev => ({
+        ...prev,
+        og_image: url,
+        og_image_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`
+      }));
+
+      toast.success('OG image uploaded successfully');
+    } catch (error) {
+      console.error('Error in handleOGImageUpload:', error);
+      toast.error('Failed to process OG image upload');
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
       <Tabs defaultValue="colors" className="w-full">

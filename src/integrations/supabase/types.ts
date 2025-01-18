@@ -95,6 +95,7 @@ export type Database = {
           header_opacity: number | null
           id: string
           logo_url: string | null
+          logo_url_webp: string | null
           media: Json | null
           og_description: string | null
           og_image: string | null
@@ -136,6 +137,7 @@ export type Database = {
           header_opacity?: number | null
           id?: string
           logo_url?: string | null
+          logo_url_webp?: string | null
           media?: Json | null
           og_description?: string | null
           og_image?: string | null
@@ -177,6 +179,7 @@ export type Database = {
           header_opacity?: number | null
           id?: string
           logo_url?: string | null
+          logo_url_webp?: string | null
           media?: Json | null
           og_description?: string | null
           og_image?: string | null

@@ -1,26 +1,28 @@
-import React from 'react';
-import { Check, Circle } from 'lucide-react';
-
-type FileStatus = {
-  png: boolean;
-  webp: boolean;
-};
+interface FileStatus {
+  png?: boolean;
+  webp?: boolean;
+  ico?: boolean;
+}
 
 interface IconStatusProps {
   status: FileStatus;
 }
 
-export const IconStatus: React.FC<IconStatusProps> = ({ status }) => {
+import { Check, X } from "lucide-react";
+
+export function IconStatus({ status }: IconStatusProps) {
   return (
-    <div className="flex flex-col space-y-1 text-sm">
-      <span className={`flex items-center ${status.png ? 'text-green-500' : 'text-gray-400'}`}>
-        {status.png ? <Check className="w-4 h-4 mr-1" /> : <Circle className="w-4 h-4 mr-1" />}
-        PNG
-      </span>
-      <span className={`flex items-center ${status.webp ? 'text-green-500' : 'text-gray-400'}`}>
-        {status.webp ? <Check className="w-4 h-4 mr-1" /> : <Circle className="w-4 h-4 mr-1" />}
-        WebP
-      </span>
+    <div className="space-y-2">
+      {Object.entries(status).map(([format, exists]) => (
+        <div key={format} className="flex items-center gap-2">
+          {exists ? (
+            <Check className="h-4 w-4 text-green-500" />
+          ) : (
+            <X className="h-4 w-4 text-red-500" />
+          )}
+          <span className="text-sm text-muted-foreground uppercase">{format}</span>
+        </div>
+      ))}
     </div>
   );
-};
+}
