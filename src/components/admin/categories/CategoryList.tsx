@@ -1,12 +1,21 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Edit, Save, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import { CategoryItem } from "./CategoryItem";
 
-export function CategoryList() {
-  const queryClient = useQueryClient();
+interface CategoryListProps {
+  onCategoryChange?: () => void;
+}
 
-  const { data: categories } = useQuery({
+export function CategoryList({ onCategoryChange }: CategoryListProps) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  const { data: categories, refetch } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -14,154 +23,141 @@ export function CategoryList() {
         .select('*')
         .order('name');
       if (error) throw error;
-      return data;
+      return data as Tables<"categories">[];
     },
   });
 
-  const handleEditCategory = async (id: string, newName: string) => {
+  const handleEditStart = (category: Tables<"categories">) => {
+    setEditingId(category.id);
+    setEditValue(category.name);
+  };
+
+  const handleEditCancel = () => {
+    setEditingId(null);
+    setEditValue("");
+  };
+
+  const handleEditSave = async (id: string) => {
     try {
-      console.log("Editing category:", id, "new name:", newName);
-      const categoryToUpdate = categories?.find(cat => cat.id === id);
-      
-      if (!categoryToUpdate) {
-        toast.error("Category not found");
-        return;
-      }
+      console.log('CategoryList: Saving category edit:', { id, name: editValue });
+      const { error } = await supabase
+        .from('categories')
+        .update({ name: editValue })
+        .eq('id', id);
 
-      const oldName = categoryToUpdate.name;
-      const trimmedNewName = newName.trim();
+      if (error) throw error;
 
-      // First update the category name
-      const { error: categoryError } = await supabase
-        .from("categories")
-        .update({ name: trimmedNewName })
-        .eq("id", id);
-
-      if (categoryError) {
-        console.error("Error updating category:", categoryError);
-        if (categoryError.code === '23505') {
-          toast.error("A category with this name already exists");
-        } else {
-          toast.error("Failed to update category: " + categoryError.message);
-        }
-        return;
-      }
-
-      // Then update all products that use this category
-      const { data: products, error: fetchError } = await supabase
-        .from("products")
-        .select("id, categories");
-
-      if (fetchError) {
-        console.error("Error fetching products:", fetchError);
-        toast.error("Failed to update products with new category name");
-        return;
-      }
-
-      const productsToUpdate = products.filter(product => 
-        product.categories && product.categories.includes(oldName)
-      );
-
-      for (const product of productsToUpdate) {
-        const updatedCategories = (product.categories || []).map(cat => 
-          cat === oldName ? trimmedNewName : cat
-        );
-
-        const { error: productError } = await supabase
-          .from("products")
-          .update({ categories: updatedCategories })
-          .eq("id", product.id);
-
-        if (productError) {
-          console.error("Error updating product categories:", productError);
-          toast.error("Failed to update some products with new category name");
-        }
-      }
-
-      toast.success("Category and products updated successfully");
-      // Invalidate both products and categories queries to refresh the UI
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      console.log('CategoryList: Category updated successfully');
+      toast.success("Category updated successfully");
+      setEditingId(null);
+      setEditValue("");
+      refetch();
+      onCategoryChange?.();
     } catch (error) {
-      console.error("Error updating category:", error);
+      console.error('CategoryList: Error updating category:', error);
       toast.error("Failed to update category");
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
     try {
-      console.log("Deleting category:", id);
+      console.log('CategoryList: Starting category deletion:', id);
       
-      const categoryToDelete = categories?.find(cat => cat.id === id);
-      if (!categoryToDelete) {
-        toast.error("Category not found");
-        return;
-      }
+      // First, get all products that have this category
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('id, categories');
+      
+      if (productsError) throw productsError;
 
-      // First, update all products to remove this category
-      const { data: products, error: fetchError } = await supabase
-        .from("products")
-        .select("id, categories");
-
-      if (fetchError) {
-        console.error("Error fetching products:", fetchError);
-        toast.error("Failed to update products before category deletion");
-        return;
-      }
-
-      const productsToUpdate = products.filter(product => 
-        product.categories && product.categories.includes(categoryToDelete.name)
-      );
-
-      console.log("Products to update:", productsToUpdate.length);
-
-      for (const product of productsToUpdate) {
-        const updatedCategories = (product.categories || []).filter(cat => 
-          cat !== categoryToDelete.name
-        );
-
-        const { error: productError } = await supabase
-          .from("products")
-          .update({ categories: updatedCategories })
-          .eq("id", product.id);
-
-        if (productError) {
-          console.error("Error updating product categories:", productError);
-          toast.error("Failed to update some products during category deletion");
+      // Update each product to remove the category
+      for (const product of products || []) {
+        if (product.categories?.includes(id)) {
+          const updatedCategories = product.categories.filter((catId: string) => catId !== id);
+          const { error: updateError } = await supabase
+            .from('products')
+            .update({ categories: updatedCategories })
+            .eq('id', product.id);
+          
+          if (updateError) throw updateError;
         }
       }
 
       // Then delete the category
       const { error: deleteError } = await supabase
-        .from("categories")
+        .from('categories')
         .delete()
-        .eq("id", id);
+        .eq('id', id);
 
-      if (deleteError) {
-        console.error("Error deleting category:", deleteError);
-        toast.error("Failed to delete category: " + deleteError.message);
-        return;
-      }
+      if (deleteError) throw deleteError;
 
+      console.log('CategoryList: Category deleted successfully');
       toast.success("Category deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      refetch();
+      onCategoryChange?.();
     } catch (error) {
-      console.error("Error deleting category:", error);
+      console.error('CategoryList: Error deleting category:', error);
       toast.error("Failed to delete category");
     }
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {categories?.map((category) => (
-        <CategoryItem
-          key={category.id}
-          category={category}
-          onEdit={handleEditCategory}
-          onDelete={handleDeleteCategory}
-        />
-      ))}
+    <div className="space-y-2">
+      <h3 className="font-semibold">Categories</h3>
+      <div className="space-y-2">
+        {categories?.map((category) => (
+          <div
+            key={category.id}
+            className="flex items-center justify-between gap-2 p-2 bg-white rounded-lg border"
+          >
+            {editingId === category.id ? (
+              <>
+                <Input
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="flex-1"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleEditSave(category.id)}
+                  >
+                    <Save className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={handleEditCancel}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span>{category.name}</span>
+                <div className="flex gap-2">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleEditStart(category)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleDeleteCategory(category.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
