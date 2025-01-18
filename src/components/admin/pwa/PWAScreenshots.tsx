@@ -112,7 +112,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!desktopScreenshot,
-              webp: !!desktopScreenshot // Will be true if PNG exists since we always create WebP
+              webp: !!desktopScreenshot
             }}
           />
         </div>
@@ -140,7 +140,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!mobileScreenshot,
-              webp: !!mobileScreenshot // Will be true if PNG exists since we always create WebP
+              webp: !!mobileScreenshot
             }}
           />
         </div>
