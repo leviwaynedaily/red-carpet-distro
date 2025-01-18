@@ -109,7 +109,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
         />
         {step === 'verification' ? (
           <>
-            <h2 className="text-xl sm:text-2xl font-bold text-left mb-4 sm:mb-6">Verification Required</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Verification Required</h2>
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div className="flex items-start space-x-3">
                 <Checkbox
