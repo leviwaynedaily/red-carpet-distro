@@ -17,6 +17,7 @@ import { Edit, Trash2, Play, Upload, Image } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/ui/file-upload";
+import { convertToWebP } from "@/utils/imageUtils";
 
 type Product = Tables<"products">;
 
@@ -135,12 +136,78 @@ export function ProductManagement() {
 
   const handleImageUpload = async (productId: string, url: string) => {
     try {
-      const { error } = await supabase
+      console.log('🚀 Starting image upload process for product:', productId);
+      
+      // Fetch the uploaded file
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const file = new File([blob], `image.${url.split('.').pop()}`, { type: blob.type });
+
+      console.log('📦 Original file details:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+
+      // Convert to WebP
+      console.log('🔄 Converting image to WebP format');
+      const { webpBlob } = await convertToWebP(file);
+      const webpFile = new File([webpBlob], 'image.webp', { type: 'image/webp' });
+
+      console.log('📦 WebP file details:', {
+        name: webpFile.name,
+        type: webpFile.type,
+        size: webpFile.size
+      });
+
+      // Upload WebP version
+      const webpPath = `products/${productId}/image.webp`;
+      const { error: webpError, data: webpData } = await supabase.storage
+        .from('media')
+        .upload(webpPath, webpFile, {
+          contentType: 'image/webp',
+          upsert: true
+        });
+
+      if (webpError) {
+        console.error('❌ Error uploading WebP version:', webpError);
+        throw webpError;
+      }
+
+      console.log('✅ WebP version uploaded successfully');
+
+      // Get public URLs
+      const { data: { publicUrl: originalUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(url.split('media/')[1]);
+
+      const { data: { publicUrl: webpUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(webpPath);
+
+      console.log('🔗 Generated public URLs:', {
+        original: originalUrl,
+        webp: webpUrl
+      });
+
+      // Update product record with both URLs
+      const { error: updateError } = await supabase
         .from("products")
-        .update({ image_url: url })
+        .update({ 
+          image_url: originalUrl,
+          media: {
+            original: originalUrl,
+            webp: webpUrl
+          }
+        })
         .eq("id", productId);
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('❌ Error updating product record:', updateError);
+        throw updateError;
+      }
+
+      console.log('✅ Product record updated successfully');
       toast.success("Image uploaded successfully");
       fetchProducts();
     } catch (error) {
