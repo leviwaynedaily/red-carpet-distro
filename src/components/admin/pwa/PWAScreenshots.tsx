@@ -3,6 +3,8 @@ import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/ui/file-upload";
 import { IconStatus } from './IconStatus';
 import { Check, X } from 'lucide-react';
+import { convertToWebP } from '@/utils/imageUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PWAScreenshotsProps {
   desktopScreenshot: string | null;
@@ -16,17 +18,77 @@ interface ImageDimensions {
   height: number;
 }
 
+interface ImageStatus {
+  dimensions: ImageDimensions | null;
+  webpUrl: string | null;
+  isLoading: boolean;
+}
+
 export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
   desktopScreenshot,
   mobileScreenshot,
   onDesktopUpload,
   onMobileUpload
 }) => {
-  const [desktopDimensions, setDesktopDimensions] = useState<ImageDimensions | null>(null);
-  const [mobileDimensions, setMobileDimensions] = useState<ImageDimensions | null>(null);
+  const [desktopStatus, setDesktopStatus] = useState<ImageStatus>({
+    dimensions: null,
+    webpUrl: null,
+    isLoading: false
+  });
+  const [mobileStatus, setMobileStatus] = useState<ImageStatus>({
+    dimensions: null,
+    webpUrl: null,
+    isLoading: false
+  });
 
   const DESKTOP_DIMENSIONS = { width: 1920, height: 1080 };
   const MOBILE_DIMENSIONS = { width: 1080, height: 1920 };
+
+  useEffect(() => {
+    if (desktopScreenshot) {
+      loadImageStatus(desktopScreenshot, 'desktop');
+    }
+    if (mobileScreenshot) {
+      loadImageStatus(mobileScreenshot, 'mobile');
+    }
+  }, [desktopScreenshot, mobileScreenshot]);
+
+  const loadImageStatus = async (url: string, type: 'desktop' | 'mobile') => {
+    console.log(`Loading status for ${type} screenshot:`, url);
+    try {
+      // Get dimensions
+      const dimensions = await getImageDimensions(url);
+      
+      // Check for WebP version
+      const urlParts = url.split('.');
+      const ext = urlParts.pop();
+      const baseUrl = urlParts.join('.');
+      const webpUrl = `${baseUrl}.webp`;
+
+      // Check if WebP exists
+      const { data: webpExists } = await supabase.storage
+        .from('media')
+        .list('sitesettings/pwa', {
+          search: `${type}_screenshot.webp`
+        });
+
+      const status = {
+        dimensions,
+        webpUrl: webpExists && webpExists.length > 0 ? webpUrl : null,
+        isLoading: false
+      };
+
+      if (type === 'desktop') {
+        setDesktopStatus(status);
+      } else {
+        setMobileStatus(status);
+      }
+
+      console.log(`Status loaded for ${type}:`, status);
+    } catch (error) {
+      console.error(`Error loading ${type} status:`, error);
+    }
+  };
 
   const getImageDimensions = (url: string): Promise<ImageDimensions> => {
     return new Promise((resolve) => {
@@ -38,14 +100,47 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
     });
   };
 
-  useEffect(() => {
-    if (desktopScreenshot) {
-      getImageDimensions(desktopScreenshot).then(setDesktopDimensions);
+  const handleScreenshotUpload = async (
+    url: string,
+    type: 'desktop' | 'mobile',
+    onUpload: (url: string) => void
+  ) => {
+    console.log(`Handling ${type} screenshot upload:`, url);
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const fileName = `${type}_screenshot`;
+      const originalFile = new File([blob], `${fileName}.png`, { type: 'image/png' });
+
+      // Convert to WebP
+      console.log('Converting to WebP...');
+      const { webpBlob } = await convertToWebP(originalFile);
+      const webpFile = new File([webpBlob], `${fileName}.webp`, { type: 'image/webp' });
+
+      // Upload WebP version
+      const { data: webpUpload, error: webpError } = await supabase.storage
+        .from('media')
+        .upload(`sitesettings/pwa/${fileName}.webp`, webpFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (webpError) {
+        console.error('Error uploading WebP version:', webpError);
+        throw webpError;
+      }
+
+      console.log('WebP version uploaded successfully');
+
+      // Update status
+      await loadImageStatus(url, type);
+
+      // Call the original onUpload callback
+      onUpload(url);
+    } catch (error) {
+      console.error(`Error in ${type} screenshot upload:`, error);
     }
-    if (mobileScreenshot) {
-      getImageDimensions(mobileScreenshot).then(setMobileDimensions);
-    }
-  }, [desktopScreenshot, mobileScreenshot]);
+  };
 
   const addCacheBuster = (url: string | null) => {
     if (!url) return '';
@@ -87,18 +182,18 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
                 alt="Desktop screenshot" 
                 className="w-full h-32 object-cover rounded-md"
               />
-              {renderDimensionsStatus(desktopDimensions, DESKTOP_DIMENSIONS)}
+              {renderDimensionsStatus(desktopStatus.dimensions, DESKTOP_DIMENSIONS)}
             </div>
           )}
           <IconStatus 
             status={{
               png: !!desktopScreenshot,
-              webp: !!desktopScreenshot?.includes('.webp')
+              webp: !!desktopStatus.webpUrl
             }}
           />
         </div>
         <FileUpload
-          onUploadComplete={onDesktopUpload}
+          onUploadComplete={(url) => handleScreenshotUpload(url, 'desktop', onDesktopUpload)}
           accept="image/*"
           folderPath="sitesettings/pwa"
           fileName="desktop_screenshot"
@@ -118,18 +213,18 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
                 alt="Mobile screenshot" 
                 className="w-full h-32 object-cover rounded-md"
               />
-              {renderDimensionsStatus(mobileDimensions, MOBILE_DIMENSIONS)}
+              {renderDimensionsStatus(mobileStatus.dimensions, MOBILE_DIMENSIONS)}
             </div>
           )}
           <IconStatus 
             status={{
               png: !!mobileScreenshot,
-              webp: !!mobileScreenshot?.includes('.webp')
+              webp: !!mobileStatus.webpUrl
             }}
           />
         </div>
         <FileUpload
-          onUploadComplete={onMobileUpload}
+          onUploadComplete={(url) => handleScreenshotUpload(url, 'mobile', onMobileUpload)}
           accept="image/*"
           folderPath="sitesettings/pwa"
           fileName="mobile_screenshot"
