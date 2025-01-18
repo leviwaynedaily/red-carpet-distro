@@ -333,7 +333,6 @@ export function ProductManagement() {
                           fileName="image"
                           className="w-8"
                           buttonContent={<Upload className="h-4 w-4" />}
-                          productName={product.name} // Pass the product name here
                         />
                       )}
                     </div>

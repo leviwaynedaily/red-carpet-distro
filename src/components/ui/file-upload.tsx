@@ -13,7 +13,6 @@ interface FileUploadProps {
   fileName?: string;
   className?: string;
   buttonContent?: React.ReactNode;
-  productName?: string; // Added this prop
 }
 
 export function FileUpload({ 
@@ -23,8 +22,7 @@ export function FileUpload({
   folderPath = "",
   fileName,
   className,
-  buttonContent = "Upload File",
-  productName = "image" // Default to "image" if no product name provided
+  buttonContent = "Upload File"
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -39,23 +37,17 @@ export function FileUpload({
         fileType: file.type,
         fileSize: file.size,
         folderPath,
-        bucket,
-        productName
+        bucket
       });
-      
-      // Create sanitized product name for file naming
-      const sanitizedName = productName
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
       
       // Create the final file path
       const fileExt = file.name.split('.').pop();
-      const finalFileName = `${sanitizedName}.${fileExt}`;
+      const finalFileName = fileName 
+        ? `${fileName}.${fileExt}`
+        : `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
       
       const filePath = folderPath 
-        ? `${folderPath}/${finalFileName}`.replace(/\/+/g, '/') 
+        ? `${folderPath}/${finalFileName}`.replace(/\/+/g, '/') // Normalize path
         : finalFileName;
 
       console.log('📁 Uploading file to path:', filePath);
@@ -87,7 +79,7 @@ export function FileUpload({
         try {
           console.log('🔄 Starting WebP conversion');
           const { webpBlob } = await convertToWebP(file);
-          const webpPath = `${folderPath}/${sanitizedName}.webp`;
+          const webpPath = `${folderPath}/${fileName || file.name.split('.')[0]}.webp`;
 
           console.log('📤 Uploading WebP version to:', webpPath);
 
