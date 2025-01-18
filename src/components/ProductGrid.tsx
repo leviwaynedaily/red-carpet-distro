@@ -9,6 +9,10 @@ interface ProductGridProps {
   sortBy: string;
 }
 
+interface Media {
+  webp?: string;
+}
+
 export const ProductGrid = ({
   searchTerm,
   categoryFilter,
@@ -79,6 +83,7 @@ export const ProductGrid = ({
           {...product}
           image={product.image_url || ''}
           video={product.video_url || ''}
+          media={product.media as Media}
           viewMode="small"
         />
       ))}
