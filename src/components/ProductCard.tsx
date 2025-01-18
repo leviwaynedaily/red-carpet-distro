@@ -84,10 +84,16 @@ export const ProductCard = ({
     large: "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer"
   };
 
+  const imageContainerClasses = {
+    small: "w-full aspect-square relative overflow-hidden",
+    medium: "w-full aspect-square relative overflow-hidden",
+    large: "w-full aspect-square relative overflow-hidden"
+  };
+
   const imageClasses = {
-    small: "w-full h-full object-cover",
-    medium: "w-full h-full object-cover",
-    large: "w-full h-full object-cover"
+    small: "w-full h-full object-cover absolute inset-0",
+    medium: "w-full h-full object-cover absolute inset-0",
+    large: "w-full h-full object-cover absolute inset-0"
   };
 
   const contentClasses = {
@@ -123,22 +129,24 @@ export const ProductCard = ({
     }
 
     return (
-      <picture>
-        {media?.webp && !webpError && (
-          <source
-            srcSet={media.webp}
-            type="image/webp"
-            onError={handleWebPError}
+      <div className={imageContainerClasses[viewMode]}>
+        <picture>
+          {media?.webp && !webpError && (
+            <source
+              srcSet={media.webp}
+              type="image/webp"
+              onError={handleWebPError}
+            />
+          )}
+          <img
+            src={image}
+            alt={name}
+            className={imageClasses[viewMode]}
+            loading="lazy"
+            onError={handleImageError}
           />
-        )}
-        <img
-          src={image}
-          alt={name}
-          className={imageClasses[viewMode]}
-          loading="lazy"
-          onError={handleImageError}
-        />
-      </picture>
+        </picture>
+      </div>
     );
   };
 
@@ -148,7 +156,7 @@ export const ProductCard = ({
         className={cardClasses[viewMode]}
         onClick={handleCardClick}
       >
-        <CardHeader className="p-0 relative aspect-square">
+        <CardHeader className="p-0 relative">
           {renderImage()}
           {video && primary_media_type === 'video' && (
             <div className="absolute bottom-2 right-2 flex gap-2">
