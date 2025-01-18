@@ -95,7 +95,10 @@ export type Database = {
           header_opacity: number | null
           id: string
           logo_url: string | null
-          media: Json | null
+          media: {
+            webp?: string;
+            original?: string;
+          } | null
           og_description: string | null
           og_image: string | null
           og_title: string | null
@@ -133,7 +136,10 @@ export type Database = {
           header_opacity?: number | null
           id?: string
           logo_url?: string | null
-          media?: Json | null
+          media?: {
+            webp?: string;
+            original?: string;
+          } | null
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
@@ -171,7 +177,10 @@ export type Database = {
           header_opacity?: number | null
           id?: string
           logo_url?: string | null
-          media?: Json | null
+          media?: {
+            webp?: string;
+            original?: string;
+          } | null
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
@@ -247,7 +256,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -301,10 +310,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
+      Update: infer U
+    }
+    ? U
+    : never
     : never
 
 export type Enums<
