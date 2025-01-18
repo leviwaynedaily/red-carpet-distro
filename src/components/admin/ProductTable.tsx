@@ -90,11 +90,7 @@ export function ProductTable({
 
   const handleInputChange = (field: keyof Product, value: any) => {
     console.log('Updating field:', field, 'with value:', value);
-    onEditChange({ [field]: value });
-  };
-
-  const handleInputBlur = (field: keyof Product, value: any) => {
-    console.log('Field blur:', field, 'with value:', value);
+    // Save the value immediately when it changes
     onEditChange({ [field]: value });
   };
 
@@ -122,7 +118,6 @@ export function ProductTable({
                     <Input
                       value={editValues.name || ''}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      onBlur={(e) => handleInputBlur('name', e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -136,7 +131,6 @@ export function ProductTable({
                     <Input
                       value={editValues.strain || ''}
                       onChange={(e) => handleInputChange('strain', e.target.value)}
-                      onBlur={(e) => handleInputBlur('strain', e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -150,7 +144,6 @@ export function ProductTable({
                     <Input
                       value={editValues.description || ''}
                       onChange={(e) => handleInputChange('description', e.target.value)}
-                      onBlur={(e) => handleInputBlur('description', e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -285,7 +278,6 @@ export function ProductTable({
                       type="number"
                       value={editValues.stock || 0}
                       onChange={(e) => handleInputChange('stock', parseInt(e.target.value))}
-                      onBlur={(e) => handleInputBlur('stock', parseInt(e.target.value))}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -300,7 +292,6 @@ export function ProductTable({
                       type="number"
                       value={editValues.regular_price || 0}
                       onChange={(e) => handleInputChange('regular_price', parseFloat(e.target.value))}
-                      onBlur={(e) => handleInputBlur('regular_price', parseFloat(e.target.value))}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
@@ -315,7 +306,6 @@ export function ProductTable({
                       type="number"
                       value={editValues.shipping_price || 0}
                       onChange={(e) => handleInputChange('shipping_price', parseFloat(e.target.value))}
-                      onBlur={(e) => handleInputBlur('shipping_price', parseFloat(e.target.value))}
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
