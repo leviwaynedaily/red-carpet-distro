@@ -40,7 +40,7 @@ function App() {
 
         if (settings) {
           // Set WebP favicon with PNG fallback
-          const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+          const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement || document.createElement('link');
           link.type = 'image/x-icon';
           link.rel = 'shortcut icon';
           link.href = settings.favicon_url;
@@ -48,7 +48,7 @@ function App() {
 
           // Set PNG favicon
           console.log('App.tsx: Setting PNG favicon:', settings.favicon_png_url);
-          const pngLink = document.createElement('link');
+          const pngLink = document.createElement('link') as HTMLLinkElement;
           pngLink.type = 'image/png';
           pngLink.rel = 'icon';
           pngLink.href = settings.favicon_png_url;
@@ -56,7 +56,7 @@ function App() {
 
           // Set WebP favicon
           console.log('App.tsx: Setting WebP favicon:', settings.favicon_webp_url);
-          const webpLink = document.createElement('link');
+          const webpLink = document.createElement('link') as HTMLLinkElement;
           webpLink.type = 'image/webp';
           webpLink.rel = 'icon';
           webpLink.href = settings.favicon_webp_url;
