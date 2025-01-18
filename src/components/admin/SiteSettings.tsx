@@ -130,7 +130,9 @@ export function SiteSettings() {
 
         setSettings({
           ...data,
-          pwa_icons: parsedIcons
+          pwa_icons: parsedIcons,
+          favicon_url: data.favicon_url || "",
+          favicon_png_url: data.favicon_png_url || ""
         });
       }
     } catch (error) {

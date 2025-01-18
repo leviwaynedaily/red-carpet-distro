@@ -88,6 +88,7 @@ export type Database = {
         Row: {
           admin_password: string | null
           created_at: string
+          favicon_png_url: string | null
           favicon_url: string | null
           font_family: string | null
           header_color: string | null
@@ -124,6 +125,7 @@ export type Database = {
         Insert: {
           admin_password?: string | null
           created_at?: string
+          favicon_png_url?: string | null
           favicon_url?: string | null
           font_family?: string | null
           header_color?: string | null
@@ -160,6 +162,7 @@ export type Database = {
         Update: {
           admin_password?: string | null
           created_at?: string
+          favicon_png_url?: string | null
           favicon_url?: string | null
           font_family?: string | null
           header_color?: string | null
