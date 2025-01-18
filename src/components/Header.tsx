@@ -112,11 +112,11 @@ export const Header = ({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full shadow-sm" style={headerStyle}>
       <div className="w-full">
-        <div className="flex items-center justify-center px-4 md:px-8 py-3 backdrop-blur-sm bg-white/10">
+        <div className="flex items-center justify-center px-4 md:px-8 py-4 md:py-6 backdrop-blur-sm bg-white/10">
           <img
             src={logoUrl}
             alt="Palmtree Smokes"
-            className="h-8 md:h-12 cursor-pointer"
+            className="h-12 md:h-16 cursor-pointer transition-transform duration-200 hover:scale-105"
             onClick={onLogoClick}
           />
         </div>
