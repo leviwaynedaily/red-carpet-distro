@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/ui/file-upload";
 import { IconStatus } from './IconStatus';
-import { Check, X } from 'lucide-react';
 import { PWAIcon } from '@/types/site-settings';
 
 interface PWAIconsProps {
@@ -11,14 +10,7 @@ interface PWAIconsProps {
   sizes: number[];
 }
 
-interface IconDimensions {
-  width: number;
-  height: number;
-}
-
 export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }) => {
-  const [iconDimensions, setIconDimensions] = useState<Record<string, IconDimensions>>({});
-
   const getIconStatus = (icon: PWAIcon | undefined) => {
     if (!icon) return { png: false, webp: false };
     return {
@@ -27,70 +19,9 @@ export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }
     };
   };
 
-  const getImageDimensions = (url: string): Promise<IconDimensions> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        resolve({ width: img.width, height: img.height });
-      };
-      img.src = url;
-    });
-  };
-
-  useEffect(() => {
-    const loadDimensions = async () => {
-      const dimensions: Record<string, IconDimensions> = {};
-      
-      for (const icon of icons) {
-        if (icon.src) {
-          try {
-            dimensions[`${icon.sizes}-${icon.purpose}`] = await getImageDimensions(icon.src);
-          } catch (error) {
-            console.error('Error loading dimensions for icon:', error);
-          }
-        }
-      }
-      
-      setIconDimensions(dimensions);
-    };
-
-    loadDimensions();
-  }, [icons]);
-
   const addCacheBuster = (url: string | null) => {
     if (!url) return '';
     return `${url}?t=${Date.now()}`;
-  };
-
-  const isDimensionsValid = (size: number, dimensions: IconDimensions | undefined) => {
-    if (!dimensions) return false;
-    return dimensions.width === size && dimensions.height === size;
-  };
-
-  const renderDimensionsStatus = (size: number, purpose: 'any' | 'maskable') => {
-    const icon = icons.find(
-      icon => icon.sizes === `${size}x${size}` && icon.purpose === purpose
-    );
-    
-    if (!icon?.src) return null;
-
-    const dimensions = iconDimensions[`${size}x${size}-${purpose}`];
-    if (!dimensions) return null;
-
-    const isValid = isDimensionsValid(size, dimensions);
-
-    return (
-      <div className="flex items-center gap-2 mt-1 text-sm">
-        <span>
-          Current size: {dimensions.width}x{dimensions.height}
-        </span>
-        {isValid ? (
-          <Check className="text-green-500 h-4 w-4" />
-        ) : (
-          <X className="text-red-500 h-4 w-4" />
-        )}
-      </div>
-    );
   };
 
   return (
@@ -103,16 +34,13 @@ export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }
               {icons?.find(
                 icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
               )?.src && (
-                <div className="space-y-2">
-                  <img 
-                    src={addCacheBuster(icons.find(
-                      icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-                    )?.src || '')}
-                    alt={`${size}x${size} regular icon`} 
-                    className="w-16 h-16 object-contain rounded-md"
-                  />
-                  {renderDimensionsStatus(size, 'any')}
-                </div>
+                <img 
+                  src={addCacheBuster(icons.find(
+                    icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
+                  )?.src || '')}
+                  alt={`${size}x${size} regular icon`} 
+                  className="w-16 h-16 object-contain rounded-md"
+                />
               )}
               <IconStatus 
                 status={getIconStatus(icons?.find(
@@ -134,16 +62,13 @@ export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }
               {icons?.find(
                 icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
               )?.src && (
-                <div className="space-y-2">
-                  <img 
-                    src={addCacheBuster(icons.find(
-                      icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-                    )?.src || '')}
-                    alt={`${size}x${size} maskable icon`} 
-                    className="w-16 h-16 object-contain rounded-md"
-                  />
-                  {renderDimensionsStatus(size, 'maskable')}
-                </div>
+                <img 
+                  src={addCacheBuster(icons.find(
+                    icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
+                  )?.src || '')}
+                  alt={`${size}x${size} maskable icon`} 
+                  className="w-16 h-16 object-contain rounded-md"
+                />
               )}
               <IconStatus 
                 status={getIconStatus(icons?.find(
