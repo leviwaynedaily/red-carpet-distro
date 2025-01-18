@@ -17,5 +17,8 @@ export const router = createBrowserRouter([
   {
     path: "/products/:id",
     element: <ProductDetails />,
+    errorElement: <div className="container mx-auto px-4 py-8">
+      <p className="text-red-500">Error: Could not load product details. Please try again later.</p>
+    </div>
   },
 ]);
