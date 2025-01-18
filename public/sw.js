@@ -1,11 +1,15 @@
-const CACHE_NAME = 'palmtree-smokes-v7';
+const CACHE_NAME = 'palmtree-smokes-v8';
+const SUPABASE_URL = 'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.ico',
-  'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-192.webp',
-  'https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-512.webp'
+  `${SUPABASE_URL}/favicon.ico`,
+  `${SUPABASE_URL}/favicon.webp`,
+  `${SUPABASE_URL}/favicon.png`,
+  `${SUPABASE_URL}/apple-touch-icon.png`,
+  `${SUPABASE_URL}/pwa/icon-192.webp`,
+  `${SUPABASE_URL}/pwa/icon-512.webp`
 ];
 
 self.addEventListener('install', (event) => {
@@ -25,6 +29,15 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only cache GET requests
+  if (event.request.method !== 'GET') return;
+
+  // Skip caching API calls and other dynamic content
+  if (event.request.url.includes('/api/') || 
+      event.request.url.includes('site_settings?select=')) {
+    return;
+  }
+
   console.log('[Service Worker] Fetching:', event.request.url);
   event.respondWith(
     caches.match(event.request)
