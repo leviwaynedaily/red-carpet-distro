@@ -133,32 +133,19 @@ export function SiteSettings() {
       const pwaIconsInfo: Record<string, { type: string; size: number; url: string }> = {};
       const pwaMaskableIconsInfo: Record<string, { type: string; size: number; url: string }> = {};
 
+      // Fetch regular icons
       for (const size of iconSizes) {
-        const regularIconUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-${size}.webp`;
-        const maskableIconUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-${size}-maskable.webp`;
-
-        try {
-          const regularResponse = await fetch(regularIconUrl);
-          const regularBlob = await regularResponse.blob();
-          pwaIconsInfo[size] = {
-            type: regularBlob.type,
-            size: regularBlob.size,
-            url: regularIconUrl
-          };
-        } catch (error) {
-          console.error(`Error fetching regular icon ${size}:`, error);
+        const regularIconInfo = await fetchPWAIconInfo(size, false);
+        if (regularIconInfo) {
+          pwaIconsInfo[size] = regularIconInfo;
         }
+      }
 
-        try {
-          const maskableResponse = await fetch(maskableIconUrl);
-          const maskableBlob = await maskableResponse.blob();
-          pwaMaskableIconsInfo[size] = {
-            type: maskableBlob.type,
-            size: maskableBlob.size,
-            url: maskableIconUrl
-          };
-        } catch (error) {
-          console.error(`Error fetching maskable icon ${size}:`, error);
+      // Fetch maskable icons
+      for (const size of iconSizes) {
+        const maskableIconInfo = await fetchPWAIconInfo(size, true);
+        if (maskableIconInfo) {
+          pwaMaskableIconsInfo[size] = maskableIconInfo;
         }
       }
 
@@ -177,6 +164,10 @@ export function SiteSettings() {
   const fetchFileInfo = async (url: string, type: 'original' | 'webp' | 'favicon' | 'faviconPng') => {
     try {
       const response = await fetch(url);
+      if (!response.ok) {
+        console.log(`File not found for ${type}:`, url);
+        return;
+      }
       const blob = await response.blob();
       setMediaInfo(prev => ({
         ...prev,
@@ -188,6 +179,28 @@ export function SiteSettings() {
       }));
     } catch (error) {
       console.error(`Error fetching ${type} file info:`, error);
+    }
+  };
+
+  const fetchPWAIconInfo = async (size: string, isMaskable: boolean) => {
+    const iconType = isMaskable ? 'maskable' : 'regular';
+    const url = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-${size}${isMaskable ? '-maskable' : ''}.webp`;
+    
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.log(`PWA icon not found for size ${size} (${iconType}):`, url);
+        return null;
+      }
+      const blob = await response.blob();
+      return {
+        type: blob.type,
+        size: blob.size,
+        url: url
+      };
+    } catch (error) {
+      console.error(`Error fetching PWA icon ${size} (${iconType}):`, error);
+      return null;
     }
   };
 
