@@ -97,11 +97,15 @@ export function SiteSettings() {
 
   const handleWebpUpload = async (url: string) => {
     try {
+      const currentMedia = settings?.media && typeof settings.media === 'object' 
+        ? settings.media 
+        : {};
+
       const { error } = await supabase
         .from("site_settings")
         .update({
           media: {
-            ...settings.media,
+            ...currentMedia,
             webp: url
           }
         })
