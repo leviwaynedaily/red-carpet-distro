@@ -98,6 +98,7 @@ export type Database = {
           media: Json | null
           og_description: string | null
           og_image: string | null
+          og_image_webp: string | null
           og_title: string | null
           og_url: string | null
           primary_color: string | null
@@ -138,6 +139,7 @@ export type Database = {
           media?: Json | null
           og_description?: string | null
           og_image?: string | null
+          og_image_webp?: string | null
           og_title?: string | null
           og_url?: string | null
           primary_color?: string | null
@@ -178,6 +180,7 @@ export type Database = {
           media?: Json | null
           og_description?: string | null
           og_image?: string | null
+          og_image_webp?: string | null
           og_title?: string | null
           og_url?: string | null
           primary_color?: string | null

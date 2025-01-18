@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { convertToWebP } from "@/utils/imageUtils";
 import { PWAIcons } from "./pwa/PWAIcons";
 import { PWAScreenshots } from "./pwa/PWAScreenshots";
+import { IconStatus } from "./pwa/IconStatus";
 import type { PWAIcon } from "@/types/site-settings";
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
