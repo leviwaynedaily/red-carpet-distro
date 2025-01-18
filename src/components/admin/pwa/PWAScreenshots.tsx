@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/ui/file-upload";
 import { IconStatus } from './IconStatus';
@@ -25,66 +25,22 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
   onDesktopUpload,
   onMobileUpload
 }) => {
-  const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
-
-  useEffect(() => {
-    fetchScreenshots();
-  }, []);
-
-  const fetchScreenshots = async () => {
-    try {
-      console.log('Fetching screenshots data...');
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('pwa_desktop_screenshot, pwa_mobile_screenshot')
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching screenshots:', error);
-        throw error;
-      }
-
-      if (data) {
-        console.log('Screenshots data fetched:', data);
-        const screenshotsArray: Screenshot[] = [];
-        
-        if (data.pwa_desktop_screenshot) {
-          screenshotsArray.push({
-            type: 'desktop',
-            url: data.pwa_desktop_screenshot
-          });
-        }
-        
-        if (data.pwa_mobile_screenshot) {
-          screenshotsArray.push({
-            type: 'mobile',
-            url: data.pwa_mobile_screenshot
-          });
-        }
-
-        setScreenshots(screenshotsArray);
-      }
-    } catch (error) {
-      console.error('Error in fetchScreenshots:', error);
-      toast.error('Failed to fetch screenshots');
-    }
-  };
-
   const handleScreenshotUpload = async (url: string, type: 'desktop' | 'mobile') => {
     console.log(`Handling ${type} screenshot upload:`, { url });
     
     try {
-      // Fetch the image and create a blob
+      // 1. Fetch the original file - exactly like PWA icons
       const response = await fetch(url);
       const blob = await response.blob();
       const fileName = `${type}_screenshot`;
       const originalFile = new File([blob], `${fileName}.png`, { type: 'image/png' });
       
+      // 2. Convert to WebP - exactly like PWA icons
       console.log('Converting to WebP...');
       const { webpBlob } = await convertToWebP(originalFile);
       const webpFile = new File([webpBlob], `${fileName}.webp`, { type: 'image/webp' });
       
-      // Upload WebP version
+      // 3. Upload WebP version - exactly like PWA icons
       const { data: webpUpload, error: webpError } = await supabase.storage
         .from('media')
         .upload(`sitesettings/pwa/${fileName}.webp`, webpFile, {
@@ -99,10 +55,10 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
 
       console.log('WebP version uploaded successfully');
 
-      // Get the settings record
+      // 4. Get the settings record - exactly like PWA icons
       const { data: settings, error: settingsError } = await supabase
         .from('site_settings')
-        .select('id')
+        .select('*')
         .maybeSingle();
 
       if (settingsError) {
@@ -114,12 +70,13 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
         throw new Error('No settings record found');
       }
 
-      // Update the site settings with both URLs
+      // 5. Update the site settings with both URLs - exactly like PWA icons
       const { error: updateError } = await supabase
         .from('site_settings')
         .update({
           [`pwa_${type}_screenshot`]: url,
           media: {
+            ...settings.media,
             [`${type}_screenshot_webp`]: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
           }
         })
@@ -130,25 +87,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
         throw updateError;
       }
 
-      // Update local state
-      setScreenshots(prev => {
-        const newScreenshots = [...prev];
-        const existingIndex = newScreenshots.findIndex(s => s.type === type);
-        const newScreenshot = {
-          type,
-          url,
-          webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/${fileName}.webp`
-        };
-
-        if (existingIndex >= 0) {
-          newScreenshots[existingIndex] = newScreenshot;
-        } else {
-          newScreenshots.push(newScreenshot);
-        }
-
-        return newScreenshots;
-      });
-
+      // 6. Update local state through callback - exactly like PWA icons
       if (type === 'desktop') {
         onDesktopUpload(url);
       } else {
@@ -182,7 +121,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!desktopScreenshot,
-              webp: !!screenshots.find(s => s.type === 'desktop')?.webp
+              webp: !!desktopScreenshot // We know WebP exists if PNG does
             }}
           />
         </div>
@@ -210,7 +149,7 @@ export const PWAScreenshots: React.FC<PWAScreenshotsProps> = ({
           <IconStatus 
             status={{
               png: !!mobileScreenshot,
-              webp: !!screenshots.find(s => s.type === 'mobile')?.webp
+              webp: !!mobileScreenshot // We know WebP exists if PNG does
             }}
           />
         </div>
