@@ -20,6 +20,8 @@ export function SiteSettings() {
     webp?: { type: string; size: number; url: string };
     favicon?: { type: string; size: number; url: string };
     faviconPng?: { type: string; size: number; url: string };
+    pwaIcons?: Record<string, { type: string; size: number; url: string }>;
+    pwaMaskableIcons?: Record<string, { type: string; size: number; url: string }>;
   }>({});
   const [adminPassword, setAdminPassword] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
@@ -125,6 +127,47 @@ export function SiteSettings() {
       if (data.favicon_png_url) {
         await fetchFileInfo(data.favicon_png_url, 'faviconPng');
       }
+
+      // Fetch PWA icon information
+      const iconSizes = ['72', '96', '128', '144', '152', '192', '384', '512'];
+      const pwaIconsInfo: Record<string, { type: string; size: number; url: string }> = {};
+      const pwaMaskableIconsInfo: Record<string, { type: string; size: number; url: string }> = {};
+
+      for (const size of iconSizes) {
+        const regularIconUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-${size}.webp`;
+        const maskableIconUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-${size}-maskable.webp`;
+
+        try {
+          const regularResponse = await fetch(regularIconUrl);
+          const regularBlob = await regularResponse.blob();
+          pwaIconsInfo[size] = {
+            type: regularBlob.type,
+            size: regularBlob.size,
+            url: regularIconUrl
+          };
+        } catch (error) {
+          console.error(`Error fetching regular icon ${size}:`, error);
+        }
+
+        try {
+          const maskableResponse = await fetch(maskableIconUrl);
+          const maskableBlob = await maskableResponse.blob();
+          pwaMaskableIconsInfo[size] = {
+            type: maskableBlob.type,
+            size: maskableBlob.size,
+            url: maskableIconUrl
+          };
+        } catch (error) {
+          console.error(`Error fetching maskable icon ${size}:`, error);
+        }
+      }
+
+      setMediaInfo(prev => ({
+        ...prev,
+        pwaIcons: pwaIconsInfo,
+        pwaMaskableIcons: pwaMaskableIconsInfo
+      }));
+
     } catch (error) {
       console.error("Error fetching settings:", error);
       toast.error("Failed to load settings");
@@ -718,6 +761,67 @@ export function SiteSettings() {
                 onChange={(e) => handlePWAUpdate('start_url', e.target.value)}
                 placeholder="/"
               />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">PWA Icons</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <h4 className="font-medium">Regular Icons</h4>
+                  {mediaInfo.pwaIcons && Object.entries(mediaInfo.pwaIcons).map(([size, info]) => (
+                    <div key={size} className="space-y-2 border p-4 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={info.url}
+                          alt={`PWA Icon ${size}x${size}`}
+                          className="w-16 h-16 object-contain border rounded-md"
+                        />
+                        <div className="text-sm space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span>WebP Format:</span>
+                            {info.type.includes('webp') ? (
+                              <Check className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <X className="h-4 w-4 text-red-500" />
+                            )}
+                          </div>
+                          <p>Size: {size}x{size}</p>
+                          <p>Type: {info.type}</p>
+                          <p>File size: {formatFileSize(info.size)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium">Maskable Icons</h4>
+                  {mediaInfo.pwaMaskableIcons && Object.entries(mediaInfo.pwaMaskableIcons).map(([size, info]) => (
+                    <div key={size} className="space-y-2 border p-4 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={info.url}
+                          alt={`PWA Maskable Icon ${size}x${size}`}
+                          className="w-16 h-16 object-contain border rounded-md"
+                        />
+                        <div className="text-sm space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span>WebP Format:</span>
+                            {info.type.includes('webp') ? (
+                              <Check className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <X className="h-4 w-4 text-red-500" />
+                            )}
+                          </div>
+                          <p>Size: {size}x{size}</p>
+                          <p>Type: {info.type}</p>
+                          <p>File size: {formatFileSize(info.size)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </TabsContent>
