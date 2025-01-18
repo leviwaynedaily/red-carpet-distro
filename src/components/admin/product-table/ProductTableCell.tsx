@@ -6,6 +6,7 @@ import { FileUpload } from "@/components/ui/file-upload";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Play, Upload, Trash2 } from "lucide-react";
 import { formatPrice } from "@/utils/formatPrice";
+import { ReactNode } from "react";
 
 type Product = Tables<"products">;
 
@@ -34,14 +35,14 @@ export function ProductTableCell({
   onImageUpload,
   onVideoUpload,
 }: ProductTableCellProps) {
-  const handleInputChange = (field: keyof Product, value: any) => {
+  const handleInputChange = (field: keyof Product, value: string | number | string[]) => {
     console.log('ProductTableCell: Updating field:', field, 'with value:', value);
     onEditChange({ ...editValues, [field]: value });
   };
 
   const handleCategoryToggle = (categoryName: string, checked: boolean) => {
     const currentCategories = editValues.categories || [];
-    let newCategories;
+    let newCategories: string[];
     
     if (checked) {
       newCategories = [...currentCategories, categoryName];
@@ -52,19 +53,19 @@ export function ProductTableCell({
     onEditChange({ ...editValues, categories: newCategories });
   };
 
-  const renderCell = () => {
+  const renderCell = (): ReactNode => {
     switch (column) {
       case 'name':
       case 'strain':
       case 'description':
         return isEditing ? (
           <Input
-            value={editValues[column as keyof Product] || ''}
+            value={editValues[column as keyof Product]?.toString() || ''}
             onChange={(e) => handleInputChange(column as keyof Product, e.target.value)}
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          product[column as keyof Product] || '-'
+          product[column as keyof Product]?.toString() || '-'
         );
 
       case 'image':
@@ -169,7 +170,7 @@ export function ProductTableCell({
                   id={`category-${category.id}`}
                   checked={(editValues.categories || []).includes(category.name)}
                   onCheckedChange={(checked) => 
-                    handleCategoryToggle(category.name, checked as boolean)
+                    handleCategoryToggle(category.name, checked === true)
                   }
                 />
                 <label
@@ -194,7 +195,7 @@ export function ProductTableCell({
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          product.stock || '-'
+          product.stock?.toString() || '-'
         );
 
       case 'regular_price':
