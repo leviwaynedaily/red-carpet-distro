@@ -8,12 +8,14 @@ interface ProductMediaProps {
   imageUrl?: string;
   videoUrl?: string;
   productName: string;
+  webpUrl?: string;
 }
 
-export const ProductMedia = ({ imageUrl, videoUrl, productName }: ProductMediaProps) => {
+export const ProductMedia = ({ imageUrl, videoUrl, productName, webpUrl }: ProductMediaProps) => {
   const [showMedia, setShowMedia] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [webpError, setWebpError] = useState(false);
 
   const handleDownload = async (url: string, type: 'image' | 'video') => {
     try {
@@ -37,6 +39,30 @@ export const ProductMedia = ({ imageUrl, videoUrl, productName }: ProductMediaPr
     setIsPlaying(!showVideo);
   };
 
+  const handleWebPError = () => {
+    console.log('WebP image failed to load, falling back to PNG');
+    setWebpError(true);
+  };
+
+  const renderImage = () => (
+    <picture>
+      {webpUrl && !webpError && (
+        <source
+          srcSet={webpUrl}
+          type="image/webp"
+          onError={handleWebPError}
+        />
+      )}
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt={productName}
+          className="w-full h-full object-cover rounded-lg"
+        />
+      )}
+    </picture>
+  );
+
   return (
     <div className="space-y-4">
       <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
@@ -48,11 +74,7 @@ export const ProductMedia = ({ imageUrl, videoUrl, productName }: ProductMediaPr
             className="w-full h-full object-cover"
           />
         ) : (
-          <img
-            src={imageUrl}
-            alt={productName}
-            className="w-full h-full object-cover"
-          />
+          renderImage()
         )}
       </div>
 
@@ -102,11 +124,7 @@ export const ProductMedia = ({ imageUrl, videoUrl, productName }: ProductMediaPr
               className="w-full h-full object-cover"
             />
           ) : (
-            <img
-              src={imageUrl}
-              alt={productName}
-              className="w-full h-full object-cover"
-            />
+            renderImage()
           )}
         </DialogContent>
       </Dialog>

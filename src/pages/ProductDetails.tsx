@@ -81,11 +81,14 @@ export default function ProductDetails() {
       </Button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <ProductMedia
-          imageUrl={product.image_url}
-          videoUrl={product.video_url}
-          productName={product.name}
-        />
+        <div className="md:sticky md:top-24">
+          <ProductMedia
+            imageUrl={product.image_url}
+            videoUrl={product.video_url}
+            productName={product.name}
+            webpUrl={product.media?.webp}
+          />
+        </div>
         <ProductInfo
           name={product.name}
           description={product.description}
