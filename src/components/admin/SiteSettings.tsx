@@ -128,24 +128,33 @@ export function SiteSettings() {
         await fetchFileInfo(data.favicon_png_url, 'faviconPng');
       }
 
-      // Fetch PWA icon information
-      const iconSizes = ['72', '96', '128', '144', '152', '192', '384', '512'];
+      // Only fetch icons that exist in the database
+      const storedIcons = data.pwa_icons || [];
+      const storedMaskableIcons = data.pwa_icons_maskable || [];
+      
       const pwaIconsInfo: Record<string, { type: string; size: number; url: string }> = {};
       const pwaMaskableIconsInfo: Record<string, { type: string; size: number; url: string }> = {};
 
-      // Fetch regular icons
-      for (const size of iconSizes) {
-        const regularIconInfo = await fetchPWAIconInfo(size, false);
-        if (regularIconInfo) {
-          pwaIconsInfo[size] = regularIconInfo;
+      console.log('Fetching PWA icons from database:', { storedIcons, storedMaskableIcons });
+
+      // Only fetch icons that are stored in the database
+      for (const icon of storedIcons) {
+        const size = icon.sizes?.split('x')[0];
+        if (size) {
+          const iconInfo = await fetchPWAIconInfo(size, false);
+          if (iconInfo) {
+            pwaIconsInfo[size] = iconInfo;
+          }
         }
       }
 
-      // Fetch maskable icons
-      for (const size of iconSizes) {
-        const maskableIconInfo = await fetchPWAIconInfo(size, true);
-        if (maskableIconInfo) {
-          pwaMaskableIconsInfo[size] = maskableIconInfo;
+      for (const icon of storedMaskableIcons) {
+        const size = icon.sizes?.split('x')[0];
+        if (size) {
+          const maskableIconInfo = await fetchPWAIconInfo(size, true);
+          if (maskableIconInfo) {
+            pwaMaskableIconsInfo[size] = maskableIconInfo;
+          }
         }
       }
 
@@ -187,12 +196,17 @@ export function SiteSettings() {
     const url = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-${size}${isMaskable ? '-maskable' : ''}.webp`;
     
     try {
+      console.log(`Fetching PWA icon ${size} (${iconType}):`, url);
       const response = await fetch(url);
       if (!response.ok) {
         console.log(`PWA icon not found for size ${size} (${iconType}):`, url);
         return null;
       }
       const blob = await response.blob();
+      console.log(`Successfully fetched PWA icon ${size} (${iconType}):`, {
+        type: blob.type,
+        size: blob.size
+      });
       return {
         type: blob.type,
         size: blob.size,
