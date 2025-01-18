@@ -1,96 +1,80 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ProductCard } from "@/components/ProductCard";
 
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>();
 
   const { data: product, isLoading, error } = useQuery({
-    queryKey: ["product", id],
+    queryKey: ['product', id],
     queryFn: async () => {
       console.log('ProductDetails: Fetching product details for ID:', id);
-      const { data, error } = await supabase
-        .from("products")
+      
+      const { data: productData, error: productError } = await supabase
+        .from('products')
         .select(`
           *,
           product_categories (
             category:categories(name)
           )
         `)
-        .eq("id", id)
+        .eq('id', id)
         .single();
 
-      if (error) {
-        console.error('ProductDetails: Error fetching product:', error);
-        throw error;
+      if (productError) {
+        console.error('ProductDetails: Error fetching product:', productError);
+        throw productError;
       }
 
-      // Transform the data to match the expected format
+      // Transform the data to include categories array
       const transformedProduct = {
-        ...data,
-        categories: data.product_categories?.map(pc => pc.category?.name).filter(Boolean) || []
+        ...productData,
+        categories: productData.product_categories
+          ?.map(pc => pc.category?.name)
+          .filter(Boolean) || []
       };
 
       console.log('ProductDetails: Successfully fetched product:', transformedProduct);
       return transformedProduct;
     },
+    enabled: !!id
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <p className="text-gray-500">Loading product details...</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error loading product</div>;
+    console.error('ProductDetails: Error rendering product:', error);
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <p className="text-red-500">Error loading product details. Please try again later.</p>
+      </div>
+    );
   }
 
   if (!product) {
-    return <div>Product not found</div>;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <p className="text-gray-500">Product not found.</p>
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          {product.image_url && (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              className="w-full rounded-lg shadow-lg"
-            />
-          )}
-        </div>
-        <div>
-          <p className="text-gray-600 mb-4">{product.description}</p>
-          <div className="space-y-2">
-            {product.strain && (
-              <p>
-                <span className="font-semibold">Strain:</span> {product.strain}
-              </p>
-            )}
-            {product.categories && product.categories.length > 0 && (
-              <p>
-                <span className="font-semibold">Categories:</span>{" "}
-                {product.categories.join(", ")}
-              </p>
-            )}
-            <p>
-              <span className="font-semibold">Price:</span> $
-              {product.regular_price?.toFixed(2)}
-            </p>
-            {product.shipping_price !== undefined && (
-              <p>
-                <span className="font-semibold">Shipping:</span> $
-                {product.shipping_price.toFixed(2)}
-              </p>
-            )}
-            <p>
-              <span className="font-semibold">Stock:</span> {product.stock}
-            </p>
-          </div>
-        </div>
-      </div>
+      <ProductCard
+        {...product}
+        image={product.image_url || ''}
+        video={product.video_url || ''}
+        media={product.media}
+        viewMode="large"
+      />
     </div>
   );
 }
