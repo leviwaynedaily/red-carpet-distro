@@ -46,7 +46,7 @@ export function ProductManagement() {
         .from("products")
         .select(`
           *,
-          product_categories!inner (
+          product_categories!left (
             categories (
               name
             )
@@ -58,7 +58,7 @@ export function ProductManagement() {
         throw productsError;
       }
 
-      // Transform the data to include categories array
+      // Transform the data to include categories array, handling products without categories
       const transformedProducts = productsData.map(product => ({
         ...product,
         categories: product.product_categories
