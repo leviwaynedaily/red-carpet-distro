@@ -13,8 +13,9 @@ interface PWAIconsProps {
 
 export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }) => {
   const getIconStatus = (icon: PWAIcon | undefined) => {
-    if (!icon) return { webp: false };
+    if (!icon) return { png: false, webp: false };
     return {
+      png: !!icon.src,
       webp: !!icon.webp
     };
   };
@@ -50,11 +51,15 @@ export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }
           <div className="space-y-2">
             <Label>{size}x{size} Regular Icon</Label>
             <div className="flex items-center space-x-2">
-              {icons?.find(
+              {(icons?.find(
                 icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
-              )?.webp && (
+              )?.src || icons?.find(
+                icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
+              )?.webp) && (
                 <img 
                   src={addCacheBuster(icons.find(
+                    icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
+                  )?.src || icons.find(
                     icon => icon.sizes === `${size}x${size}` && icon.purpose === 'any'
                   )?.webp || '')}
                   alt={`${size}x${size} regular icon`} 
@@ -78,11 +83,15 @@ export const PWAIcons: React.FC<PWAIconsProps> = ({ icons, onIconUpload, sizes }
           <div className="space-y-2">
             <Label>{size}x{size} Maskable Icon</Label>
             <div className="flex items-center space-x-2">
-              {icons?.find(
+              {(icons?.find(
                 icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
-              )?.webp && (
+              )?.src || icons?.find(
+                icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
+              )?.webp) && (
                 <img 
                   src={addCacheBuster(icons.find(
+                    icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
+                  )?.src || icons.find(
                     icon => icon.sizes === `${size}x${size}` && icon.purpose === 'maskable'
                   )?.webp || '')}
                   alt={`${size}x${size} maskable icon`} 
