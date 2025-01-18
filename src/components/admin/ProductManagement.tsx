@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/ui/file-upload";
 
-type Product = Tables<"products">;
+type Product = Tables<"products", never>;
 
 const COLUMNS = [
   { key: "name", label: "Name" },
@@ -501,3 +501,4 @@ export function ProductManagement() {
     </div>
   );
 }
+
