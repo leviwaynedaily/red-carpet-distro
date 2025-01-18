@@ -46,6 +46,7 @@ export const ProductCard = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [webpError, setWebpError] = useState(false);
 
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
 
@@ -74,7 +75,7 @@ export const ProductCard = ({
 
   const handleWebPError = (e: React.SyntheticEvent<HTMLSourceElement, Event>) => {
     console.log('WebP image failed to load, falling back to PNG:', e);
-    e.currentTarget.remove();
+    setWebpError(true);
   };
 
   const cardClasses = {
@@ -123,7 +124,7 @@ export const ProductCard = ({
 
     return (
       <picture>
-        {media?.webp && (
+        {media?.webp && !webpError && (
           <source
             srcSet={media.webp}
             type="image/webp"
@@ -232,7 +233,7 @@ export const ProductCard = ({
             />
           ) : (
             <picture>
-              {media?.webp && (
+              {media?.webp && !webpError && (
                 <source
                   srcSet={media.webp}
                   type="image/webp"
