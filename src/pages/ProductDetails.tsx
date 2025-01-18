@@ -8,10 +8,6 @@ import { Toggle } from "@/components/ui/toggle";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 
-interface Media {
-  webp?: string;
-}
-
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -40,7 +36,6 @@ export default function ProductDetails() {
         throw productError;
       }
 
-      // Transform the data to include categories array
       const transformedProduct = {
         ...productData,
         categories: productData.product_categories
