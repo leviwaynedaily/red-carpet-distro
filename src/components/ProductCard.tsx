@@ -100,12 +100,17 @@ export const ProductCard = ({
       >
         <CardHeader className="p-0 relative aspect-square">
           {image ? (
-            <img
-              src={image}
-              alt={name}
-              className={imageClasses[viewMode]}
-              loading="lazy"
-            />
+            <picture>
+              {product?.media?.webp && (
+                <source srcSet={product.media.webp} type="image/webp" />
+              )}
+              <img
+                src={image}
+                alt={name}
+                className={imageClasses[viewMode]}
+                loading="lazy"
+              />
+            </picture>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
               <div className="text-center p-4">

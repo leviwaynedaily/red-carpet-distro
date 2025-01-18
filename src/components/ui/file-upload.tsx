@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { convertToWebP, isImageFile } from "@/utils/imageUtils";
 
 interface FileUploadProps {
   onUploadComplete: (url: string) => void;
@@ -43,25 +44,43 @@ export function FileUpload({
         : finalFileName;
 
       console.log('Uploading file to path:', filePath);
-      
-      const { error: uploadError, data } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file, {
-          contentType: file.type,
-          upsert: true // Enable overwriting
-        });
 
-      if (uploadError) {
-        throw uploadError;
+      // If it's an image, convert to WebP
+      let webpBlob: Blob | null = null;
+      if (isImageFile(file)) {
+        try {
+          const { webpBlob: convertedBlob } = await convertToWebP(file);
+          webpBlob = convertedBlob;
+        } catch (error) {
+          console.error('WebP conversion failed:', error);
+          // Continue with original file if conversion fails
+        }
       }
 
-      // Get the public URL for the uploaded file
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
+      // Create form data with both files
+      const formData = new FormData();
+      formData.append('file', file);
+      if (webpBlob) {
+        formData.append('webp', webpBlob, `${fileName || file.name.split('.')[0]}.webp`);
+      }
+      formData.append('productId', folderPath.split('/')[1]); // Assumes folderPath format: 'products/{productId}'
 
-      console.log('File uploaded successfully, public URL:', publicUrl);
-      onUploadComplete(publicUrl);
+      // Upload via Edge Function
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/convert-image`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+      console.log('File uploaded successfully:', data);
+      onUploadComplete(data.originalUrl);
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);

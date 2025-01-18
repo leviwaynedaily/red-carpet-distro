@@ -7,29 +7,23 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  console.log('Processing new image conversion request');
-
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const formData = await req.formData()
-    const file = formData.get('file')
-    const productId = formData.get('productId')
+    const productId = formData.get('productId')?.toString()
+    const file = formData.get('file') as File
+    const webpFile = formData.get('webp') as File
 
-    if (!file || !productId) {
-      console.error('Missing file or productId');
-      return new Response(
-        JSON.stringify({ error: 'Missing file or productId' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+    if (!productId || !file) {
+      throw new Error('Product ID and file are required')
     }
 
-    console.log(`Processing image for product ${productId}`);
+    console.log('Processing upload for product:', productId);
 
-    // Initialize Supabase client
+    // Create Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -38,13 +32,19 @@ serve(async (req) => {
     // Generate filenames
     const originalName = file.name.replace(/[^\x00-\x7F]/g, '')
     const baseName = originalName.split('.')[0]
+    const webpFileName = `${baseName}.webp`
     
-    // Upload original file
+    // Upload paths
     const originalPath = `products/${productId}/${originalName}`
+    const webpPath = `products/${productId}/${webpFileName}`
 
-    console.log(`Uploading original file: ${originalPath}`);
+    console.log(`Uploading files:
+      Original: ${originalPath}
+      WebP: ${webpPath}
+    `);
 
-    const { error: originalError, data } = await supabase.storage
+    // Upload original file
+    const { error: originalError } = await supabase.storage
       .from('media')
       .upload(originalPath, file, {
         contentType: file.type,
@@ -56,20 +56,40 @@ serve(async (req) => {
       throw originalError;
     }
 
-    // Get public URL for original file
+    // Upload WebP version if provided
+    if (webpFile) {
+      const { error: webpError } = await supabase.storage
+        .from('media')
+        .upload(webpPath, webpFile, {
+          contentType: 'image/webp',
+          upsert: true
+        })
+
+      if (webpError) {
+        console.error('Error uploading WebP file:', webpError);
+        throw webpError;
+      }
+    }
+
+    // Get public URLs
     const { data: originalUrl } = supabase.storage
       .from('media')
       .getPublicUrl(originalPath)
 
-    console.log('Successfully uploaded original file');
+    const { data: webpUrl } = webpFile ? supabase.storage
+      .from('media')
+      .getPublicUrl(webpPath) : { data: null }
 
-    // Update product with original URL
+    console.log('Successfully uploaded files');
+
+    // Update product with URLs
     const { error: updateError } = await supabase
       .from('products')
       .update({
         image_url: originalUrl.publicUrl,
         media: {
-          original: originalUrl.publicUrl
+          original: originalUrl.publicUrl,
+          webp: webpUrl?.publicUrl || null
         }
       })
       .eq('id', productId)
@@ -81,15 +101,16 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        message: 'File uploaded successfully',
-        originalUrl: originalUrl.publicUrl
+        message: 'Files uploaded successfully',
+        originalUrl: originalUrl.publicUrl,
+        webpUrl: webpUrl?.publicUrl || null
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
     console.error('Upload error:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to process image', details: error.message }),
+      JSON.stringify({ error: 'Failed to process files', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
