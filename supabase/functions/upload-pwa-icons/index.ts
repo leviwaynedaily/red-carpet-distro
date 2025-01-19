@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { join } from "https://deno.land/std@0.168.0/path/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,42 +29,55 @@ serve(async (req) => {
       )
     }
 
+    // Create Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
     // Construct the filename
     const filename = `icon-${size}${type === 'maskable' ? '-maskable' : ''}.${format}`
-    const publicPath = join('public', 'pwa', filename)
+    const filePath = `pwa/${filename}`
 
-    console.log('Writing file:', publicPath);
+    console.log('Uploading file:', filePath);
 
-    try {
-      // Ensure the directory exists
-      await Deno.mkdir(join('public', 'pwa'), { recursive: true });
-      
-      // Write the file
-      const fileData = new Uint8Array(await file.arrayBuffer())
-      await Deno.writeFile(publicPath, fileData)
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('media')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: format === 'webp' ? 'image/webp' : 'image/png'
+      });
 
-      console.log('Successfully wrote file:', publicPath);
-
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          path: `/pwa/${filename}`,
-          fullPath: publicPath
-        }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          }
-        }
-      )
-    } catch (writeError) {
-      console.error('Error writing file:', writeError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to write file', details: writeError.message }),
+        JSON.stringify({ error: 'Failed to upload file', details: uploadError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       )
     }
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('media')
+      .getPublicUrl(filePath)
+
+    console.log('File uploaded successfully:', publicUrl);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        path: publicUrl,
+        fullPath: filePath
+      }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }
+      }
+    )
   } catch (error) {
     console.error('Unexpected error:', error);
     return new Response(
