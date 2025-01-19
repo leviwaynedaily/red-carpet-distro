@@ -283,22 +283,20 @@ export function SiteSettings() {
   };
 
   return (
-    <div className="flex gap-6">
-      <form onSubmit={handleSubmit} className="flex-1 max-w-4xl">
+    <div className="w-full max-w-6xl mx-auto px-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <Tabs defaultValue="colors" className="w-full">
-          <div className="w-[200px] fixed left-6 top-24 bg-white p-4 rounded-lg shadow-md">
-            <TabsList className="flex flex-col w-full gap-2">
-              <TabsTrigger value="colors" className="w-full justify-start">Colors</TabsTrigger>
-              <TabsTrigger value="site" className="w-full justify-start">Site Settings</TabsTrigger>
-              <TabsTrigger value="welcome" className="w-full justify-start">Welcome</TabsTrigger>
-              <TabsTrigger value="pwa" className="w-full justify-start">PWA Settings</TabsTrigger>
-              <TabsTrigger value="pwa-new" className="w-full justify-start">PWA Settings *New*</TabsTrigger>
-              <TabsTrigger value="og" className="w-full justify-start">Open Graph</TabsTrigger>
-            </TabsList>
-          </div>
+          <TabsList className="w-full h-auto flex-wrap gap-2 bg-background border p-2">
+            <TabsTrigger value="colors" className="flex-1">Colors</TabsTrigger>
+            <TabsTrigger value="site" className="flex-1">Site Settings</TabsTrigger>
+            <TabsTrigger value="welcome" className="flex-1">Welcome</TabsTrigger>
+            <TabsTrigger value="pwa" className="flex-1">PWA Settings</TabsTrigger>
+            <TabsTrigger value="pwa-new" className="flex-1">PWA Settings *New*</TabsTrigger>
+            <TabsTrigger value="og" className="flex-1">Open Graph</TabsTrigger>
+          </TabsList>
 
-          <div className="ml-[240px]">
-            <TabsContent value="colors" className="space-y-4 mt-4">
+          <div className="mt-6">
+            <TabsContent value="colors" className="space-y-4">
               <ColorSettings 
                 settings={settings} 
                 onSettingChange={handleSettingChange} 
@@ -357,11 +355,9 @@ export function SiteSettings() {
           </div>
         </Tabs>
 
-        <div className="ml-[240px] mt-6">
-          <Button type="submit" className="w-full">
-            Save Settings
-          </Button>
-        </div>
+        <Button type="submit" className="w-full">
+          Save Settings
+        </Button>
       </form>
     </div>
   );
