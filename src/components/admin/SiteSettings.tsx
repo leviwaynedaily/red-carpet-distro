@@ -283,78 +283,86 @@ export function SiteSettings() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
-      <Tabs defaultValue="colors" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="colors">Colors</TabsTrigger>
-          <TabsTrigger value="site">Site Settings</TabsTrigger>
-          <TabsTrigger value="welcome">Welcome</TabsTrigger>
-          <TabsTrigger value="pwa">PWA Settings</TabsTrigger>
-          <TabsTrigger value="pwa-new">PWA Settings *New*</TabsTrigger>
-          <TabsTrigger value="og">Open Graph</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="colors" className="space-y-4 mt-4">
-          <ColorSettings 
-            settings={settings} 
-            onSettingChange={handleSettingChange} 
-          />
-        </TabsContent>
-
-        <TabsContent value="site">
-          <div className="space-y-4">
-            <LogoSettings 
-              settings={settings}
-              onSettingChange={handleSettingChange}
-            />
-            <DescriptionSettings 
-              settings={settings}
-              onSettingChange={handleSettingChange}
-            />
+    <div className="flex gap-6">
+      <form onSubmit={handleSubmit} className="flex-1 max-w-4xl">
+        <Tabs defaultValue="colors" className="w-full">
+          <div className="w-[200px] fixed left-6 top-24 bg-white p-4 rounded-lg shadow-md">
+            <TabsList className="flex flex-col w-full gap-2">
+              <TabsTrigger value="colors" className="w-full justify-start">Colors</TabsTrigger>
+              <TabsTrigger value="site" className="w-full justify-start">Site Settings</TabsTrigger>
+              <TabsTrigger value="welcome" className="w-full justify-start">Welcome</TabsTrigger>
+              <TabsTrigger value="pwa" className="w-full justify-start">PWA Settings</TabsTrigger>
+              <TabsTrigger value="pwa-new" className="w-full justify-start">PWA Settings *New*</TabsTrigger>
+              <TabsTrigger value="og" className="w-full justify-start">Open Graph</TabsTrigger>
+            </TabsList>
           </div>
-        </TabsContent>
 
-        <TabsContent value="welcome" className="space-y-4">
-          <WelcomeInstructions
-            settings={settings}
-            onSettingChange={handleSettingChange}
-          />
-        </TabsContent>
+          <div className="ml-[240px]">
+            <TabsContent value="colors" className="space-y-4 mt-4">
+              <ColorSettings 
+                settings={settings} 
+                onSettingChange={handleSettingChange} 
+              />
+            </TabsContent>
 
-        <TabsContent value="pwa" className="space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">PWA Screenshots</h3>
-            <PWAScreenshots
-              desktopScreenshot={settings.pwa_desktop_screenshot || null}
-              mobileScreenshot={settings.pwa_mobile_screenshot || null}
-              onDesktopUpload={(url) => handleSettingChange('pwa_desktop_screenshot', url)}
-              onMobileUpload={(url) => handleSettingChange('pwa_mobile_screenshot', url)}
-            />
+            <TabsContent value="site">
+              <div className="space-y-4">
+                <LogoSettings 
+                  settings={settings}
+                  onSettingChange={handleSettingChange}
+                />
+                <DescriptionSettings 
+                  settings={settings}
+                  onSettingChange={handleSettingChange}
+                />
+              </div>
+            </TabsContent>
 
-            <h3 className="text-lg font-medium mt-6">PWA Icons</h3>
-            <PWAIcons
-              icons={settings.pwa_icons}
-              onIconUpload={handlePWAIconUpload}
-              sizes={PWA_ICON_SIZES}
-            />
+            <TabsContent value="welcome" className="space-y-4">
+              <WelcomeInstructions
+                settings={settings}
+                onSettingChange={handleSettingChange}
+              />
+            </TabsContent>
+
+            <TabsContent value="pwa" className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">PWA Screenshots</h3>
+                <PWAScreenshots
+                  desktopScreenshot={settings.pwa_desktop_screenshot || null}
+                  mobileScreenshot={settings.pwa_mobile_screenshot || null}
+                  onDesktopUpload={(url) => handleSettingChange('pwa_desktop_screenshot', url)}
+                  onMobileUpload={(url) => handleSettingChange('pwa_mobile_screenshot', url)}
+                />
+
+                <h3 className="text-lg font-medium mt-6">PWA Icons</h3>
+                <PWAIcons
+                  icons={settings.pwa_icons}
+                  onIconUpload={handlePWAIconUpload}
+                  sizes={PWA_ICON_SIZES}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="pwa-new" className="space-y-6">
+              <PWASettingsNew />
+            </TabsContent>
+
+            <TabsContent value="og" className="space-y-4">
+              <OpenGraphSettings 
+                settings={settings}
+                onSettingChange={handleSettingChange}
+              />
+            </TabsContent>
           </div>
-        </TabsContent>
+        </Tabs>
 
-        <TabsContent value="pwa-new" className="space-y-6">
-          <PWASettingsNew />
-        </TabsContent>
-
-        <TabsContent value="og" className="space-y-4">
-          <OpenGraphSettings 
-            settings={settings}
-            onSettingChange={handleSettingChange}
-          />
-        </TabsContent>
-      </Tabs>
-
-      <Button type="submit" className="w-full">
-        Save Settings
-      </Button>
-    </form>
+        <div className="ml-[240px] mt-6">
+          <Button type="submit" className="w-full">
+            Save Settings
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
