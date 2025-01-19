@@ -12,6 +12,7 @@ import { OpenGraphSettings } from "./settings/OpenGraphSettings";
 import { PWAIcons } from "./pwa/PWAIcons";
 import { PWAScreenshots } from "./pwa/PWAScreenshots";
 import { WelcomeInstructions } from "./settings/WelcomeInstructions";
+import { PWASettingsNew } from "./pwa/PWASettingsNew";
 import type { PWAIcon } from "@/types/site-settings";
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -180,7 +181,6 @@ export function SiteSettings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Convert the settings object to match Supabase's expected format
       const supabaseSettings = {
         ...settings,
         welcome_instructions: {
@@ -285,11 +285,12 @@ export function SiteSettings() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
       <Tabs defaultValue="colors" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="colors">Colors</TabsTrigger>
           <TabsTrigger value="site">Site Settings</TabsTrigger>
           <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="pwa">PWA Settings</TabsTrigger>
+          <TabsTrigger value="pwa-new">PWA Settings *New*</TabsTrigger>
           <TabsTrigger value="og">Open Graph</TabsTrigger>
         </TabsList>
 
@@ -337,6 +338,10 @@ export function SiteSettings() {
               sizes={PWA_ICON_SIZES}
             />
           </div>
+        </TabsContent>
+
+        <TabsContent value="pwa-new" className="space-y-6">
+          <PWASettingsNew />
         </TabsContent>
 
         <TabsContent value="og" className="space-y-4">
