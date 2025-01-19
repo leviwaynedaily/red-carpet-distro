@@ -149,7 +149,7 @@ export const Header = ({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full shadow-sm" style={headerStyle}>
       <div className="w-full">
-        <div className="flex items-center justify-center px-4 md:px-8 py-4 md:py-6 backdrop-blur-sm bg-white/10">
+        <div className="flex items-center justify-center px-4 md:px-6 py-2 md:py-3 backdrop-blur-sm bg-white/10">
           <picture>
             {logoUrlWebp && (
               <source 
@@ -164,7 +164,7 @@ export const Header = ({
             <img
               src={logoUrl}
               alt="Palmtree Smokes"
-              className="h-14 md:h-20 cursor-pointer transition-transform duration-200 hover:scale-105"
+              className="h-10 md:h-14 cursor-pointer transition-transform duration-200 hover:scale-105"
               onClick={onLogoClick}
               onError={(e) => {
                 console.error('Failed to load logo:', e);
@@ -174,7 +174,7 @@ export const Header = ({
           </picture>
         </div>
         <div className="border-t border-gray-200/30 backdrop-blur-sm" style={toolbarStyle}>
-          <div className="container mx-auto px-4 py-2">
+          <div className="container mx-auto px-4 py-1.5">
             <div className="flex items-center justify-between gap-4 max-w-3xl mx-auto">
               <div className="flex-1">
                 <Input
