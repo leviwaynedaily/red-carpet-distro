@@ -25,6 +25,8 @@ interface ProductTableProps {
   onVideoUpload: (productId: string, url: string) => void;
   onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
   onMediaClick: (type: 'image' | 'video', url: string) => void;
+  sortConfig: { key: string; direction: 'asc' | 'desc' };
+  onSort: (key: string) => void;
 }
 
 export function ProductTable({
@@ -42,6 +44,8 @@ export function ProductTable({
   onVideoUpload,
   onDeleteMedia,
   onMediaClick,
+  sortConfig,
+  onSort,
 }: ProductTableProps) {
   return (
     <div className="rounded-md border">
