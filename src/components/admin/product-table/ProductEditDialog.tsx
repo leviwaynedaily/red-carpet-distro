@@ -20,6 +20,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type Product = Tables<"products">;
 
@@ -42,7 +44,6 @@ export function ProductEditDialog({
   onOpenChange,
   product,
   editValues,
-  categories = [],
   onEditChange,
   onSave,
   onCancel,
@@ -51,6 +52,26 @@ export function ProductEditDialog({
   onDeleteMedia,
 }: ProductEditDialogProps) {
   const [openCategories, setOpenCategories] = useState(false);
+
+  // Fetch categories from Supabase
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      console.log('ProductEditDialog: Fetching categories');
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        console.error('ProductEditDialog: Error fetching categories:', error);
+        throw error;
+      }
+      
+      console.log('ProductEditDialog: Categories fetched:', data);
+      return data;
+    },
+  });
 
   const handleCategoryToggle = (categoryName: string) => {
     console.log('ProductEditDialog: Category toggled:', categoryName);
@@ -243,6 +264,7 @@ export function ProductEditDialog({
               onChange={(e) => onEditChange({ ...editValues, shipping_price: parseFloat(e.target.value) })}
             />
           </div>
+
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onCancel}>
