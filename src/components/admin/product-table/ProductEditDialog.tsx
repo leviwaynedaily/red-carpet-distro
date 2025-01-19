@@ -24,13 +24,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 type Product = Tables<"products">;
+type Category = Tables<"categories">;
 
 interface ProductEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product: Product;
   editValues: Partial<Product> & { categories?: string[] };
-  categories?: { id: string; name: string }[];
   onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -53,8 +53,8 @@ export function ProductEditDialog({
 }: ProductEditDialogProps) {
   const [openCategories, setOpenCategories] = useState(false);
 
-  // Fetch categories from Supabase
-  const { data: categories = [] } = useQuery({
+  // Fetch categories from Supabase with proper typing
+  const { data: categories } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: async () => {
       console.log('ProductEditDialog: Fetching categories');
@@ -69,7 +69,7 @@ export function ProductEditDialog({
       }
       
       console.log('ProductEditDialog: Categories fetched:', data);
-      return data;
+      return data || [];
     },
   });
 
@@ -136,7 +136,7 @@ export function ProductEditDialog({
                   <CommandInput placeholder="Search categories..." />
                   <CommandEmpty>No categories found.</CommandEmpty>
                   <CommandGroup>
-                    {categories.map((category) => (
+                    {(categories || []).map((category) => (
                       <CommandItem
                         key={category.id}
                         onSelect={() => handleCategoryToggle(category.name)}
