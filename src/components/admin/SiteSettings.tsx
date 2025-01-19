@@ -11,6 +11,7 @@ import { DescriptionSettings } from "./settings/DescriptionSettings";
 import { OpenGraphSettings } from "./settings/OpenGraphSettings";
 import { PWASettings } from "./pwa/PWASettings";
 import { WelcomeInstructions } from "./settings/WelcomeInstructions";
+import { PasswordSettings } from "./settings/PasswordSettings";
 import type { PWAIcon } from "@/types/site-settings";
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -288,6 +289,7 @@ export function SiteSettings() {
             <TabsTrigger value="colors" className="flex-1">Colors</TabsTrigger>
             <TabsTrigger value="site" className="flex-1">Site Settings</TabsTrigger>
             <TabsTrigger value="welcome" className="flex-1">Welcome</TabsTrigger>
+            <TabsTrigger value="passwords" className="flex-1">Passwords</TabsTrigger>
             <TabsTrigger value="pwa" className="flex-1">PWA Settings</TabsTrigger>
             <TabsTrigger value="og" className="flex-1">Open Graph</TabsTrigger>
           </TabsList>
@@ -315,6 +317,13 @@ export function SiteSettings() {
 
             <TabsContent value="welcome" className="space-y-4">
               <WelcomeInstructions
+                settings={settings}
+                onSettingChange={handleSettingChange}
+              />
+            </TabsContent>
+
+            <TabsContent value="passwords" className="space-y-4">
+              <PasswordSettings
                 settings={settings}
                 onSettingChange={handleSettingChange}
               />
