@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ProductsList } from "./product-table/ProductsList";
+import { downloadTemplate, exportProducts, parseCSV } from "@/utils/csvUtils";
 
 type Product = Tables<"products">;
 
@@ -306,6 +307,86 @@ export function ProductManagement() {
     }));
   };
 
+  const handleImport = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const products = await parseCSV(file);
+        console.log('ProductManagement: Importing products:', products);
+
+        for (const product of products) {
+          const { data, error } = await supabase
+            .from("products")
+            .insert([product])
+            .select()
+            .single();
+
+          if (error) {
+            console.error('ProductManagement: Error importing product:', error);
+            toast.error(`Failed to import product: ${product.name}`);
+            continue;
+          }
+
+          // Handle categories if present
+          if (product.categories && product.categories.length > 0) {
+            for (const categoryName of product.categories) {
+              // Get or create category
+              let { data: category } = await supabase
+                .from("categories")
+                .select()
+                .eq("name", categoryName)
+                .single();
+
+              if (!category) {
+                const { data: newCategory } = await supabase
+                  .from("categories")
+                  .insert({ name: categoryName })
+                  .select()
+                  .single();
+                category = newCategory;
+              }
+
+              if (category) {
+                await supabase
+                  .from("product_categories")
+                  .insert({
+                    product_id: data.id,
+                    category_id: category.id,
+                  });
+              }
+            }
+          }
+        }
+
+        toast.success("Products imported successfully");
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+      } catch (error) {
+        console.error("Error importing products:", error);
+        toast.error("Failed to import products");
+      }
+    };
+    input.click();
+  };
+
+  const handleExport = () => {
+    if (!products) {
+      toast.error("No products to export");
+      return;
+    }
+    exportProducts(products);
+    toast.success("Products exported successfully");
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadTemplate();
+    toast.success("Template downloaded successfully");
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -324,6 +405,9 @@ export function ProductManagement() {
         columns={COLUMNS}
         visibleColumns={visibleColumns}
         onColumnToggle={handleColumnToggle}
+        onImport={handleImport}
+        onExport={handleExport}
+        onDownloadTemplate={handleDownloadTemplate}
       />
 
       <ProductsList
