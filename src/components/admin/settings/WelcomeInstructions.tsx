@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -27,14 +27,25 @@ export function WelcomeInstructions({ settings, onSettingChange }: WelcomeInstru
     content: guidelinesHtml,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
+      console.log('Editor content updated:', html);
       setGuidelinesHtml(html);
       onSettingChange('welcome_instructions', {
+        ...settings.welcome_instructions,
         title: settings.welcome_instructions?.title || 'Welcome to Palmtree Smokes',
         subtitle: settings.welcome_instructions?.subtitle || 'Please take a moment to review our store guidelines:',
         guidelines: html
       });
     },
   });
+
+  // Update editor content when settings change
+  useEffect(() => {
+    if (editor && settings.welcome_instructions?.guidelines !== guidelinesHtml) {
+      console.log('Settings guidelines changed:', settings.welcome_instructions?.guidelines);
+      editor.commands.setContent(settings.welcome_instructions?.guidelines || '');
+      setGuidelinesHtml(settings.welcome_instructions?.guidelines || '');
+    }
+  }, [editor, settings.welcome_instructions?.guidelines]);
 
   return (
     <div className="space-y-4">
