@@ -8,9 +8,18 @@ import { Tables } from "@/integrations/supabase/types";
 type Category = Tables<"categories">;
 
 export function ProductManagement() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<string>("date-desc");
-  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([
+    "name",
+    "strain",
+    "description",
+    "image",
+    "video_url",
+    "categories",
+    "stock",
+    "regular_price",
+    "shipping_price",
+  ]);
 
   // Fetch categories
   const { data: categories } = useQuery({
@@ -32,21 +41,39 @@ export function ProductManagement() {
     },
   });
 
+  const columns = [
+    { key: "name", label: "Name" },
+    { key: "strain", label: "Strain" },
+    { key: "description", label: "Description" },
+    { key: "image", label: "Image" },
+    { key: "video_url", label: "Video" },
+    { key: "categories", label: "Categories" },
+    { key: "stock", label: "Stock" },
+    { key: "regular_price", label: "Price" },
+    { key: "shipping_price", label: "Shipping" },
+  ];
+
+  const handleColumnToggle = (columnKey: string) => {
+    setVisibleColumns(current =>
+      current.includes(columnKey)
+        ? current.filter(key => key !== columnKey)
+        : [...current, columnKey]
+    );
+  };
+
   return (
     <div className="space-y-4">
       <ProductTableFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        columns={columns}
+        visibleColumns={visibleColumns}
+        onColumnToggle={handleColumnToggle}
       />
       <ProductsList
-        searchTerm={searchTerm}
-        sortBy={sortBy}
-        viewMode={viewMode}
+        searchTerm={searchQuery}
         categories={categories}
+        visibleColumns={visibleColumns}
       />
     </div>
   );

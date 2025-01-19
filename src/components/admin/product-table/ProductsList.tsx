@@ -10,12 +10,11 @@ type Product = Tables<"products">;
 
 interface ProductsListProps {
   searchTerm: string;
-  sortBy: string;
-  viewMode: "table" | "grid";
+  visibleColumns: string[];
   categories?: { id: string; name: string; }[];
 }
 
-export function ProductsList({ searchTerm, sortBy, viewMode, categories }: ProductsListProps) {
+export function ProductsList({ searchTerm, visibleColumns, categories }: ProductsListProps) {
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<Product> & { categories?: string[] }>({});
 
@@ -26,8 +25,7 @@ export function ProductsList({ searchTerm, sortBy, viewMode, categories }: Produ
       console.log('ProductsList: Fetching products');
       const { data, error } = await supabase
         .from('products')
-        .select('*')
-        .order(sortBy);
+        .select('*');
       
       if (error) {
         console.error('ProductsList: Error fetching products:', error);
@@ -48,37 +46,17 @@ export function ProductsList({ searchTerm, sortBy, viewMode, categories }: Produ
     return product.name.toLowerCase().includes(searchTerm.toLowerCase());
   }) || [];
 
-  // Sort products based on selected option
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case 'name-asc':
-        return (a.name || '').localeCompare(b.name || '');
-      case 'name-desc':
-        return (b.name || '').localeCompare(a.name || '');
-      case 'strain-asc':
-        return (a.strain || '').localeCompare(b.strain || '');
-      case 'strain-desc':
-        return (b.strain || '').localeCompare(a.strain || '');
-      case 'price-asc':
-        return (a.regular_price || 0) - (b.regular_price || 0);
-      case 'price-desc':
-        return (b.regular_price || 0) - (a.regular_price || 0);
-      case 'date-asc':
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case 'date-desc':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      default:
-        return 0;
-    }
-  });
-
-  return viewMode === "table" ? (
+  return (
     <ProductTable
-      products={sortedProducts}
+      products={filteredProducts}
+      visibleColumns={visibleColumns}
       editingProduct={editingProduct}
       editValues={editValues}
       categories={categories}
-      onEditStart={setEditingProduct}
+      onEditStart={(product) => {
+        setEditingProduct(product.id);
+        setEditValues(product);
+      }}
       onEditSave={() => setEditingProduct(null)}
       onEditCancel={() => setEditingProduct(null)}
       onEditChange={setEditValues}
@@ -87,22 +65,8 @@ export function ProductsList({ searchTerm, sortBy, viewMode, categories }: Produ
       onVideoUpload={(productId, url) => console.log('Upload video for product:', productId, url)}
       onDeleteMedia={(productId, type) => console.log('Delete media for product:', productId, type)}
       onMediaClick={(type, url) => console.log('Media clicked:', type, url)}
-    />
-  ) : (
-    <ProductMobileGrid
-      products={sortedProducts}
-      editingProduct={editingProduct}
-      editValues={editValues}
-      categories={categories}
-      onEditStart={setEditingProduct}
-      onEditSave={() => setEditingProduct(null)}
-      onEditCancel={() => setEditingProduct(null)}
-      onEditChange={setEditValues}
-      onDelete={(id) => console.log('Delete product with id:', id)}
-      onImageUpload={(productId, url) => console.log('Upload image for product:', productId, url)}
-      onVideoUpload={(productId, url) => console.log('Upload video for product:', productId, url)}
-      onDeleteMedia={(productId, type) => console.log('Delete media for product:', productId, type)}
-      onMediaClick={(type, url) => console.log('Media clicked:', type, url)}
+      sortConfig={{ key: "name", direction: "asc" }}
+      onSort={(key) => console.log('Sort by:', key)}
     />
   );
 }
