@@ -283,7 +283,7 @@ export function SiteSettings() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-6">
+    <div className="w-full max-w-6xl pl-6 mt-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         <Tabs defaultValue="colors" className="w-full">
           <TabsList className="w-full h-auto flex-wrap gap-2 bg-background border p-2">
