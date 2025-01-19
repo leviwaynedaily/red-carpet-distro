@@ -5,16 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
 import { FileUpload } from "@/components/ui/file-upload";
-import { Upload, Trash2, Check } from "lucide-react";
+import { Upload, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 
 type Product = Tables<"products">;
 
@@ -45,8 +38,6 @@ export function ProductEditDialog({
   onVideoUpload,
   onDeleteMedia,
 }: ProductEditDialogProps) {
-  const [openCategories, setOpenCategories] = useState(false);
-
   const handleCategoryToggle = (categoryName: string) => {
     console.log('ProductEditDialog: Category toggled:', categoryName);
     const currentCategories = editValues.categories || [];
@@ -93,41 +84,23 @@ export function ProductEditDialog({
 
           <div className="grid gap-2">
             <Label>Categories</Label>
-            <Popover open={openCategories} onOpenChange={setOpenCategories}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={openCategories}
-                  className="justify-between"
-                >
-                  {editValues.categories?.length 
-                    ? `${editValues.categories.length} categories selected`
-                    : "Select categories..."}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0" align="start">
-                <ScrollArea className="h-[300px] p-4">
-                  <div className="space-y-4">
-                    {categories.map((category) => (
-                      <div key={category.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={category.id}
-                          checked={editValues.categories?.includes(category.name)}
-                          onCheckedChange={() => handleCategoryToggle(category.name)}
-                        />
-                        <label
-                          htmlFor={category.id}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {category.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
+            <div className="grid grid-cols-2 gap-2 border rounded-md p-4">
+              {categories.map((category) => (
+                <div key={category.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={category.id}
+                    checked={editValues.categories?.includes(category.name)}
+                    onCheckedChange={() => handleCategoryToggle(category.name)}
+                  />
+                  <label
+                    htmlFor={category.id}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {category.name}
+                  </label>
+                </div>
+              ))}
+            </div>
             {editValues.categories?.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {editValues.categories.map((category) => (
