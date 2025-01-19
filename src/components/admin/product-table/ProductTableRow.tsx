@@ -5,6 +5,7 @@ import { ProductTableActions } from "./ProductTableActions";
 import { ProductEditDialog } from "./ProductEditDialog";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type Product = Tables<"products">;
 
@@ -44,16 +45,59 @@ export function ProductTableRow({
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   const handleEdit = () => {
+    console.log('ProductTableRow: Starting edit for product:', product.id);
     onEditStart(product);
     setShowEditDialog(true);
   };
 
   const handleSave = async () => {
-    await onEditSave();
-    setShowEditDialog(false);
+    console.log('ProductTableRow: Saving product:', product.id);
+    console.log('ProductTableRow: New categories:', editValues.categories);
+    
+    try {
+      // First, delete existing category associations
+      const { error: deleteError } = await supabase
+        .from('product_categories')
+        .delete()
+        .eq('product_id', product.id);
+
+      if (deleteError) throw deleteError;
+
+      // Then, insert new category associations
+      if (editValues.categories && editValues.categories.length > 0) {
+        // Get category IDs for the selected category names
+        const { data: categoryData, error: categoryError } = await supabase
+          .from('categories')
+          .select('id, name')
+          .in('name', editValues.categories);
+
+        if (categoryError) throw categoryError;
+
+        if (categoryData && categoryData.length > 0) {
+          const categoryAssociations = categoryData.map(category => ({
+            product_id: product.id,
+            category_id: category.id
+          }));
+
+          const { error: insertError } = await supabase
+            .from('product_categories')
+            .insert(categoryAssociations);
+
+          if (insertError) throw insertError;
+        }
+      }
+
+      await onEditSave();
+      setShowEditDialog(false);
+      toast.success('Product updated successfully');
+    } catch (error) {
+      console.error('ProductTableRow: Error saving categories:', error);
+      toast.error('Failed to update product categories');
+    }
   };
 
   const handleCancel = () => {
+    console.log('ProductTableRow: Canceling edit');
     onEditCancel();
     setShowEditDialog(false);
   };
