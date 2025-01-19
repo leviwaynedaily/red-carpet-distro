@@ -45,26 +45,31 @@ export function PWASettingsNew() {
     return maskableCanvas;
   };
 
-  const uploadToEdgeFunction = async (blob: Blob, size: number, type: 'any' | 'maskable', format: 'png' | 'webp') => {
+  const uploadToStorage = async (blob: Blob, size: number, type: 'any' | 'maskable', format: 'png' | 'webp') => {
     console.log(`Uploading ${format} file for size ${size}x${size} (${type})`);
     
-    const formData = new FormData();
-    formData.append('file', blob);
-    formData.append('size', size.toString());
-    formData.append('type', type);
-    formData.append('format', format);
+    const filename = `icon-${size}${type === 'maskable' ? '-maskable' : ''}.${format}`;
+    const filePath = `pwa/${filename}`;
 
-    const { data, error } = await supabase.functions.invoke('upload-pwa-icons', {
-      body: formData,
-    });
+    const { error: uploadError } = await supabase.storage
+      .from('media')
+      .upload(filePath, blob, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: format === 'webp' ? 'image/webp' : 'image/png'
+      });
 
-    if (error) {
-      console.error('Error uploading to edge function:', error);
-      throw error;
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw uploadError;
     }
 
-    console.log('Upload successful:', data);
-    return data.path;
+    const { data: { publicUrl } } = supabase.storage
+      .from('media')
+      .getPublicUrl(filePath);
+
+    console.log('Upload successful:', publicUrl);
+    return publicUrl;
   };
 
   const processAndUploadImage = async (file: File) => {
@@ -122,7 +127,7 @@ export function PWASettingsNew() {
           maskableCanvas.toBlob(blob => resolve(blob!), 'image/webp')
         );
 
-        // Upload files using Edge Function
+        // Upload files
         const uploads = [
           { blob: regularBlob, type: 'any' as const, format: 'png' as const },
           { blob: maskableBlob, type: 'maskable' as const, format: 'png' as const },
@@ -132,13 +137,13 @@ export function PWASettingsNew() {
 
         for (const { blob, type, format } of uploads) {
           try {
-            const path = await uploadToEdgeFunction(blob, size, type, format);
+            const url = await uploadToStorage(blob, size, type, format);
             
             newGeneratedFiles.push({
               size: Math.round(blob.size / 1024), // Convert to KB
               type,
               format,
-              url: path,
+              url,
               dimensions: `${size}x${size}`
             });
             
