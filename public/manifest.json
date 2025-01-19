@@ -1,5 +1,5 @@
 {
-  "id": "com.palmtreesmokes.app",
+  "id": "/",
   "name": "Palmtree Smokes",
   "short_name": "Palmtree",
   "description": "Premium cannabis products",
@@ -9,6 +9,7 @@
   "theme_color": "#000000",
   "orientation": "portrait",
   "scope": "/",
+  "categories": ["shopping", "lifestyle", "health"],
   "prefer_related_applications": false,
   "icons": [
     {
@@ -36,42 +37,6 @@
       "purpose": "maskable"
     },
     {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-128.webp",
-      "sizes": "128x128",
-      "type": "image/webp",
-      "purpose": "any"
-    },
-    {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-128-maskable.webp",
-      "sizes": "128x128",
-      "type": "image/webp",
-      "purpose": "maskable"
-    },
-    {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-144.webp",
-      "sizes": "144x144",
-      "type": "image/webp",
-      "purpose": "any"
-    },
-    {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-144-maskable.webp",
-      "sizes": "144x144",
-      "type": "image/webp",
-      "purpose": "maskable"
-    },
-    {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-152.webp",
-      "sizes": "152x152",
-      "type": "image/webp",
-      "purpose": "any"
-    },
-    {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-152-maskable.webp",
-      "sizes": "152x152",
-      "type": "image/webp",
-      "purpose": "maskable"
-    },
-    {
       "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-192.webp",
       "sizes": "192x192",
       "type": "image/webp",
@@ -80,18 +45,6 @@
     {
       "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-192-maskable.webp",
       "sizes": "192x192",
-      "type": "image/webp",
-      "purpose": "maskable"
-    },
-    {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-384.webp",
-      "sizes": "384x384",
-      "type": "image/webp",
-      "purpose": "any"
-    },
-    {
-      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-384-maskable.webp",
-      "sizes": "384x384",
       "type": "image/webp",
       "purpose": "maskable"
     },
@@ -106,6 +59,12 @@
       "sizes": "512x512",
       "type": "image/webp",
       "purpose": "maskable"
+    },
+    {
+      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "screenshots": [
