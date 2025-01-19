@@ -83,12 +83,9 @@ export const parseCSV = async (file: File): Promise<Partial<ProductWithCategorie
                 product.categories = values[index]?.split(",").map((c) => c.trim()) || [];
               } else if (["stock", "regular_price", "shipping_price"].includes(header)) {
                 const value = parseFloat(values[index]) || 0;
-                product[header as keyof Product] = value;
-              } else {
-                const value = values[index];
-                if (value) {
-                  product[header as keyof Product] = value;
-                }
+                (product as any)[header] = value;
+              } else if (values[index]) {
+                (product as any)[header] = values[index];
               }
             });
 
