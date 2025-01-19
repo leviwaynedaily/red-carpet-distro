@@ -7,18 +7,13 @@ import { Tables } from "@/integrations/supabase/types";
 import { FileUpload } from "@/components/ui/file-upload";
 import { Upload, Trash2, Check } from "lucide-react";
 import { useState } from "react";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 type Product = Tables<"products">;
@@ -111,29 +106,26 @@ export function ProductEditDialog({
                     : "Select categories..."}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search categories..." />
-                  <CommandEmpty>No categories found.</CommandEmpty>
-                  <CommandGroup>
+              <PopoverContent className="w-[200px] p-0" align="start">
+                <ScrollArea className="h-[300px] p-4">
+                  <div className="space-y-4">
                     {categories.map((category) => (
-                      <CommandItem
-                        key={category.id}
-                        onSelect={() => handleCategoryToggle(category.name)}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            editValues.categories?.includes(category.name)
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
+                      <div key={category.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={category.id}
+                          checked={editValues.categories?.includes(category.name)}
+                          onCheckedChange={() => handleCategoryToggle(category.name)}
                         />
-                        {category.name}
-                      </CommandItem>
+                        <label
+                          htmlFor={category.id}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {category.name}
+                        </label>
+                      </div>
                     ))}
-                  </CommandGroup>
-                </Command>
+                  </div>
+                </ScrollArea>
               </PopoverContent>
             </Popover>
             {editValues.categories?.length > 0 && (
@@ -244,7 +236,6 @@ export function ProductEditDialog({
               onChange={(e) => onEditChange({ ...editValues, shipping_price: parseFloat(e.target.value) })}
             />
           </div>
-
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onCancel}>
