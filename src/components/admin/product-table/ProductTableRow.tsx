@@ -68,6 +68,7 @@ export function ProductTableRow({
             product={product}
             isEditing={false}
             editValues={editValues}
+            categories={categories}
             onEditChange={onEditChange}
             onMediaClick={onMediaClick}
             onDeleteMedia={onDeleteMedia}

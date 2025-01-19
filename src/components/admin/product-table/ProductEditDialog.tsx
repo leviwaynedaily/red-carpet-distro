@@ -20,17 +20,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 type Product = Tables<"products">;
-type Category = Tables<"categories">;
 
 interface ProductEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product: Product;
   editValues: Partial<Product> & { categories?: string[] };
+  categories?: { id: string; name: string; }[];
   onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -44,6 +42,7 @@ export function ProductEditDialog({
   onOpenChange,
   product,
   editValues,
+  categories = [],
   onEditChange,
   onSave,
   onCancel,
@@ -53,32 +52,13 @@ export function ProductEditDialog({
 }: ProductEditDialogProps) {
   const [openCategories, setOpenCategories] = useState(false);
 
-  // Fetch categories from Supabase with proper typing
-  const { data: categories } = useQuery<Category[]>({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      console.log('ProductEditDialog: Fetching categories');
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      
-      if (error) {
-        console.error('ProductEditDialog: Error fetching categories:', error);
-        throw error;
-      }
-      
-      console.log('ProductEditDialog: Categories fetched:', data);
-      return data || [];
-    },
-  });
-
   const handleCategoryToggle = (categoryName: string) => {
     console.log('ProductEditDialog: Category toggled:', categoryName);
     const currentCategories = editValues.categories || [];
     const newCategories = currentCategories.includes(categoryName)
       ? currentCategories.filter(cat => cat !== categoryName)
       : [...currentCategories, categoryName];
+    
     onEditChange({ ...editValues, categories: newCategories });
   };
 
@@ -136,7 +116,7 @@ export function ProductEditDialog({
                   <CommandInput placeholder="Search categories..." />
                   <CommandEmpty>No categories found.</CommandEmpty>
                   <CommandGroup>
-                    {(categories || []).map((category) => (
+                    {categories.map((category) => (
                       <CommandItem
                         key={category.id}
                         onSelect={() => handleCategoryToggle(category.name)}
