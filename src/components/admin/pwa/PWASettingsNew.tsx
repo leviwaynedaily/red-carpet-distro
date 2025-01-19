@@ -44,6 +44,28 @@ export function PWASettingsNew() {
     return maskableCanvas;
   };
 
+  const uploadToEdgeFunction = async (blob: Blob, size: number, type: 'any' | 'maskable', format: 'png' | 'webp') => {
+    console.log(`Uploading ${format} file for size ${size}x${size} (${type})`);
+    
+    const formData = new FormData();
+    formData.append('file', blob);
+    formData.append('size', size.toString());
+    formData.append('type', type);
+    formData.append('format', format);
+
+    const { data, error } = await supabase.functions.invoke('upload-pwa-icons', {
+      body: formData,
+    });
+
+    if (error) {
+      console.error('Error uploading to edge function:', error);
+      throw error;
+    }
+
+    console.log('Upload successful:', data);
+    return data.path;
+  };
+
   const processAndUploadImage = async (file: File) => {
     try {
       setIsProcessing(true);
@@ -99,41 +121,32 @@ export function PWASettingsNew() {
           maskableCanvas.toBlob(blob => resolve(blob!), 'image/webp')
         );
 
-        // Upload files
+        // Upload files using Edge Function
         const uploads = [
-          { blob: regularBlob, path: `pwa/icon-${size}-any.png`, type: 'any' as const, format: 'png' as const },
-          { blob: maskableBlob, path: `pwa/icon-${size}-maskable.png`, type: 'maskable' as const, format: 'png' as const },
-          { blob: regularWebPBlob, path: `pwa/icon-${size}-any.webp`, type: 'any' as const, format: 'webp' as const },
-          { blob: maskableWebPBlob, path: `pwa/icon-${size}-maskable.webp`, type: 'maskable' as const, format: 'webp' as const }
+          { blob: regularBlob, type: 'any' as const, format: 'png' as const },
+          { blob: maskableBlob, type: 'maskable' as const, format: 'png' as const },
+          { blob: regularWebPBlob, type: 'any' as const, format: 'webp' as const },
+          { blob: maskableWebPBlob, type: 'maskable' as const, format: 'webp' as const }
         ];
 
-        for (const { blob, path, type, format } of uploads) {
-          const { error, data } = await supabase.storage
-            .from('media')
-            .upload(path, blob, {
-              cacheControl: '3600',
-              upsert: true
+        for (const { blob, type, format } of uploads) {
+          try {
+            const path = await uploadToEdgeFunction(blob, size, type, format);
+            
+            newGeneratedFiles.push({
+              size: Math.round(blob.size / 1024), // Convert to KB
+              type,
+              format,
+              url: path,
+              dimensions: `${size}x${size}`
             });
-
-          if (error) {
-            console.error(`Error uploading ${path}:`, error);
-            throw error;
+            
+            console.log(`Successfully uploaded ${format} ${type} icon for size ${size}`);
+          } catch (uploadError) {
+            console.error(`Error uploading ${format} ${type} icon for size ${size}:`, uploadError);
+            toast.error(`Failed to upload ${size}x${size} ${type} ${format} icon`);
           }
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('media')
-            .getPublicUrl(path);
-
-          newGeneratedFiles.push({
-            size: Math.round(blob.size / 1024), // Convert to KB
-            type,
-            format,
-            url: publicUrl,
-            dimensions: `${size}x${size}`
-          });
         }
-
-        console.log(`Successfully processed and uploaded size ${size}x${size}`);
       }
 
       setGeneratedFiles(newGeneratedFiles);
