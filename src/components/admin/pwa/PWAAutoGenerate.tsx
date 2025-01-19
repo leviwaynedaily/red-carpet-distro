@@ -4,19 +4,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { IconStatus } from "./IconStatus";
 import type { PWAIcon } from "@/types/site-settings";
 
 const PWA_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
-
-interface GeneratedFile {
-  size: number;
-  type: 'any' | 'maskable';
-  format: 'png' | 'webp';
-  url: string;
-  dimensions: string;
-}
 
 interface PWAAutoGenerateProps {
   onIconsGenerated: (icons: PWAIcon[]) => void;
@@ -24,7 +14,6 @@ interface PWAAutoGenerateProps {
 
 export function PWAAutoGenerate({ onIconsGenerated }: PWAAutoGenerateProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [generatedFiles, setGeneratedFiles] = useState<GeneratedFile[]>([]);
 
   const createMaskableVersion = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, size: number) => {
     const maskableCanvas = document.createElement('canvas');
@@ -45,8 +34,6 @@ export function PWAAutoGenerate({ onIconsGenerated }: PWAAutoGenerateProps) {
   };
 
   const uploadToStorage = async (blob: Blob, size: number, type: 'any' | 'maskable', format: 'png' | 'webp') => {
-    console.log(`Uploading ${format} file for size ${size}x${size} (${type})`);
-    
     const filename = `icon-${size}${type === 'maskable' ? '-maskable' : ''}.${format}`;
     const filePath = `pwa/${filename}`;
 
@@ -58,30 +45,23 @@ export function PWAAutoGenerate({ onIconsGenerated }: PWAAutoGenerateProps) {
         contentType: format === 'webp' ? 'image/webp' : 'image/png'
       });
 
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      throw uploadError;
-    }
+    if (uploadError) throw uploadError;
 
     const { data: { publicUrl } } = supabase.storage
       .from('media')
       .getPublicUrl(filePath);
 
-    console.log('Upload successful:', publicUrl);
     return publicUrl;
   };
 
   const processAndUploadImage = async (file: File) => {
     try {
       setIsProcessing(true);
-      setGeneratedFiles([]);
       console.log('Starting image processing...');
 
       const sourceCanvas = document.createElement('canvas');
       const sourceCtx = sourceCanvas.getContext('2d');
-      if (!sourceCtx) {
-        throw new Error('Could not get canvas context');
-      }
+      if (!sourceCtx) throw new Error('Could not get canvas context');
 
       const img = new Image();
       await new Promise((resolve, reject) => {
@@ -90,70 +70,61 @@ export function PWAAutoGenerate({ onIconsGenerated }: PWAAutoGenerateProps) {
         img.src = URL.createObjectURL(file);
       });
 
-      const newGeneratedFiles: GeneratedFile[] = [];
+      const generatedIcons: PWAIcon[] = [];
 
       for (const size of PWA_SIZES) {
         console.log(`Processing size: ${size}x${size}`);
 
         sourceCanvas.width = size;
         sourceCanvas.height = size;
-
         sourceCtx.clearRect(0, 0, size, size);
         sourceCtx.drawImage(img, 0, 0, size, size);
 
         const maskableCanvas = createMaskableVersion(sourceCanvas, sourceCtx, size);
         if (!maskableCanvas) continue;
 
+        // Process regular icon
         const regularBlob = await new Promise<Blob>(resolve => 
           sourceCanvas.toBlob(blob => resolve(blob!), 'image/png')
         );
-        const maskableBlob = await new Promise<Blob>(resolve => 
-          maskableCanvas.toBlob(blob => resolve(blob!), 'image/png')
-        );
-
         const regularWebPBlob = await new Promise<Blob>(resolve => 
           sourceCanvas.toBlob(blob => resolve(blob!), 'image/webp')
+        );
+
+        // Process maskable icon
+        const maskableBlob = await new Promise<Blob>(resolve => 
+          maskableCanvas.toBlob(blob => resolve(blob!), 'image/png')
         );
         const maskableWebPBlob = await new Promise<Blob>(resolve => 
           maskableCanvas.toBlob(blob => resolve(blob!), 'image/webp')
         );
 
-        const uploads = [
-          { blob: regularBlob, type: 'any' as const, format: 'png' as const },
-          { blob: maskableBlob, type: 'maskable' as const, format: 'png' as const },
-          { blob: regularWebPBlob, type: 'any' as const, format: 'webp' as const },
-          { blob: maskableWebPBlob, type: 'maskable' as const, format: 'webp' as const }
-        ];
+        // Upload all versions
+        const regularPngUrl = await uploadToStorage(regularBlob, size, 'any', 'png');
+        const regularWebpUrl = await uploadToStorage(regularWebPBlob, size, 'any', 'webp');
+        const maskablePngUrl = await uploadToStorage(maskableBlob, size, 'maskable', 'png');
+        const maskableWebpUrl = await uploadToStorage(maskableWebPBlob, size, 'maskable', 'webp');
 
-        for (const { blob, type, format } of uploads) {
-          try {
-            const url = await uploadToStorage(blob, size, type, format);
-            
-            newGeneratedFiles.push({
-              size: Math.round(blob.size / 1024),
-              type,
-              format,
-              url,
-              dimensions: `${size}x${size}`
-            });
-            
-            console.log(`Successfully uploaded ${format} ${type} icon for size ${size}`);
-          } catch (uploadError) {
-            console.error(`Error uploading ${format} ${type} icon for size ${size}:`, uploadError);
-            toast.error(`Failed to upload ${size}x${size} ${type} ${format} icon`);
-          }
-        }
+        // Add regular icon
+        generatedIcons.push({
+          src: regularPngUrl,
+          sizes: `${size}x${size}`,
+          type: 'image/png',
+          purpose: 'any',
+          webp: regularWebpUrl
+        });
+
+        // Add maskable icon
+        generatedIcons.push({
+          src: maskablePngUrl,
+          sizes: `${size}x${size}`,
+          type: 'image/png',
+          purpose: 'maskable',
+          webp: maskableWebpUrl
+        });
       }
 
-      const icons: PWAIcon[] = newGeneratedFiles.map(file => ({
-        src: file.url,
-        sizes: file.dimensions,
-        type: file.format === 'webp' ? 'image/webp' : 'image/png',
-        purpose: file.type
-      }));
-
-      onIconsGenerated(icons);
-      setGeneratedFiles(newGeneratedFiles);
+      onIconsGenerated(generatedIcons);
       toast.success('All PWA icons generated and uploaded successfully');
     } catch (error) {
       console.error('Error processing image:', error);
@@ -195,69 +166,6 @@ export function PWAAutoGenerate({ onIconsGenerated }: PWAAutoGenerateProps) {
           />
         )}
       </div>
-
-      {generatedFiles.length > 0 && (
-        <div className="mt-8 space-y-4">
-          <h3 className="text-lg font-semibold">Generated Files</h3>
-          <ScrollArea className="h-[400px] rounded-md border p-4">
-            <div className="space-y-8">
-              {PWA_SIZES.map(size => {
-                const sizeFiles = generatedFiles.filter(file => file.dimensions === `${size}x${size}`);
-                const anyFiles = sizeFiles.filter(file => file.type === 'any');
-                const maskableFiles = sizeFiles.filter(file => file.type === 'maskable');
-
-                return (
-                  <div key={size} className="space-y-4">
-                    <h4 className="font-medium text-lg border-b pb-2">{size}x{size}</h4>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <h5 className="font-medium">Regular Icon</h5>
-                        {anyFiles.length > 0 && (
-                          <div className="flex items-start space-x-4">
-                            <div className="w-20 h-20 bg-white rounded-lg border p-2 flex items-center justify-center">
-                              <img 
-                                src={anyFiles[0].url} 
-                                alt={`${size}x${size} regular`}
-                                className="max-w-full max-h-full object-contain"
-                              />
-                            </div>
-                            <IconStatus 
-                              status={{
-                                png: anyFiles.some(f => f.format === 'png'),
-                                webp: anyFiles.some(f => f.format === 'webp')
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <div className="space-y-4">
-                        <h5 className="font-medium">Maskable Icon</h5>
-                        {maskableFiles.length > 0 && (
-                          <div className="flex items-start space-x-4">
-                            <div className="w-20 h-20 bg-white rounded-lg border p-2 flex items-center justify-center">
-                              <img 
-                                src={maskableFiles[0].url} 
-                                alt={`${size}x${size} maskable`}
-                                className="max-w-full max-h-full object-contain"
-                              />
-                            </div>
-                            <IconStatus 
-                              status={{
-                                png: maskableFiles.some(f => f.format === 'png'),
-                                webp: maskableFiles.some(f => f.format === 'webp')
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
-        </div>
-      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PWAScreenshots } from "./PWAScreenshots";
 import { PWAManualUpload } from "./PWAManualUpload";
 import { PWAAutoGenerate } from "./PWAAutoGenerate";
+import type { PWAIcon } from "@/types/site-settings";
 
 interface PWASettingsProps {
   settings: any;
@@ -10,6 +11,11 @@ interface PWASettingsProps {
 }
 
 export function PWASettings({ settings, onSettingChange }: PWASettingsProps) {
+  const handleIconsUpdate = (icons: PWAIcon[]) => {
+    console.log('Updating PWA icons:', icons);
+    onSettingChange('pwa_icons', icons);
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -30,37 +36,14 @@ export function PWASettings({ settings, onSettingChange }: PWASettingsProps) {
 
           <TabsContent value="manual" className="mt-4">
             <PWAManualUpload
-              icons={settings.pwa_icons}
-              onIconUpload={(url, size) => {
-                const updatedIcons = [...(settings.pwa_icons || [])];
-                const existingIconIndex = updatedIcons.findIndex(
-                  (icon) => icon.sizes === `${size}x${size}`
-                );
-                
-                if (existingIconIndex !== -1) {
-                  updatedIcons[existingIconIndex] = {
-                    ...updatedIcons[existingIconIndex],
-                    src: url,
-                  };
-                } else {
-                  updatedIcons.push({
-                    src: url,
-                    sizes: `${size}x${size}`,
-                    type: 'image/png',
-                    purpose: 'any'
-                  });
-                }
-                
-                onSettingChange('pwa_icons', updatedIcons);
-              }}
+              icons={settings.pwa_icons || []}
+              onIconsUpdate={handleIconsUpdate}
             />
           </TabsContent>
 
           <TabsContent value="auto" className="mt-4">
             <PWAAutoGenerate
-              onIconsGenerated={(icons) => {
-                onSettingChange('pwa_icons', icons);
-              }}
+              onIconsGenerated={handleIconsUpdate}
             />
           </TabsContent>
         </Tabs>
