@@ -44,6 +44,7 @@ export function ProductEditDialog({
   onDeleteMedia,
 }: ProductEditDialogProps) {
   const handleCategoryToggle = (categoryName: string) => {
+    console.log('ProductEditDialog: Category toggled:', categoryName);
     const currentCategories = editValues.categories || [];
     const newCategories = currentCategories.includes(categoryName)
       ? currentCategories.filter(cat => cat !== categoryName)
