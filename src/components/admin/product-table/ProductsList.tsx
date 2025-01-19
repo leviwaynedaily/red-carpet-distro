@@ -1,121 +1,108 @@
+import { useState } from "react";
+import { Tables } from "@/integrations/supabase/types";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { ProductTable } from "./ProductTable";
 import { ProductMobileGrid } from "./ProductMobileGrid";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useProducts } from "@/hooks/useProducts";
 import { toast } from "sonner";
-import { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
 
 interface ProductsListProps {
-  searchQuery: string;
-  visibleColumns: string[];
-  editingProduct: string | null;
-  editValues: Partial<Product> & { categories?: string[] };
-  sortConfig: { key: string; direction: 'asc' | 'desc' };
-  onEditStart: (product: Product & { categories?: string[] }) => void;
-  onEditSave: () => void;
-  onEditCancel: () => void;
-  onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
-  onDelete: (id: string) => void;
-  onImageUpload: (productId: string, url: string) => void;
-  onVideoUpload: (productId: string, url: string) => void;
-  onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
-  onMediaClick: (type: 'image' | 'video', url: string) => void;
-  onSort: (key: string) => void;
+  searchTerm: string;
+  sortBy: string;
+  viewMode: "table" | "grid";
+  categories?: { id: string; name: string; }[];
 }
 
-export function ProductsList({
-  searchQuery,
-  visibleColumns,
-  editingProduct,
-  editValues,
-  sortConfig,
-  onEditStart,
-  onEditSave,
-  onEditCancel,
-  onEditChange,
-  onDelete,
-  onImageUpload,
-  onVideoUpload,
-  onDeleteMedia,
-  onMediaClick,
-  onSort,
-}: ProductsListProps) {
-  const { data: products, isLoading, error } = useProducts();
-  const isMobile = useIsMobile();
+export function ProductsList({ searchTerm, sortBy, viewMode, categories }: ProductsListProps) {
+  const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<Partial<Product> & { categories?: string[] }>({});
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <p className="text-gray-500">Loading products...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    console.error('ProductsList: Error loading products:', error);
-    toast.error("Failed to load products");
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <p className="text-red-500">Error loading products. Please try again.</p>
-      </div>
-    );
-  }
-
-  const filteredProducts = products?.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.strain?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
-
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    const aValue = a[sortConfig.key as keyof typeof a];
-    const bValue = b[sortConfig.key as keyof typeof b];
-    
-    if (aValue === null || aValue === undefined) return 1;
-    if (bValue === null || bValue === undefined) return -1;
-    
-    const modifier = sortConfig.direction === 'asc' ? 1 : -1;
-    
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return aValue.localeCompare(bValue) * modifier;
-    }
-    
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return (aValue - bValue) * modifier;
-    }
-    
-    if (aValue instanceof Date && bValue instanceof Date) {
-      return (aValue.getTime() - bValue.getTime()) * modifier;
-    }
-    
-    return 0;
+  // Fetch products
+  const { data: products, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      console.log('ProductsList: Fetching products');
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order(sortBy);
+      
+      if (error) {
+        console.error('ProductsList: Error fetching products:', error);
+        throw error;
+      }
+      
+      console.log('ProductsList: Products fetched:', data);
+      return data || [];
+    },
   });
 
-  return isMobile ? (
-    <ProductMobileGrid
-      products={sortedProducts}
-      onEditStart={onEditStart}
-      onDelete={onDelete}
-    />
-  ) : (
+  if (error) {
+    toast.error("Failed to load products");
+  }
+
+  // Filter products based on search term
+  const filteredProducts = products?.filter(product => {
+    return product.name.toLowerCase().includes(searchTerm.toLowerCase());
+  }) || [];
+
+  // Sort products based on selected option
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case 'name-asc':
+        return (a.name || '').localeCompare(b.name || '');
+      case 'name-desc':
+        return (b.name || '').localeCompare(a.name || '');
+      case 'strain-asc':
+        return (a.strain || '').localeCompare(b.strain || '');
+      case 'strain-desc':
+        return (b.strain || '').localeCompare(a.strain || '');
+      case 'price-asc':
+        return (a.regular_price || 0) - (b.regular_price || 0);
+      case 'price-desc':
+        return (b.regular_price || 0) - (a.regular_price || 0);
+      case 'date-asc':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'date-desc':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      default:
+        return 0;
+    }
+  });
+
+  return viewMode === "table" ? (
     <ProductTable
       products={sortedProducts}
-      visibleColumns={visibleColumns}
       editingProduct={editingProduct}
       editValues={editValues}
-      onEditStart={onEditStart}
-      onEditSave={onEditSave}
-      onEditCancel={onEditCancel}
-      onEditChange={onEditChange}
-      onDelete={onDelete}
-      onImageUpload={onImageUpload}
-      onVideoUpload={onVideoUpload}
-      onDeleteMedia={onDeleteMedia}
-      onMediaClick={onMediaClick}
-      sortConfig={sortConfig}
-      onSort={onSort}
+      categories={categories}
+      onEditStart={setEditingProduct}
+      onEditSave={() => setEditingProduct(null)}
+      onEditCancel={() => setEditingProduct(null)}
+      onEditChange={setEditValues}
+      onDelete={(id) => console.log('Delete product with id:', id)}
+      onImageUpload={(productId, url) => console.log('Upload image for product:', productId, url)}
+      onVideoUpload={(productId, url) => console.log('Upload video for product:', productId, url)}
+      onDeleteMedia={(productId, type) => console.log('Delete media for product:', productId, type)}
+      onMediaClick={(type, url) => console.log('Media clicked:', type, url)}
+    />
+  ) : (
+    <ProductMobileGrid
+      products={sortedProducts}
+      editingProduct={editingProduct}
+      editValues={editValues}
+      categories={categories}
+      onEditStart={setEditingProduct}
+      onEditSave={() => setEditingProduct(null)}
+      onEditCancel={() => setEditingProduct(null)}
+      onEditChange={setEditValues}
+      onDelete={(id) => console.log('Delete product with id:', id)}
+      onImageUpload={(productId, url) => console.log('Upload image for product:', productId, url)}
+      onVideoUpload={(productId, url) => console.log('Upload video for product:', productId, url)}
+      onDeleteMedia={(productId, type) => console.log('Delete media for product:', productId, type)}
+      onMediaClick={(type, url) => console.log('Media clicked:', type, url)}
     />
   );
 }
