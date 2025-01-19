@@ -15,6 +15,7 @@ interface ProductTableProps {
   editingProduct: string | null;
   editValues: Partial<Product> & { categories?: string[] };
   categories?: { id: string; name: string; }[];
+  visibleColumns: string[];
   onEditStart: (product: Product & { categories?: string[] }) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
@@ -31,6 +32,7 @@ export function ProductTable({
   editingProduct,
   editValues,
   categories,
+  visibleColumns,
   onEditStart,
   onEditSave,
   onEditCancel,
@@ -41,18 +43,6 @@ export function ProductTable({
   onDeleteMedia,
   onMediaClick,
 }: ProductTableProps) {
-  const visibleColumns = [
-    "name",
-    "strain",
-    "description",
-    "image",
-    "video_url",
-    "categories",
-    "stock",
-    "regular_price",
-    "shipping_price",
-  ];
-
   return (
     <div className="rounded-md border">
       <Table>
