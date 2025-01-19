@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { IconStatus } from "./IconStatus";
 
 const PWA_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
 
@@ -196,33 +197,60 @@ export function PWASettingsNew() {
         <div className="mt-8 space-y-4">
           <h3 className="text-lg font-semibold">Generated Files</h3>
           <ScrollArea className="h-[400px] rounded-md border p-4">
-            <div className="space-y-4">
-              {PWA_SIZES.map(size => (
-                <div key={size} className="space-y-2">
-                  <h4 className="font-medium">{size}x{size}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {generatedFiles
-                      .filter(file => file.dimensions === `${size}x${size}`)
-                      .map((file, index) => (
-                        <div key={index} className="flex items-center space-x-4 p-2 bg-muted rounded-lg">
-                          <img 
-                            src={file.url} 
-                            alt={`${file.dimensions} ${file.type} ${file.format}`}
-                            className="w-12 h-12 object-contain bg-white rounded"
-                          />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">
-                              {file.type} ({file.format})
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {file.size}KB
-                            </p>
+            <div className="space-y-8">
+              {PWA_SIZES.map(size => {
+                const sizeFiles = generatedFiles.filter(file => file.dimensions === `${size}x${size}`);
+                const anyFiles = sizeFiles.filter(file => file.type === 'any');
+                const maskableFiles = sizeFiles.filter(file => file.type === 'maskable');
+
+                return (
+                  <div key={size} className="space-y-4">
+                    <h4 className="font-medium text-lg border-b pb-2">{size}x{size}</h4>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <h5 className="font-medium">Regular Icon</h5>
+                        {anyFiles.length > 0 && (
+                          <div className="flex items-start space-x-4">
+                            <div className="w-20 h-20 bg-white rounded-lg border p-2 flex items-center justify-center">
+                              <img 
+                                src={anyFiles[0].url} 
+                                alt={`${size}x${size} regular`}
+                                className="max-w-full max-h-full object-contain"
+                              />
+                            </div>
+                            <IconStatus 
+                              status={{
+                                png: anyFiles.some(f => f.format === 'png'),
+                                webp: anyFiles.some(f => f.format === 'webp')
+                              }}
+                            />
                           </div>
-                        </div>
-                    ))}
+                        )}
+                      </div>
+                      <div className="space-y-4">
+                        <h5 className="font-medium">Maskable Icon</h5>
+                        {maskableFiles.length > 0 && (
+                          <div className="flex items-start space-x-4">
+                            <div className="w-20 h-20 bg-white rounded-lg border p-2 flex items-center justify-center">
+                              <img 
+                                src={maskableFiles[0].url} 
+                                alt={`${size}x${size} maskable`}
+                                className="max-w-full max-h-full object-contain"
+                              />
+                            </div>
+                            <IconStatus 
+                              status={{
+                                png: maskableFiles.some(f => f.format === 'png'),
+                                webp: maskableFiles.some(f => f.format === 'webp')
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
         </div>
