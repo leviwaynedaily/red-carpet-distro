@@ -63,7 +63,7 @@ export function ProductTableRow({
 
       if (deleteError) throw deleteError;
 
-      // Then, insert new category associations
+      // Then, insert new category associations if there are any categories selected
       if (editValues.categories && editValues.categories.length > 0) {
         // Get category IDs for the selected category names
         const { data: categoryData, error: categoryError } = await supabase
@@ -74,14 +74,19 @@ export function ProductTableRow({
         if (categoryError) throw categoryError;
 
         if (categoryData && categoryData.length > 0) {
-          const categoryAssociations = categoryData.map(category => ({
+          // Create unique category associations
+          const uniqueAssociations = categoryData.map(category => ({
             product_id: product.id,
             category_id: category.id
           }));
 
+          // Use upsert instead of insert to handle potential duplicates
           const { error: insertError } = await supabase
             .from('product_categories')
-            .insert(categoryAssociations);
+            .upsert(uniqueAssociations, { 
+              onConflict: 'product_id,category_id',
+              ignoreDuplicates: true 
+            });
 
           if (insertError) throw insertError;
         }
