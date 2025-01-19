@@ -2,6 +2,8 @@ import { Tables } from "@/integrations/supabase/types";
 import { TableRow } from "@/components/ui/table";
 import { ProductTableCell } from "./ProductTableCell";
 import { ProductTableActions } from "./ProductTableActions";
+import { ProductEditDialog } from "./ProductEditDialog";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Product = Tables<"products">;
@@ -39,73 +41,63 @@ export function ProductTableRow({
   onDeleteMedia,
   onMediaClick,
 }: ProductTableRowProps) {
-  const handleKeyDown = async (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      await handleSave();
-    } else if (e.key === 'Escape') {
-      onEditCancel();
-    }
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
+  const handleEdit = () => {
+    onEditStart(product);
+    setShowEditDialog(true);
   };
 
   const handleSave = async () => {
-    if (editValues.categories) {
-      // Get category IDs for the selected category names
-      const { data: categoryData } = await supabase
-        .from('categories')
-        .select('id, name')
-        .in('name', editValues.categories);
+    await onEditSave();
+    setShowEditDialog(false);
+  };
 
-      if (categoryData) {
-        // Delete existing category relationships
-        await supabase
-          .from('product_categories')
-          .delete()
-          .eq('product_id', product.id);
-
-        // Insert new category relationships
-        const categoryRelations = categoryData.map(category => ({
-          product_id: product.id,
-          category_id: category.id
-        }));
-
-        await supabase
-          .from('product_categories')
-          .insert(categoryRelations);
-      }
-    }
-
-    onEditSave();
+  const handleCancel = () => {
+    onEditCancel();
+    setShowEditDialog(false);
   };
 
   return (
-    <TableRow 
-      key={product.id}
-      className={`cursor-pointer ${isEditing ? 'bg-muted/50' : ''}`}
-      onKeyDown={handleKeyDown}
-    >
-      {visibleColumns.map((column) => (
-        <ProductTableCell
-          key={column}
-          column={column}
-          product={product}
+    <>
+      <TableRow key={product.id}>
+        {visibleColumns.map((column) => (
+          <ProductTableCell
+            key={column}
+            column={column}
+            product={product}
+            isEditing={false}
+            editValues={editValues}
+            onEditChange={onEditChange}
+            onMediaClick={onMediaClick}
+            onDeleteMedia={onDeleteMedia}
+            onImageUpload={onImageUpload}
+            onVideoUpload={onVideoUpload}
+          />
+        ))}
+        <ProductTableActions
+          productId={product.id}
           isEditing={isEditing}
-          editValues={editValues}
-          categories={categories}
-          onEditChange={onEditChange}
-          onMediaClick={onMediaClick}
-          onDeleteMedia={onDeleteMedia}
-          onImageUpload={onImageUpload}
-          onVideoUpload={onVideoUpload}
+          onEdit={handleEdit}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          onDelete={onDelete}
         />
-      ))}
-      <ProductTableActions
-        productId={product.id}
-        isEditing={isEditing}
+      </TableRow>
+
+      <ProductEditDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        product={product}
+        editValues={editValues}
+        categories={categories}
+        onEditChange={onEditChange}
         onSave={handleSave}
-        onCancel={onEditCancel}
-        onDelete={onDelete}
-        onEdit={() => onEditStart(product)}
+        onCancel={handleCancel}
+        onImageUpload={onImageUpload}
+        onVideoUpload={onVideoUpload}
+        onDeleteMedia={onDeleteMedia}
       />
-    </TableRow>
+    </>
   );
 }
