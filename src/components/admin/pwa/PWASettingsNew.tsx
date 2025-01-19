@@ -4,11 +4,21 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PWA_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
 
+interface GeneratedFile {
+  size: number;
+  type: 'any' | 'maskable';
+  format: 'png' | 'webp';
+  url: string;
+  dimensions: string;
+}
+
 export function PWASettingsNew() {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [generatedFiles, setGeneratedFiles] = useState<GeneratedFile[]>([]);
 
   const createMaskableVersion = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, size: number) => {
     // Create a new canvas for the maskable icon
@@ -37,6 +47,7 @@ export function PWASettingsNew() {
   const processAndUploadImage = async (file: File) => {
     try {
       setIsProcessing(true);
+      setGeneratedFiles([]);
       console.log('Starting image processing...');
 
       // Create source canvas
@@ -53,6 +64,8 @@ export function PWASettingsNew() {
         img.onerror = reject;
         img.src = URL.createObjectURL(file);
       });
+
+      const newGeneratedFiles: GeneratedFile[] = [];
 
       // Process each size
       for (const size of PWA_SIZES) {
@@ -88,14 +101,14 @@ export function PWASettingsNew() {
 
         // Upload files
         const uploads = [
-          { blob: regularBlob, path: `pwa/icon-${size}-any.png` },
-          { blob: maskableBlob, path: `pwa/icon-${size}-maskable.png` },
-          { blob: regularWebPBlob, path: `pwa/icon-${size}-any.webp` },
-          { blob: maskableWebPBlob, path: `pwa/icon-${size}-maskable.webp` }
+          { blob: regularBlob, path: `pwa/icon-${size}-any.png`, type: 'any' as const, format: 'png' as const },
+          { blob: maskableBlob, path: `pwa/icon-${size}-maskable.png`, type: 'maskable' as const, format: 'png' as const },
+          { blob: regularWebPBlob, path: `pwa/icon-${size}-any.webp`, type: 'any' as const, format: 'webp' as const },
+          { blob: maskableWebPBlob, path: `pwa/icon-${size}-maskable.webp`, type: 'maskable' as const, format: 'webp' as const }
         ];
 
-        for (const { blob, path } of uploads) {
-          const { error } = await supabase.storage
+        for (const { blob, path, type, format } of uploads) {
+          const { error, data } = await supabase.storage
             .from('media')
             .upload(path, blob, {
               cacheControl: '3600',
@@ -106,11 +119,24 @@ export function PWASettingsNew() {
             console.error(`Error uploading ${path}:`, error);
             throw error;
           }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('media')
+            .getPublicUrl(path);
+
+          newGeneratedFiles.push({
+            size: Math.round(blob.size / 1024), // Convert to KB
+            type,
+            format,
+            url: publicUrl,
+            dimensions: `${size}x${size}`
+          });
         }
 
         console.log(`Successfully processed and uploaded size ${size}x${size}`);
       }
 
+      setGeneratedFiles(newGeneratedFiles);
       toast.success('All PWA icons generated and uploaded successfully');
     } catch (error) {
       console.error('Error processing image:', error);
@@ -152,6 +178,42 @@ export function PWASettingsNew() {
           />
         )}
       </div>
+
+      {generatedFiles.length > 0 && (
+        <div className="mt-8 space-y-4">
+          <h3 className="text-lg font-semibold">Generated Files</h3>
+          <ScrollArea className="h-[400px] rounded-md border p-4">
+            <div className="space-y-4">
+              {PWA_SIZES.map(size => (
+                <div key={size} className="space-y-2">
+                  <h4 className="font-medium">{size}x{size}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {generatedFiles
+                      .filter(file => file.dimensions === `${size}x${size}`)
+                      .map((file, index) => (
+                        <div key={index} className="flex items-center space-x-4 p-2 bg-muted rounded-lg">
+                          <img 
+                            src={file.url} 
+                            alt={`${file.dimensions} ${file.type} ${file.format}`}
+                            className="w-12 h-12 object-contain bg-white rounded"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">
+                              {file.type} ({file.format})
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {file.size}KB
+                            </p>
+                          </div>
+                        </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      )}
     </div>
   );
 }
