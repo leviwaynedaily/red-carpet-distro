@@ -9,10 +9,8 @@ import { ColorSettings } from "./settings/ColorSettings";
 import { LogoSettings } from "./settings/LogoSettings";
 import { DescriptionSettings } from "./settings/DescriptionSettings";
 import { OpenGraphSettings } from "./settings/OpenGraphSettings";
-import { PWAIcons } from "./pwa/PWAIcons";
-import { PWAScreenshots } from "./pwa/PWAScreenshots";
+import { PWASettings } from "./pwa/PWASettings";
 import { WelcomeInstructions } from "./settings/WelcomeInstructions";
-import { PWASettingsNew } from "./pwa/PWASettingsNew";
 import type { PWAIcon } from "@/types/site-settings";
 
 const PWA_ICON_SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -291,7 +289,6 @@ export function SiteSettings() {
             <TabsTrigger value="site" className="flex-1">Site Settings</TabsTrigger>
             <TabsTrigger value="welcome" className="flex-1">Welcome</TabsTrigger>
             <TabsTrigger value="pwa" className="flex-1">PWA Settings</TabsTrigger>
-            <TabsTrigger value="pwa-new" className="flex-1">PWA Settings *New*</TabsTrigger>
             <TabsTrigger value="og" className="flex-1">Open Graph</TabsTrigger>
           </TabsList>
 
@@ -324,26 +321,10 @@ export function SiteSettings() {
             </TabsContent>
 
             <TabsContent value="pwa" className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">PWA Screenshots</h3>
-                <PWAScreenshots
-                  desktopScreenshot={settings.pwa_desktop_screenshot || null}
-                  mobileScreenshot={settings.pwa_mobile_screenshot || null}
-                  onDesktopUpload={(url) => handleSettingChange('pwa_desktop_screenshot', url)}
-                  onMobileUpload={(url) => handleSettingChange('pwa_mobile_screenshot', url)}
-                />
-
-                <h3 className="text-lg font-medium mt-6">PWA Icons</h3>
-                <PWAIcons
-                  icons={settings.pwa_icons}
-                  onIconUpload={handlePWAIconUpload}
-                  sizes={PWA_ICON_SIZES}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="pwa-new" className="space-y-6">
-              <PWASettingsNew />
+              <PWASettings
+                settings={settings}
+                onSettingChange={handleSettingChange}
+              />
             </TabsContent>
 
             <TabsContent value="og" className="space-y-4">
