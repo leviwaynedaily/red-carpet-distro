@@ -30,13 +30,21 @@ export function ColorSettings({ settings, onSettingChange }: ColorSettingsProps)
     }
   };
 
-  const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeaderOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     onSettingChange('header_opacity', value);
+    
+    toast.success('Header opacity updated! Save to make permanent.', {
+      description: `Header opacity changed to ${Math.round(value * 100)}%`,
+    });
+  };
+
+  const handleToolbarOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
     onSettingChange('toolbar_opacity', value);
     
-    toast.success('Opacity updated! Save to make permanent.', {
-      description: `Header opacity changed to ${value}`,
+    toast.success('Toolbar opacity updated! Save to make permanent.', {
+      description: `Toolbar opacity changed to ${Math.round(value * 100)}%`,
     });
   };
 
@@ -144,7 +152,7 @@ export function ColorSettings({ settings, onSettingChange }: ColorSettingsProps)
               max="1"
               step="0.1"
               value={settings.header_opacity}
-              onChange={handleOpacityChange}
+              onChange={handleHeaderOpacityChange}
               className="w-full"
             />
             <span className="text-sm text-muted-foreground w-12">
@@ -181,7 +189,7 @@ export function ColorSettings({ settings, onSettingChange }: ColorSettingsProps)
               max="1"
               step="0.1"
               value={settings.toolbar_opacity}
-              onChange={handleOpacityChange}
+              onChange={handleToolbarOpacityChange}
               className="w-full"
             />
             <span className="text-sm text-muted-foreground w-12">
