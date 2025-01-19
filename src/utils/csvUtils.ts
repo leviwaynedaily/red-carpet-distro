@@ -2,6 +2,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 type Product = Tables<"products">;
+type ProductWithCategories = Product & { categories?: string[] };
 
 const TEMPLATE_HEADERS = [
   "name",
@@ -29,7 +30,7 @@ export const downloadTemplate = () => {
   document.body.removeChild(link);
 };
 
-export const exportProducts = (products: Product[]) => {
+export const exportProducts = (products: ProductWithCategories[]) => {
   const csvContent = [
     TEMPLATE_HEADERS.join(","),
     ...products.map((product) => {
@@ -57,7 +58,7 @@ export const exportProducts = (products: Product[]) => {
   document.body.removeChild(link);
 };
 
-export const parseCSV = async (file: File): Promise<Partial<Product>[]> => {
+export const parseCSV = async (file: File): Promise<Partial<ProductWithCategories>[]> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -71,11 +72,13 @@ export const parseCSV = async (file: File): Promise<Partial<Product>[]> => {
           .filter((line) => line.trim())
           .map((line) => {
             const values = line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
-            const product: Partial<Product> = {};
+            const product: Partial<ProductWithCategories> = {
+              name: values[headers.indexOf("name")],
+            };
 
             headers.forEach((header, index) => {
               if (header === "categories") {
-                product[header] = values[index]?.split(",").map((c) => c.trim()) || [];
+                product.categories = values[index]?.split(",").map((c) => c.trim()) || [];
               } else if (["stock", "regular_price", "shipping_price"].includes(header)) {
                 product[header as keyof Product] = parseFloat(values[index]) || 0;
               } else {

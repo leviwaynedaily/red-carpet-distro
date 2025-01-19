@@ -11,6 +11,7 @@ import { ProductsList } from "./product-table/ProductsList";
 import { downloadTemplate, exportProducts, parseCSV } from "@/utils/csvUtils";
 
 type Product = Tables<"products">;
+type ProductWithCategories = Product & { categories?: string[] };
 
 const COLUMNS = [
   { key: "name", label: "Name", sortable: true },
@@ -320,9 +321,21 @@ export function ProductManagement() {
         console.log('ProductManagement: Importing products:', products);
 
         for (const product of products) {
+          if (!product.name) {
+            toast.error(`Failed to import product: Name is required`);
+            continue;
+          }
+
           const { data, error } = await supabase
             .from("products")
-            .insert([product])
+            .insert([{
+              name: product.name,
+              description: product.description,
+              strain: product.strain,
+              stock: product.stock || 0,
+              regular_price: product.regular_price || 0,
+              shipping_price: product.shipping_price || 0,
+            }])
             .select()
             .single();
 
@@ -333,7 +346,7 @@ export function ProductManagement() {
           }
 
           // Handle categories if present
-          if (product.categories && product.categories.length > 0) {
+          if (product.categories && product.categories.length > 0 && data) {
             for (const categoryName of product.categories) {
               // Get or create category
               let { data: category } = await supabase
@@ -372,6 +385,8 @@ export function ProductManagement() {
     };
     input.click();
   };
+
+  const { data: products } = useProducts();
 
   const handleExport = () => {
     if (!products) {
