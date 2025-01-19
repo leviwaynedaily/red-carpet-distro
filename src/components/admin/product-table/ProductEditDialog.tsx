@@ -5,14 +5,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
 import { FileUpload } from "@/components/ui/file-upload";
-import { Upload, Trash2 } from "lucide-react";
+import { Upload, Trash2, Check } from "lucide-react";
+import { useState } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 type Product = Tables<"products">;
 
@@ -35,7 +42,7 @@ export function ProductEditDialog({
   onOpenChange,
   product,
   editValues,
-  categories,
+  categories = [],
   onEditChange,
   onSave,
   onCancel,
@@ -43,6 +50,8 @@ export function ProductEditDialog({
   onVideoUpload,
   onDeleteMedia,
 }: ProductEditDialogProps) {
+  const [openCategories, setOpenCategories] = useState(false);
+
   const handleCategoryToggle = (categoryName: string) => {
     console.log('ProductEditDialog: Category toggled:', categoryName);
     const currentCategories = editValues.categories || [];
@@ -88,18 +97,56 @@ export function ProductEditDialog({
 
           <div className="grid gap-2">
             <Label>Categories</Label>
-            <div className="flex flex-wrap gap-2">
-              {categories?.map((category) => (
+            <Popover open={openCategories} onOpenChange={setOpenCategories}>
+              <PopoverTrigger asChild>
                 <Button
-                  key={category.id}
-                  variant={editValues.categories?.includes(category.name) ? "default" : "outline"}
-                  onClick={() => handleCategoryToggle(category.name)}
-                  className="h-8"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openCategories}
+                  className="justify-between"
                 >
-                  {category.name}
+                  {editValues.categories?.length 
+                    ? `${editValues.categories.length} categories selected`
+                    : "Select categories..."}
                 </Button>
-              ))}
-            </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search categories..." />
+                  <CommandEmpty>No categories found.</CommandEmpty>
+                  <CommandGroup>
+                    {categories.map((category) => (
+                      <CommandItem
+                        key={category.id}
+                        onSelect={() => handleCategoryToggle(category.name)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            editValues.categories?.includes(category.name)
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {category.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {editValues.categories?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {editValues.categories.map((category) => (
+                  <div
+                    key={category}
+                    className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm"
+                  >
+                    {category}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-2">
