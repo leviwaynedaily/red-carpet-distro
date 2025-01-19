@@ -64,9 +64,9 @@ export function PWASettings({ settings, onSettingChange }: PWASettingsProps) {
         type: 'application/json'
       });
 
-      // Upload to Supabase Storage
+      // Upload to Supabase Storage in the static bucket
       const { error: uploadError } = await supabase.storage
-        .from('media')
+        .from('static')
         .upload('manifest.json', manifestBlob, {
           contentType: 'application/json',
           upsert: true
@@ -74,8 +74,12 @@ export function PWASettings({ settings, onSettingChange }: PWASettingsProps) {
 
       if (uploadError) throw uploadError;
 
+      const { data: { publicUrl } } = supabase.storage
+        .from('static')
+        .getPublicUrl('manifest.json');
+
+      console.log('Manifest generated and uploaded successfully:', publicUrl);
       toast.success('Manifest file generated and uploaded successfully');
-      console.log('Manifest generated and uploaded successfully');
     } catch (error) {
       console.error('Error generating manifest:', error);
       toast.error('Failed to generate manifest file');
