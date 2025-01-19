@@ -9,6 +9,7 @@ import { Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ProductsList } from "./product-table/ProductsList";
 import { downloadTemplate, exportProducts, parseCSV } from "@/utils/csvUtils";
+import { useProducts } from "@/hooks/useProducts";
 
 type Product = Tables<"products">;
 type ProductWithCategories = Product & { categories?: string[] };

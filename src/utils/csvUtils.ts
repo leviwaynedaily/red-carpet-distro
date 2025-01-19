@@ -1,5 +1,5 @@
-import { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
 type ProductWithCategories = Product & { categories?: string[] };
@@ -11,20 +11,20 @@ const TEMPLATE_HEADERS = [
   "stock",
   "regular_price",
   "shipping_price",
-  "categories",
+  "categories"
 ];
 
 export const downloadTemplate = () => {
   const csvContent = [
     TEMPLATE_HEADERS.join(","),
-    "Example Product,Product description,Hybrid,10,29.99,5.99,\"Category1,Category2\"",
+    'Example Product,Product Description,Hybrid,10,29.99,5.99,"Category1, Category2"'
   ].join("\n");
 
   const blob = new Blob([csvContent], { type: "text/csv" });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.setAttribute("download", "products_template.csv");
+  link.setAttribute("download", "product_template.csv");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -41,7 +41,7 @@ export const exportProducts = (products: ProductWithCategories[]) => {
         product.stock || 0,
         product.regular_price || 0,
         product.shipping_price || 0,
-        product.categories?.join(",") || "",
+        (product.categories || []).join(", ")
       ]
         .map((value) => `"${value}"`)
         .join(",");
@@ -52,7 +52,7 @@ export const exportProducts = (products: ProductWithCategories[]) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.setAttribute("download", `products_export_${new Date().toISOString()}.csv`);
+  link.setAttribute("download", "products.csv");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -65,7 +65,9 @@ export const parseCSV = async (file: File): Promise<Partial<ProductWithCategorie
       try {
         const text = event.target?.result as string;
         const lines = text.split("\n");
-        const headers = lines[0].split(",").map((h) => h.trim());
+        const headers = lines[0]
+          .split(",")
+          .map((header) => header.trim().toLowerCase().replace(/^"|"$/g, ""));
 
         const products = lines
           .slice(1)
@@ -80,9 +82,13 @@ export const parseCSV = async (file: File): Promise<Partial<ProductWithCategorie
               if (header === "categories") {
                 product.categories = values[index]?.split(",").map((c) => c.trim()) || [];
               } else if (["stock", "regular_price", "shipping_price"].includes(header)) {
-                product[header as keyof Product] = parseFloat(values[index]) || 0;
+                const value = parseFloat(values[index]) || 0;
+                product[header as keyof Product] = value;
               } else {
-                product[header as keyof Product] = values[index];
+                const value = values[index];
+                if (value) {
+                  product[header as keyof Product] = value;
+                }
               }
             });
 
