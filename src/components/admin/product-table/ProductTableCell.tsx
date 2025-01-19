@@ -3,12 +3,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
 import { FileUpload } from "@/components/ui/file-upload";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Play, Upload, Trash2, Image } from "lucide-react";
 import { formatPrice } from "@/utils/formatPrice";
 import { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Product = Tables<"products">;
 
@@ -41,14 +47,20 @@ export function ProductTableCell({
   const { data: productCategories } = useQuery({
     queryKey: ['product_categories', product.id],
     queryFn: async () => {
+      console.log('ProductTableCell: Fetching categories for product:', product.id);
       const { data, error } = await supabase
         .from('product_categories')
         .select('categories(name)')
         .eq('product_id', product.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('ProductTableCell: Error fetching product categories:', error);
+        throw error;
+      }
 
-      return data.map(pc => pc.categories?.name).filter(Boolean) as string[];
+      const categoryNames = data.map(pc => pc.categories?.name).filter(Boolean) as string[];
+      console.log('ProductTableCell: Retrieved categories:', categoryNames);
+      return categoryNames;
     },
     enabled: isEditing,
   });
@@ -58,11 +70,12 @@ export function ProductTableCell({
     onEditChange({ ...editValues, [field]: value });
   };
 
-  const handleCategoryToggle = async (categoryName: string, checked: boolean) => {
+  const handleCategoryChange = (categoryName: string) => {
+    console.log('ProductTableCell: Category selected:', categoryName);
     const currentCategories = editValues.categories || productCategories || [];
-    const newCategories = checked 
-      ? [...currentCategories, categoryName]
-      : currentCategories.filter(cat => cat !== categoryName);
+    const newCategories = currentCategories.includes(categoryName)
+      ? currentCategories.filter(cat => cat !== categoryName)
+      : [...currentCategories, categoryName];
     
     onEditChange({ ...editValues, categories: newCategories });
   };
@@ -71,7 +84,6 @@ export function ProductTableCell({
     e.stopPropagation();
     if (e.key === 'Tab') {
       e.preventDefault();
-      // Let the parent handle tab navigation
       const nextInput = e.shiftKey 
         ? e.currentTarget.parentElement?.previousElementSibling?.querySelector('input')
         : e.currentTarget.parentElement?.nextElementSibling?.querySelector('input');
@@ -206,20 +218,17 @@ export function ProductTableCell({
           <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
             {categories?.map((category) => (
               <div key={category.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`category-${category.id}`}
-                  checked={(editValues.categories || productCategories || []).includes(category.name)}
-                  onCheckedChange={(checked) => 
-                    handleCategoryToggle(category.name, checked === true)
-                  }
-                  tabIndex={0}
-                />
-                <label
-                  htmlFor={`category-${category.id}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                <Select
+                  value={editValues.categories?.includes(category.name) ? category.name : undefined}
+                  onValueChange={() => handleCategoryChange(category.name)}
                 >
-                  {category.name}
-                </label>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={category.name} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={category.name}>{category.name}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             ))}
           </div>
