@@ -21,61 +21,118 @@ export function ProductsList({ searchTerm, visibleColumns, categories }: Product
 
   // Fetch products with their categories
   const { data: products, error } = useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', 'product_categories'],
     queryFn: async () => {
-      console.log('ProductsList: Fetching products');
+      console.log('ProductsList: Starting to fetch products with categories');
+      
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('*');
+        .select(`
+          *,
+          product_categories (
+            categories(name)
+          )
+        `);
       
       if (productsError) {
         console.error('ProductsList: Error fetching products:', productsError);
         throw productsError;
       }
 
-      // Fetch categories for each product
-      const productsWithCategories = await Promise.all(productsData.map(async (product) => {
-        const { data: categoryData, error: categoryError } = await supabase
-          .from('product_categories')
-          .select('categories(name)')
-          .eq('product_id', product.id);
-
-        if (categoryError) {
-          console.error('ProductsList: Error fetching categories for product:', categoryError);
-          return product;
-        }
-
-        const categories = categoryData.map(pc => pc.categories?.name).filter(Boolean) as string[];
-        return { ...product, categories };
-      }));
+      console.log('ProductsList: Raw products data:', productsData);
       
-      console.log('ProductsList: Products fetched with categories:', productsWithCategories);
-      return productsWithCategories || [];
+      // Transform the data to match the expected format
+      const transformedProducts = productsData.map(product => {
+        console.log('ProductsList: Transforming product:', product.id, product.name);
+        return {
+          ...product,
+          categories: product.product_categories
+            ?.map(pc => {
+              console.log('ProductsList: Processing category for product:', product.id, pc);
+              return pc.categories?.name;
+            })
+            .filter(Boolean) || []
+        };
+      });
+      
+      console.log('ProductsList: Transformed products:', transformedProducts);
+      return transformedProducts;
     },
+    retry: 1, // Retry once if the query fails
+    refetchOnWindowFocus: false // Prevent refetching when window gains focus
   });
 
   if (error) {
+    console.error('ProductsList: Error rendering products:', error);
     toast.error("Failed to load products");
   }
 
   // Filter products based on search term
   const filteredProducts = products?.filter(product => {
-    return product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matches = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    console.log('ProductsList: Filtering product:', product.name, 'matches:', matches);
+    return matches;
   }) || [];
 
   const handleEditSave = async () => {
-    console.log('ProductsList: Saving edit for product:', editingProduct);
+    console.log('ProductsList: Starting to save product:', editingProduct);
     try {
+      if (!editingProduct) {
+        throw new Error('No product being edited');
+      }
+
       // Update the product
       const { error: updateError } = await supabase
         .from('products')
-        .update(editValues)
+        .update({
+          name: editValues.name,
+          description: editValues.description,
+          strain: editValues.strain,
+          stock: editValues.stock,
+          regular_price: editValues.regular_price,
+          shipping_price: editValues.shipping_price,
+        })
         .eq('id', editingProduct);
 
       if (updateError) throw updateError;
 
-      // Invalidate the products query to refetch the data
+      // Handle categories if they've changed
+      if (editValues.categories) {
+        console.log('ProductsList: Updating categories for product:', editingProduct);
+        
+        // First, delete existing category associations
+        const { error: deleteError } = await supabase
+          .from('product_categories')
+          .delete()
+          .eq('product_id', editingProduct);
+
+        if (deleteError) throw deleteError;
+
+        // Then, add new category associations
+        const categoryPromises = editValues.categories.map(async (categoryName) => {
+          // Find the category ID for this name
+          const { data: categoryData } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('name', categoryName)
+            .single();
+
+          if (categoryData) {
+            return supabase
+              .from('product_categories')
+              .insert({
+                product_id: editingProduct,
+                category_id: categoryData.id
+              });
+          }
+        });
+
+        await Promise.all(categoryPromises);
+      }
+
+      // Invalidate both products and product_categories queries to ensure fresh data
       await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['product_categories'] });
       
       setEditingProduct(null);
       toast.success('Product updated successfully');
