@@ -1,80 +1,82 @@
 import { useState } from "react";
+import { useProducts } from "@/hooks/useProducts";
+import { ProductTable } from "./ProductTable";
 import { ProductTableFilters } from "./ProductTableFilters";
-import { ProductsList } from "./product-table/ProductsList";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ProductMobileGrid } from "./product-table/ProductMobileGrid";
 
-type Category = Tables<"categories">;
+type Product = Tables<"products">;
 
 export function ProductManagement() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [visibleColumns, setVisibleColumns] = useState<string[]>([
-    "name",
-    "strain",
-    "description",
-    "image",
-    "video_url",
-    "categories",
-    "stock",
-    "regular_price",
-    "shipping_price",
-  ]);
+  const { data: products, isLoading, error } = useProducts();
+  const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<Partial<Product> & { categories?: string[] }>({});
+  const isMobile = useIsMobile();
 
-  // Fetch categories
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      console.log('ProductManagement: Fetching categories');
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      
-      if (error) {
-        console.error('ProductManagement: Error fetching categories:', error);
-        throw error;
-      }
-      
-      console.log('ProductManagement: Categories fetched:', data);
-      return data || [];
-    },
-  });
-
-  const columns = [
-    { key: "name", label: "Name" },
-    { key: "strain", label: "Strain" },
-    { key: "description", label: "Description" },
-    { key: "image", label: "Image" },
-    { key: "video_url", label: "Video" },
-    { key: "categories", label: "Categories" },
-    { key: "stock", label: "Stock" },
-    { key: "regular_price", label: "Price" },
-    { key: "shipping_price", label: "Shipping" },
-  ];
-
-  const handleColumnToggle = (columnKey: string) => {
-    setVisibleColumns(current =>
-      current.includes(columnKey)
-        ? current.filter(key => key !== columnKey)
-        : [...current, columnKey]
-    );
+  const handleEditStart = (product: Product & { categories?: string[] }) => {
+    console.log('ProductManagement: Starting edit for product:', product.id);
+    setEditingProduct(product.id);
+    setEditValues({
+      ...product,
+      categories: product.categories || [],
+    });
   };
+
+  const handleEditSave = async () => {
+    console.log('ProductManagement: Saving product:', editingProduct);
+    setEditingProduct(null);
+    setEditValues({});
+  };
+
+  const handleEditCancel = () => {
+    console.log('ProductManagement: Canceling edit');
+    setEditingProduct(null);
+    setEditValues({});
+  };
+
+  const handleEditChange = (values: Partial<Product> & { categories?: string[] }) => {
+    console.log('ProductManagement: Updating edit values:', values);
+    setEditValues(values);
+  };
+
+  const handleDelete = async (id: string) => {
+    console.log('ProductManagement: Deleting product:', id);
+  };
+
+  if (isLoading) {
+    return <div>Loading products...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading products: {error.message}</div>;
+  }
+
+  if (!products) {
+    return <div>No products found</div>;
+  }
 
   return (
     <div className="space-y-4">
-      <ProductTableFilters
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        columns={columns}
-        visibleColumns={visibleColumns}
-        onColumnToggle={handleColumnToggle}
-      />
-      <ProductsList
-        searchTerm={searchQuery}
-        categories={categories}
-        visibleColumns={visibleColumns}
-      />
+      <ProductTableFilters />
+      {isMobile ? (
+        <ProductMobileGrid
+          products={products}
+          onEditStart={handleEditStart}
+          onDelete={handleDelete}
+        />
+      ) : (
+        <ProductTable
+          products={products}
+          editingProduct={editingProduct}
+          editValues={editValues}
+          onEditStart={handleEditStart}
+          onEditSave={handleEditSave}
+          onEditCancel={handleEditCancel}
+          onEditChange={handleEditChange}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 }
