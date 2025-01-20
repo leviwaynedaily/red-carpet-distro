@@ -13,6 +13,38 @@ export function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<Product> & { categories?: string[] }>({});
   const isMobile = useIsMobile();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([
+    "name",
+    "strain",
+    "description",
+    "image",
+    "video_url",
+    "categories",
+    "stock",
+    "regular_price",
+    "shipping_price",
+  ]);
+
+  const columns = [
+    { key: "name", label: "Name" },
+    { key: "strain", label: "Strain" },
+    { key: "description", label: "Description" },
+    { key: "image", label: "Image" },
+    { key: "video_url", label: "Video" },
+    { key: "categories", label: "Categories" },
+    { key: "stock", label: "Stock" },
+    { key: "regular_price", label: "Price" },
+    { key: "shipping_price", label: "Shipping" },
+  ];
+
+  const handleColumnToggle = (columnKey: string) => {
+    setVisibleColumns(current =>
+      current.includes(columnKey)
+        ? current.filter(key => key !== columnKey)
+        : [...current, columnKey]
+    );
+  };
 
   const handleEditStart = (product: Product & { categories?: string[] }) => {
     console.log('ProductManagement: Starting edit for product:', product.id);
@@ -44,6 +76,34 @@ export function ProductManagement() {
     console.log('ProductManagement: Deleting product:', id);
   };
 
+  const handleImageUpload = (productId: string, url: string) => {
+    console.log('ProductManagement: Image uploaded for product:', productId, url);
+  };
+
+  const handleVideoUpload = (productId: string, url: string) => {
+    console.log('ProductManagement: Video uploaded for product:', productId, url);
+  };
+
+  const handleDeleteMedia = (productId: string, type: 'image' | 'video') => {
+    console.log('ProductManagement: Deleting media for product:', productId, type);
+  };
+
+  const handleMediaClick = (type: 'image' | 'video', url: string) => {
+    console.log('ProductManagement: Media clicked:', type, url);
+  };
+
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
+    key: 'name',
+    direction: 'asc'
+  });
+
+  const handleSort = (key: string) => {
+    setSortConfig(current => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
   if (isLoading) {
     return <div>Loading products...</div>;
   }
@@ -58,7 +118,13 @@ export function ProductManagement() {
 
   return (
     <div className="space-y-4">
-      <ProductTableFilters />
+      <ProductTableFilters
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        columns={columns}
+        visibleColumns={visibleColumns}
+        onColumnToggle={handleColumnToggle}
+      />
       {isMobile ? (
         <ProductMobileGrid
           products={products}
@@ -70,11 +136,18 @@ export function ProductManagement() {
           products={products}
           editingProduct={editingProduct}
           editValues={editValues}
+          visibleColumns={visibleColumns}
           onEditStart={handleEditStart}
           onEditSave={handleEditSave}
           onEditCancel={handleEditCancel}
           onEditChange={handleEditChange}
           onDelete={handleDelete}
+          onImageUpload={handleImageUpload}
+          onVideoUpload={handleVideoUpload}
+          onDeleteMedia={handleDeleteMedia}
+          onMediaClick={handleMediaClick}
+          sortConfig={sortConfig}
+          onSort={handleSort}
         />
       )}
     </div>
