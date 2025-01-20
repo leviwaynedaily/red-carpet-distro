@@ -22,6 +22,7 @@ interface ProductTableFiltersProps {
   onImport?: () => void;
   onExport?: () => void;
   onDownloadTemplate?: () => void;
+  showColumnToggle?: boolean;
 }
 
 export function ProductTableFilters({
@@ -33,6 +34,7 @@ export function ProductTableFilters({
   onImport,
   onExport,
   onDownloadTemplate,
+  showColumnToggle = true,
 }: ProductTableFiltersProps) {
   return (
     <div className="flex items-center justify-between mb-4">
@@ -44,22 +46,24 @@ export function ProductTableFilters({
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-[300px]"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">Columns</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[200px]">
-            {columns.map((column) => (
-              <DropdownMenuCheckboxItem
-                key={column.key}
-                checked={visibleColumns.includes(column.key)}
-                onCheckedChange={() => onColumnToggle(column.key)}
-              >
-                {column.label}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {showColumnToggle && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">Columns</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px]">
+              {columns.map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.key}
+                  checked={visibleColumns.includes(column.key)}
+                  onCheckedChange={() => onColumnToggle(column.key)}
+                >
+                  {column.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
       <div className="flex items-center gap-2">
         {onDownloadTemplate && (

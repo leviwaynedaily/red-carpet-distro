@@ -20,9 +20,18 @@ export function ProductMobileGrid({
         <AdminProductCard
           key={product.id}
           {...product}
-          onUpdate={() => onEditStart(product)}
-          onDelete={() => onDelete(product.id)}
-          onEdit={() => onEditStart(product)}
+          onUpdate={() => {
+            console.log('ProductMobileGrid: Update clicked for product:', product.id);
+            onEditStart(product);
+          }}
+          onDelete={(id) => {
+            console.log('ProductMobileGrid: Delete clicked for product:', id);
+            onDelete(id);
+          }}
+          onEdit={() => {
+            console.log('ProductMobileGrid: Edit clicked for product:', product.id);
+            onEditStart(product);
+          }}
           data-product-id={product.id}
         />
       ))}

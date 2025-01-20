@@ -124,6 +124,7 @@ export function ProductManagement() {
         columns={columns}
         visibleColumns={visibleColumns}
         onColumnToggle={handleColumnToggle}
+        showColumnToggle={!isMobile}
       />
       {isMobile ? (
         <ProductMobileGrid
