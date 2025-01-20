@@ -5,6 +5,8 @@ import { ProductTableFilters } from "./ProductTableFilters";
 import { Tables } from "@/integrations/supabase/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProductMobileGrid } from "./product-table/ProductMobileGrid";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type Product = Tables<"products">;
 
@@ -46,7 +48,7 @@ export function ProductManagement() {
     );
   };
 
-  const handleEditStart = (product: Product & { categories?: string[] }) => {
+  const handleEditStart = async (product: Product & { categories?: string[] }) => {
     console.log('ProductManagement: Starting edit for product:', product.id);
     setEditingProduct(product.id);
     setEditValues({
@@ -57,8 +59,56 @@ export function ProductManagement() {
 
   const handleEditSave = async () => {
     console.log('ProductManagement: Saving product:', editingProduct);
-    setEditingProduct(null);
-    setEditValues({});
+    try {
+      if (!editingProduct) return;
+
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({
+          name: editValues.name,
+          description: editValues.description,
+          strain: editValues.strain,
+          stock: editValues.stock,
+          regular_price: editValues.regular_price,
+          shipping_price: editValues.shipping_price,
+        })
+        .eq('id', editingProduct);
+
+      if (updateError) throw updateError;
+
+      // Handle categories update
+      if (editValues.categories) {
+        // Delete existing categories
+        await supabase
+          .from('product_categories')
+          .delete()
+          .eq('product_id', editingProduct);
+
+        // Add new categories
+        const { data: categoriesData } = await supabase
+          .from('categories')
+          .select('id, name')
+          .in('name', editValues.categories);
+
+        if (categoriesData) {
+          const categoryAssociations = categoriesData.map(category => ({
+            product_id: editingProduct,
+            category_id: category.id
+          }));
+
+          await supabase
+            .from('product_categories')
+            .insert(categoryAssociations);
+        }
+      }
+
+      setEditingProduct(null);
+      setEditValues({});
+      toast.success('Product updated successfully');
+    } catch (error) {
+      console.error('Error updating product:', error);
+      toast.error('Failed to update product');
+    }
   };
 
   const handleEditCancel = () => {
@@ -74,6 +124,18 @@ export function ProductManagement() {
 
   const handleDelete = async (id: string) => {
     console.log('ProductManagement: Deleting product:', id);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success('Product deleted successfully');
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error('Failed to delete product');
+    }
   };
 
   const handleImageUpload = (productId: string, url: string) => {
