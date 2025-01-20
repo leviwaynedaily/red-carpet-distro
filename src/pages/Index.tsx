@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductGrid } from "@/components/ProductGrid";
 import { AgeVerification } from "@/components/AgeVerification";
 import { useToast } from "@/components/ui/use-toast";
@@ -15,6 +15,13 @@ const Index = () => {
   });
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (isVerified) {
+      console.log('Index: Resetting scroll position after verification');
+      window.scrollTo(0, 0);
+    }
+  }, [isVerified]);
 
   const handleVerification = () => {
     console.log('Index: Age verification successful');
