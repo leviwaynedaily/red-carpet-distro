@@ -6,6 +6,7 @@ import { ProductEditDialog } from "./ProductEditDialog";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 type Product = Tables<"products">;
 
@@ -43,6 +44,7 @@ export function ProductTableRow({
   onMediaClick,
 }: ProductTableRowProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleEdit = () => {
     console.log('ProductTableRow: Starting edit for product:', product.id);
@@ -54,6 +56,7 @@ export function ProductTableRow({
     console.log('ProductTableRow: Saving product:', product.id);
     console.log('ProductTableRow: New categories:', editValues.categories);
     
+    setIsSaving(true);
     try {
       // First, delete existing category associations
       const { error: deleteError } = await supabase
@@ -98,6 +101,8 @@ export function ProductTableRow({
     } catch (error) {
       console.error('ProductTableRow: Error saving categories:', error);
       toast.error('Failed to update product categories');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -147,6 +152,7 @@ export function ProductTableRow({
         onImageUpload={onImageUpload}
         onVideoUpload={onVideoUpload}
         onDeleteMedia={onDeleteMedia}
+        isSaving={isSaving}
       />
     </>
   );

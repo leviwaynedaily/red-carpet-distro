@@ -5,8 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
 import { FileUpload } from "@/components/ui/file-upload";
-import { Upload, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Upload, Trash2, Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 type Product = Tables<"products">;
@@ -23,6 +22,7 @@ interface ProductEditDialogProps {
   onImageUpload: (productId: string, url: string) => void;
   onVideoUpload: (productId: string, url: string) => void;
   onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
+  isSaving?: boolean;
 }
 
 export function ProductEditDialog({
@@ -37,6 +37,7 @@ export function ProductEditDialog({
   onImageUpload,
   onVideoUpload,
   onDeleteMedia,
+  isSaving = false,
 }: ProductEditDialogProps) {
   const handleCategoryToggle = (categoryName: string) => {
     console.log('ProductEditDialog: Category toggled:', categoryName);
@@ -211,11 +212,18 @@ export function ProductEditDialog({
           </div>
         </div>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel} disabled={isSaving}>
             Cancel
           </Button>
-          <Button onClick={onSave}>
-            Save Changes
+          <Button onClick={onSave} disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
           </Button>
         </div>
       </DialogContent>
