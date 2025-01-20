@@ -78,7 +78,6 @@ export function ProductManagement() {
 
       // Handle categories update
       if (editValues.categories) {
-        // Delete existing categories
         const { error: deleteError } = await supabase
           .from('product_categories')
           .delete()
@@ -86,7 +85,6 @@ export function ProductManagement() {
 
         if (deleteError) throw deleteError;
 
-        // Add new categories
         const { data: categoriesData } = await supabase
           .from('categories')
           .select('id, name')
@@ -142,6 +140,60 @@ export function ProductManagement() {
     }
   };
 
+  const handleImageUpload = async (productId: string, url: string) => {
+    console.log('ProductManagement: Uploading image for product:', productId);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ image_url: url })
+        .eq('id', productId);
+
+      if (error) throw error;
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    }
+  };
+
+  const handleVideoUpload = async (productId: string, url: string) => {
+    console.log('ProductManagement: Uploading video for product:', productId);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ video_url: url })
+        .eq('id', productId);
+
+      if (error) throw error;
+      toast.success('Video uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      toast.error('Failed to upload video');
+    }
+  };
+
+  const handleDeleteMedia = async (productId: string, type: 'image' | 'video') => {
+    console.log('ProductManagement: Deleting media for product:', productId, type);
+    try {
+      const updateData = type === 'image' ? { image_url: null } : { video_url: null };
+      const { error } = await supabase
+        .from('products')
+        .update(updateData)
+        .eq('id', productId);
+
+      if (error) throw error;
+      toast.success(`${type} deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting media:', error);
+      toast.error(`Failed to delete ${type}`);
+    }
+  };
+
+  const handleMediaClick = (type: 'image' | 'video', url: string) => {
+    console.log('ProductManagement: Media clicked:', type, url);
+    window.open(url, '_blank');
+  };
+
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
     key: 'name',
     direction: 'asc'
@@ -154,17 +206,9 @@ export function ProductManagement() {
     }));
   };
 
-  if (isLoading) {
-    return <div>Loading products...</div>;
-  }
-
-  if (error) {
-    return <div>Error loading products: {error.message}</div>;
-  }
-
-  if (!products) {
-    return <div>No products found</div>;
-  }
+  if (isLoading) return <div>Loading products...</div>;
+  if (error) return <div>Error loading products: {error.message}</div>;
+  if (!products) return <div>No products found</div>;
 
   return (
     <div className="space-y-4">
@@ -186,6 +230,10 @@ export function ProductManagement() {
           editingProduct={editingProduct}
           editValues={editValues}
           onDelete={handleDelete}
+          onImageUpload={handleImageUpload}
+          onVideoUpload={handleVideoUpload}
+          onDeleteMedia={handleDeleteMedia}
+          onMediaClick={handleMediaClick}
         />
       ) : (
         <ProductTable
@@ -198,6 +246,10 @@ export function ProductManagement() {
           onEditCancel={handleEditCancel}
           onEditChange={handleEditChange}
           onDelete={handleDelete}
+          onImageUpload={handleImageUpload}
+          onVideoUpload={handleVideoUpload}
+          onDeleteMedia={handleDeleteMedia}
+          onMediaClick={handleMediaClick}
           sortConfig={sortConfig}
           onSort={handleSort}
         />
