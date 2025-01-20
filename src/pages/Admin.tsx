@@ -17,8 +17,23 @@ export default function Admin() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check for stored authentication state when component mounts
+    const checkAuthState = async () => {
+      try {
+        const storedAuth = localStorage.getItem('adminAuth');
+        if (storedAuth === 'true' && adminPassword) {
+          setIsAuthenticated(true);
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error checking auth state:', error);
+        setIsLoading(false);
+      }
+    };
+
     fetchAdminPassword();
-  }, []);
+    checkAuthState();
+  }, [adminPassword]);
 
   const fetchAdminPassword = async () => {
     try {
@@ -49,10 +64,19 @@ export default function Admin() {
     
     if (password === adminPassword) {
       setIsAuthenticated(true);
+      // Store authentication state in localStorage
+      localStorage.setItem('adminAuth', 'true');
       toast.success("Welcome to admin dashboard");
     } else {
       toast.error("Invalid password");
     }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    // Clear authentication state from localStorage
+    localStorage.removeItem('adminAuth');
+    toast.success("Logged out successfully");
   };
 
   if (isLoading) {
@@ -103,7 +127,7 @@ export default function Admin() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="space-x-2">
-          <Button variant="outline" onClick={() => setIsAuthenticated(false)}>
+          <Button variant="outline" onClick={handleLogout}>
             Logout
           </Button>
           <Button variant="outline" onClick={() => navigate("/")}>
