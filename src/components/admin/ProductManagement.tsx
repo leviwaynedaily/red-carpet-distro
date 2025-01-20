@@ -79,10 +79,12 @@ export function ProductManagement() {
       // Handle categories update
       if (editValues.categories) {
         // Delete existing categories
-        await supabase
+        const { error: deleteError } = await supabase
           .from('product_categories')
           .delete()
           .eq('product_id', editingProduct);
+
+        if (deleteError) throw deleteError;
 
         // Add new categories
         const { data: categoriesData } = await supabase
@@ -96,9 +98,11 @@ export function ProductManagement() {
             category_id: category.id
           }));
 
-          await supabase
+          const { error: insertError } = await supabase
             .from('product_categories')
             .insert(categoryAssociations);
+
+          if (insertError) throw insertError;
         }
       }
 
@@ -136,22 +140,6 @@ export function ProductManagement() {
       console.error('Error deleting product:', error);
       toast.error('Failed to delete product');
     }
-  };
-
-  const handleImageUpload = (productId: string, url: string) => {
-    console.log('ProductManagement: Image uploaded for product:', productId, url);
-  };
-
-  const handleVideoUpload = (productId: string, url: string) => {
-    console.log('ProductManagement: Video uploaded for product:', productId, url);
-  };
-
-  const handleDeleteMedia = (productId: string, type: 'image' | 'video') => {
-    console.log('ProductManagement: Deleting media for product:', productId, type);
-  };
-
-  const handleMediaClick = (type: 'image' | 'video', url: string) => {
-    console.log('ProductManagement: Media clicked:', type, url);
   };
 
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
@@ -192,6 +180,11 @@ export function ProductManagement() {
         <ProductMobileGrid
           products={products}
           onEditStart={handleEditStart}
+          onEditSave={handleEditSave}
+          onEditCancel={handleEditCancel}
+          onEditChange={handleEditChange}
+          editingProduct={editingProduct}
+          editValues={editValues}
           onDelete={handleDelete}
         />
       ) : (
@@ -205,10 +198,6 @@ export function ProductManagement() {
           onEditCancel={handleEditCancel}
           onEditChange={handleEditChange}
           onDelete={handleDelete}
-          onImageUpload={handleImageUpload}
-          onVideoUpload={handleVideoUpload}
-          onDeleteMedia={handleDeleteMedia}
-          onMediaClick={handleMediaClick}
           sortConfig={sortConfig}
           onSort={handleSort}
         />
