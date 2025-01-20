@@ -40,6 +40,18 @@ export const AdminProductCard = ({
     }).format(price);
   };
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('AdminProductCard: Edit clicked for product:', id);
+    onEdit();
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('AdminProductCard: Delete clicked for product:', id);
+    onDelete(id);
+  };
+
   return (
     <Card 
       className="overflow-hidden"
@@ -62,10 +74,7 @@ export const AdminProductCard = ({
             size="icon"
             variant="secondary"
             className="rounded-full w-8 h-8"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
+            onClick={handleEdit}
             aria-label="Edit product"
           >
             <Edit className="h-4 w-4" />
@@ -74,10 +83,7 @@ export const AdminProductCard = ({
             size="icon"
             variant="destructive"
             className="rounded-full w-8 h-8"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(id);
-            }}
+            onClick={handleDelete}
             aria-label="Delete product"
           >
             <Trash2 className="h-4 w-4" />
