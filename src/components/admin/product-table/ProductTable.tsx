@@ -21,10 +21,6 @@ interface ProductTableProps {
   onEditCancel: () => void;
   onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
   onDelete: (id: string) => void;
-  onImageUpload: (productId: string, url: string) => void;
-  onVideoUpload: (productId: string, url: string) => void;
-  onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
-  onMediaClick: (type: 'image' | 'video', url: string) => void;
   sortConfig: { key: string; direction: 'asc' | 'desc' };
   onSort: (key: string) => void;
 }
@@ -40,10 +36,6 @@ export function ProductTable({
   onEditCancel,
   onEditChange,
   onDelete,
-  onImageUpload,
-  onVideoUpload,
-  onDeleteMedia,
-  onMediaClick,
   sortConfig,
   onSort,
 }: ProductTableProps) {
@@ -74,10 +66,10 @@ export function ProductTable({
               onEditCancel={onEditCancel}
               onEditChange={onEditChange}
               onDelete={onDelete}
-              onImageUpload={onImageUpload}
-              onVideoUpload={onVideoUpload}
-              onDeleteMedia={onDeleteMedia}
-              onMediaClick={onMediaClick}
+              onImageUpload={(productId, url) => console.log('Upload image:', productId, url)}
+              onVideoUpload={(productId, url) => console.log('Upload video:', productId, url)}
+              onDeleteMedia={(productId, type) => console.log('Delete media:', productId, type)}
+              onMediaClick={(type, url) => console.log('Media clicked:', type, url)}
             />
           ))}
         </TableBody>

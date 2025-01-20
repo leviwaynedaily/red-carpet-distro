@@ -9,47 +9,51 @@ type Product = Tables<"products">;
 interface ProductMobileGridProps {
   products: (Product & { categories?: string[] })[];
   onEditStart: (product: Product & { categories?: string[] }) => void;
+  onEditSave: () => void;
+  onEditCancel: () => void;
+  onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
+  editingProduct: string | null;
+  editValues: Partial<Product> & { categories?: string[] };
   onDelete: (id: string) => void;
 }
 
 export function ProductMobileGrid({
   products,
   onEditStart,
+  onEditSave,
+  onEditCancel,
+  onEditChange,
+  editingProduct,
+  editValues,
   onDelete,
 }: ProductMobileGridProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<(Product & { categories?: string[] }) | null>(null);
-  const [editValues, setEditValues] = useState<Partial<Product> & { categories?: string[] }>({});
 
   const handleEditStart = (product: Product & { categories?: string[] }) => {
     console.log('ProductMobileGrid: Starting edit for product:', product.id);
     setSelectedProduct(product);
-    setEditValues(product);
+    onEditStart(product);
     setShowEditDialog(true);
   };
 
   const handleEditSave = async () => {
     console.log('ProductMobileGrid: Saving edit for product:', selectedProduct?.id);
-    if (selectedProduct) {
-      onEditStart(selectedProduct);
-      setShowEditDialog(false);
-      setSelectedProduct(null);
-      setEditValues({});
-      toast.success('Product updated successfully');
-    }
+    onEditSave();
+    setShowEditDialog(false);
+    setSelectedProduct(null);
   };
 
   const handleEditCancel = () => {
     console.log('ProductMobileGrid: Canceling edit');
+    onEditCancel();
     setShowEditDialog(false);
     setSelectedProduct(null);
-    setEditValues({});
   };
 
   const handleDelete = (id: string) => {
     console.log('ProductMobileGrid: Deleting product:', id);
     onDelete(id);
-    toast.success('Product deleted successfully');
   };
 
   return (
@@ -82,7 +86,7 @@ export function ProductMobileGrid({
           onOpenChange={setShowEditDialog}
           product={selectedProduct}
           editValues={editValues}
-          onEditChange={setEditValues}
+          onEditChange={onEditChange}
           onSave={handleEditSave}
           onCancel={handleEditCancel}
           onImageUpload={(productId, url) => console.log('Upload image:', productId, url)}
