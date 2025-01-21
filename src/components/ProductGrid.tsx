@@ -1,6 +1,8 @@
 import { ProductCard } from "@/components/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ProductGridProps {
   searchTerm: string;
@@ -17,6 +19,8 @@ export const ProductGrid = ({
   categoryFilter,
   sortBy,
 }: ProductGridProps) => {
+  const queryClient = useQueryClient();
+
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['products', 'product_categories'],
     queryFn: async () => {
@@ -27,7 +31,7 @@ export const ProductGrid = ({
         .select(`
           *,
           product_categories (
-            category:categories(name)
+            categories(name)
           )
         `);
       
@@ -55,9 +59,52 @@ export const ProductGrid = ({
       console.log('ProductGrid: Transformed products:', transformedProducts);
       return transformedProducts;
     },
-    retry: 1, // Retry once if the query fails
-    refetchOnWindowFocus: false // Prevent refetching when window gains focus
+    retry: 1,
+    refetchOnWindowFocus: false
   });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    console.log('ProductGrid: Setting up real-time subscription');
+    
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'products'
+        },
+        (payload) => {
+          console.log('ProductGrid: Received real-time update:', payload);
+          // Invalidate and refetch queries when we receive an update
+          queryClient.invalidateQueries({ queryKey: ['products', 'product_categories'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'product_categories'
+        },
+        (payload) => {
+          console.log('ProductGrid: Received product_categories update:', payload);
+          // Invalidate and refetch queries when we receive an update
+          queryClient.invalidateQueries({ queryKey: ['products', 'product_categories'] });
+        }
+      )
+      .subscribe(status => {
+        console.log('ProductGrid: Real-time subscription status:', status);
+      });
+
+    // Cleanup subscription on unmount
+    return () => {
+      console.log('ProductGrid: Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   if (isLoading) {
     console.log('ProductGrid: Loading products...');
