@@ -2,7 +2,16 @@ import { Tables } from "@/integrations/supabase/types";
 import Papa from 'papaparse';
 
 type Product = Tables<"products">;
-type ProductInsert = Omit<Product, 'id' | 'created_at' | 'updated_at' | 'media' | 'image_url' | 'video_url'>;
+type ProductInsert = {
+  name: string; // Required field
+  description?: string;
+  strain?: string;
+  stock?: number;
+  regular_price?: number;
+  shipping_price?: number;
+  primary_media_type?: string;
+  media?: any[];
+};
 
 export const parseCSV = (file: File): Promise<ProductInsert[]> => {
   return new Promise((resolve, reject) => {

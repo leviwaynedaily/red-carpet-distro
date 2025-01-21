@@ -242,6 +242,11 @@ export function ProductManagement() {
         
         // Insert products one by one to ensure proper typing
         for (const product of products) {
+          if (!product.name) {
+            console.error('Skipping product without name:', product);
+            continue;
+          }
+
           const { error } = await supabase
             .from('products')
             .insert({
