@@ -1,16 +1,18 @@
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Download, Upload, FileDown, Plus } from "lucide-react";
+import { Download, Plus, Settings2 } from "lucide-react";
 
 interface Column {
-  label: string;
   key: string;
+  label: string;
 }
 
 interface ProductTableFiltersProps {
@@ -18,12 +20,10 @@ interface ProductTableFiltersProps {
   onSearchChange: (value: string) => void;
   columns: Column[];
   visibleColumns: string[];
-  onColumnToggle: (column: string) => void;
-  onImport?: () => void;
-  onExport?: () => void;
-  onDownloadTemplate?: () => void;
-  onAddProduct?: () => void;
+  onColumnToggle: (columnKey: string) => void;
   showColumnToggle?: boolean;
+  onAddProduct: () => void;
+  onExport: () => void;
 }
 
 export function ProductTableFilters({
@@ -32,28 +32,29 @@ export function ProductTableFilters({
   columns,
   visibleColumns,
   onColumnToggle,
-  onImport,
-  onExport,
-  onDownloadTemplate,
-  onAddProduct,
   showColumnToggle = true,
+  onAddProduct,
+  onExport,
 }: ProductTableFiltersProps) {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-1 items-center space-x-2">
         <Input
-          type="search"
           placeholder="Search products..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-[300px]"
+          className="max-w-[300px]"
         />
         {showColumnToggle && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">Columns</Button>
+              <Button variant="outline" size="icon">
+                <Settings2 className="h-4 w-4" />
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[200px]">
+              <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+              <DropdownMenuSeparator />
               {columns.map((column) => (
                 <DropdownMenuCheckboxItem
                   key={column.key}
@@ -67,31 +68,15 @@ export function ProductTableFilters({
           </DropdownMenu>
         )}
       </div>
-      <div className="flex items-center gap-2">
-        {onAddProduct && (
-          <Button onClick={onAddProduct}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
-        )}
-        {onDownloadTemplate && (
-          <Button variant="outline" onClick={onDownloadTemplate}>
-            <FileDown className="h-4 w-4 mr-2" />
-            Template
-          </Button>
-        )}
-        {onImport && (
-          <Button variant="outline" onClick={onImport}>
-            <Upload className="h-4 w-4 mr-2" />
-            Import
-          </Button>
-        )}
-        {onExport && (
-          <Button variant="outline" onClick={onExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        )}
+      <div className="flex items-center space-x-2">
+        <Button onClick={onExport} variant="outline" size="sm">
+          <Download className="mr-2 h-4 w-4" />
+          Export
+        </Button>
+        <Button onClick={onAddProduct} size="sm">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Product
+        </Button>
       </div>
     </div>
   );

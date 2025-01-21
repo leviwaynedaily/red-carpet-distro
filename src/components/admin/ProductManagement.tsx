@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { AddProductDialog } from "./product-table/AddProductDialog";
-import { downloadTemplate, exportProducts, parseCSV } from "@/utils/csvUtils";
+import { exportProducts } from "@/utils/csvUtils";
 
 type Product = Tables<"products">;
 
@@ -233,51 +233,10 @@ export function ProductManagement() {
     }
   };
 
-  const handleImport = async () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.csv';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      try {
-        const products = await parseCSV(file);
-        console.log('ProductManagement: Importing products:', products);
-        
-        if (products.length === 0) {
-          toast.error('No valid products found in CSV. Each product must have a name.');
-          return;
-        }
-
-        const { error } = await supabase
-          .from('products')
-          .insert(products);
-
-        if (error) {
-          console.error('ProductManagement: Error importing products:', error);
-          throw error;
-        }
-
-        await queryClient.invalidateQueries({ queryKey: ['products'] });
-        toast.success(`Successfully imported ${products.length} products`);
-      } catch (error) {
-        console.error('ProductManagement: Error importing products:', error);
-        toast.error('Failed to import products');
-      }
-    };
-    input.click();
-  };
-
   const handleExport = () => {
     if (!products) return;
     exportProducts(products);
     toast.success('Products exported successfully');
-  };
-
-  const handleDownloadTemplate = () => {
-    downloadTemplate();
-    toast.success('Template downloaded successfully');
   };
 
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
@@ -306,9 +265,7 @@ export function ProductManagement() {
         onColumnToggle={handleColumnToggle}
         showColumnToggle={!isMobile}
         onAddProduct={() => setShowAddDialog(true)}
-        onImport={handleImport}
         onExport={handleExport}
-        onDownloadTemplate={handleDownloadTemplate}
       />
       {isMobile ? (
         <ProductMobileGrid
