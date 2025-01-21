@@ -41,10 +41,18 @@ export const Header = ({
   useEffect(() => {
     const fetchHeaderSettings = async () => {
       try {
-        const { data: settings } = await supabase
+        const { data: settings, error } = await supabase
           .from('site_settings')
           .select('header_color, header_opacity, logo_url, logo_url_webp, toolbar_color, toolbar_opacity')
-          .single();
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error fetching header settings:', error);
+          if (error.message === 'Failed to fetch') {
+            console.error('Network error - please check your connection');
+          }
+          return;
+        }
         
         if (settings) {
           console.log('Header: Fetched settings:', settings);
@@ -56,7 +64,7 @@ export const Header = ({
           setLogoUrlWebp(settings.logo_url_webp || '');
         }
       } catch (error) {
-        console.error('Error fetching header settings:', error);
+        console.error('Error in fetchHeaderSettings:', error);
       }
     };
 
