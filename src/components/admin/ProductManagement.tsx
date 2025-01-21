@@ -8,6 +8,8 @@ import { ProductMobileGrid } from "./product-table/ProductMobileGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { AddProductDialog } from "./product-table/AddProductDialog";
+import { downloadTemplate, exportProducts, parseCSV } from "@/utils/csvUtils";
 
 type Product = Tables<"products">;
 
@@ -18,6 +20,7 @@ export function ProductManagement() {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
     "name",
     "strain",
@@ -200,6 +203,62 @@ export function ProductManagement() {
     window.open(url, '_blank');
   };
 
+  const handleAddProduct = async (product: Partial<Product>) => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .insert([product])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      setShowAddDialog(false);
+      toast.success('Product added successfully');
+    } catch (error) {
+      console.error('Error adding product:', error);
+      toast.error('Failed to add product');
+    }
+  };
+
+  const handleImport = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const products = await parseCSV(file);
+        const { error } = await supabase
+          .from('products')
+          .insert(products);
+
+        if (error) throw error;
+
+        await queryClient.invalidateQueries({ queryKey: ['products'] });
+        toast.success('Products imported successfully');
+      } catch (error) {
+        console.error('Error importing products:', error);
+        toast.error('Failed to import products');
+      }
+    };
+    input.click();
+  };
+
+  const handleExport = () => {
+    if (!products) return;
+    exportProducts(products);
+    toast.success('Products exported successfully');
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadTemplate();
+    toast.success('Template downloaded successfully');
+  };
+
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
     key: 'name',
     direction: 'asc'
@@ -225,6 +284,10 @@ export function ProductManagement() {
         visibleColumns={visibleColumns}
         onColumnToggle={handleColumnToggle}
         showColumnToggle={!isMobile}
+        onAddProduct={() => setShowAddDialog(true)}
+        onImport={handleImport}
+        onExport={handleExport}
+        onDownloadTemplate={handleDownloadTemplate}
       />
       {isMobile ? (
         <ProductMobileGrid
@@ -260,6 +323,11 @@ export function ProductManagement() {
           onSort={handleSort}
         />
       )}
+      <AddProductDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSave={handleAddProduct}
+      />
     </div>
   );
 }

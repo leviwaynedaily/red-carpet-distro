@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, FileDown } from "lucide-react";
+import { Download, Upload, FileDown, Plus } from "lucide-react";
 
 interface Column {
   label: string;
@@ -22,6 +22,7 @@ interface ProductTableFiltersProps {
   onImport?: () => void;
   onExport?: () => void;
   onDownloadTemplate?: () => void;
+  onAddProduct?: () => void;
   showColumnToggle?: boolean;
 }
 
@@ -34,6 +35,7 @@ export function ProductTableFilters({
   onImport,
   onExport,
   onDownloadTemplate,
+  onAddProduct,
   showColumnToggle = true,
 }: ProductTableFiltersProps) {
   return (
@@ -66,6 +68,12 @@ export function ProductTableFilters({
         )}
       </div>
       <div className="flex items-center gap-2">
+        {onAddProduct && (
+          <Button onClick={onAddProduct}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product
+          </Button>
+        )}
         {onDownloadTemplate && (
           <Button variant="outline" onClick={onDownloadTemplate}>
             <FileDown className="h-4 w-4 mr-2" />
