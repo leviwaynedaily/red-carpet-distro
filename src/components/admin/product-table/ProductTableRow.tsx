@@ -3,10 +3,12 @@ import { TableRow } from "@/components/ui/table";
 import { ProductTableCell } from "./ProductTableCell";
 import { ProductTableActions } from "./ProductTableActions";
 import { ProductEditDialog } from "./ProductEditDialog";
+import { ProductFullScreenEdit } from "./ProductFullScreenEdit";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Product = Tables<"products">;
 
@@ -45,6 +47,7 @@ export function ProductTableRow({
 }: ProductTableRowProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleEdit = () => {
     console.log('ProductTableRow: Starting edit for product:', product.id);
@@ -140,20 +143,37 @@ export function ProductTableRow({
         />
       </TableRow>
 
-      <ProductEditDialog
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        product={product}
-        editValues={editValues}
-        categories={categories}
-        onEditChange={onEditChange}
-        onSave={handleSave}
-        onCancel={handleCancel}
-        onImageUpload={onImageUpload}
-        onVideoUpload={onVideoUpload}
-        onDeleteMedia={onDeleteMedia}
-        isSaving={isSaving}
-      />
+      {showEditDialog && (
+        isMobile ? (
+          <ProductFullScreenEdit
+            product={product}
+            editValues={editValues}
+            categories={categories}
+            onEditChange={onEditChange}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            onImageUpload={onImageUpload}
+            onVideoUpload={onVideoUpload}
+            onDeleteMedia={onDeleteMedia}
+            isSaving={isSaving}
+          />
+        ) : (
+          <ProductEditDialog
+            open={showEditDialog}
+            onOpenChange={setShowEditDialog}
+            product={product}
+            editValues={editValues}
+            categories={categories}
+            onEditChange={onEditChange}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            onImageUpload={onImageUpload}
+            onVideoUpload={onVideoUpload}
+            onDeleteMedia={onDeleteMedia}
+            isSaving={isSaving}
+          />
+        )
+      )}
     </>
   );
 }
