@@ -65,6 +65,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple-touch-icon"
     }
   ],
   "screenshots": [
