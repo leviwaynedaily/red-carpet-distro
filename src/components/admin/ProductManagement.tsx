@@ -245,7 +245,6 @@ export function ProductManagement() {
         const products = await parseCSV(file);
         console.log('Importing products:', products);
         
-        // Insert products one by one to ensure proper typing
         for (const product of products) {
           if (!product.name) {
             console.error('Skipping product without name:', product);
@@ -254,7 +253,7 @@ export function ProductManagement() {
 
           const { error } = await supabase
             .from('products')
-            .insert({
+            .insert([{
               name: product.name,
               description: product.description,
               strain: product.strain,
@@ -263,7 +262,7 @@ export function ProductManagement() {
               shipping_price: product.shipping_price,
               primary_media_type: 'image',
               media: []
-            });
+            }]);
 
           if (error) {
             console.error('Error importing product:', error);
