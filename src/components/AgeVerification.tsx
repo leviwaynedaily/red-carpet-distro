@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, testSupabaseConnection } from "@/integrations/supabase/client";
 
 interface AgeVerificationProps {
   onVerified: () => void;
@@ -30,6 +30,13 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
   const fetchStorefrontPassword = async () => {
     try {
       console.log('Fetching storefront password and settings...');
+      
+      // Test connection first
+      const isConnected = await testSupabaseConnection();
+      if (!isConnected) {
+        throw new Error('Unable to connect to the database');
+      }
+
       const { data, error } = await supabase
         .from("site_settings")
         .select("storefront_password, logo_url, logo_url_webp, welcome_instructions")
@@ -49,9 +56,18 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
     } catch (error) {
       console.error("Error fetching storefront password:", error);
       toast({
-        title: "Error",
-        description: "Failed to load site settings. Please try again later.",
+        title: "Connection Error",
+        description: "Unable to connect to the server. Please check your internet connection and try again.",
         variant: "destructive",
+      });
+      // Set default values to prevent UI from breaking
+      setSettings({
+        logo_url: '/placeholder.svg',
+        welcome_instructions: {
+          title: 'Welcome to Our Store',
+          subtitle: 'Please verify your age to continue',
+          guidelines: '<p>Please wait while we restore connection to our servers.</p>'
+        }
       });
       setIsLoading(false);
     }
