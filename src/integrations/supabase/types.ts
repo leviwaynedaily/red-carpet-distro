@@ -84,6 +84,7 @@ export type Database = {
           regular_price: number | null
           shipping_price: number | null
           stock: number | null
+          strain: string | null
           updated_at: string
           video_url: string | null
         }
@@ -98,6 +99,7 @@ export type Database = {
           regular_price?: number | null
           shipping_price?: number | null
           stock?: number | null
+          strain?: string | null
           updated_at?: string
           video_url?: string | null
         }
@@ -112,6 +114,7 @@ export type Database = {
           regular_price?: number | null
           shipping_price?: number | null
           stock?: number | null
+          strain?: string | null
           updated_at?: string
           video_url?: string | null
         }
