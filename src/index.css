@@ -101,6 +101,8 @@
 
   body {
     @apply bg-background text-foreground;
+    background-color: var(--page-background-color);
+    opacity: var(--page-background-opacity);
     overscroll-behavior: none;
     overflow: hidden;
     position: fixed;

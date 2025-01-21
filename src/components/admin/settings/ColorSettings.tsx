@@ -14,6 +14,8 @@ interface ColorSettingsProps {
     header_opacity: number;
     toolbar_color: string;
     toolbar_opacity: number;
+    background_color: string;
+    background_opacity: number;
   };
   onSettingChange: (name: string, value: string | number) => void;
 }
@@ -30,21 +32,12 @@ export function ColorSettings({ settings, onSettingChange }: ColorSettingsProps)
     }
   };
 
-  const handleHeaderOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     const value = parseFloat(e.target.value);
-    onSettingChange('header_opacity', value);
+    onSettingChange(`${type}_opacity`, value);
     
-    toast.success('Header opacity updated! Save to make permanent.', {
-      description: `Header opacity changed to ${Math.round(value * 100)}%`,
-    });
-  };
-
-  const handleToolbarOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    onSettingChange('toolbar_opacity', value);
-    
-    toast.success('Toolbar opacity updated! Save to make permanent.', {
-      description: `Toolbar opacity changed to ${Math.round(value * 100)}%`,
+    toast.success(`${type} opacity updated! Save to make permanent.`, {
+      description: `${type} opacity changed to ${Math.round(value * 100)}%`,
     });
   };
 
@@ -107,7 +100,7 @@ export function ColorSettings({ settings, onSettingChange }: ColorSettingsProps)
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="pwa_background_color">Background Color</Label>
+            <Label htmlFor="pwa_background_color">PWA Background Color</Label>
             <div className="flex gap-2 items-center">
               <Input
                 id="pwa_background_color"
@@ -119,6 +112,45 @@ export function ColorSettings({ settings, onSettingChange }: ColorSettingsProps)
               />
               <span className="text-sm text-muted-foreground">
                 {settings.pwa_background_color}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 border-t pt-4">
+          <div className="space-y-2">
+            <Label htmlFor="background_color">Page Background Color</Label>
+            <div className="flex gap-2 items-center">
+              <Input
+                id="background_color"
+                name="background_color"
+                type="color"
+                value={settings.background_color}
+                onChange={handleColorChange}
+                className="w-20 h-10"
+              />
+              <span className="text-sm text-muted-foreground">
+                {settings.background_color}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="background_opacity">Background Opacity</Label>
+            <div className="flex gap-2 items-center">
+              <Input
+                id="background_opacity"
+                name="background_opacity"
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={settings.background_opacity}
+                onChange={(e) => handleOpacityChange(e, 'background')}
+                className="w-full"
+              />
+              <span className="text-sm text-muted-foreground w-12">
+                {Math.round(settings.background_opacity * 100)}%
               </span>
             </div>
           </div>
@@ -152,7 +184,7 @@ export function ColorSettings({ settings, onSettingChange }: ColorSettingsProps)
               max="1"
               step="0.1"
               value={settings.header_opacity}
-              onChange={handleHeaderOpacityChange}
+              onChange={handleOpacityChange}
               className="w-full"
             />
             <span className="text-sm text-muted-foreground w-12">
@@ -189,7 +221,7 @@ export function ColorSettings({ settings, onSettingChange }: ColorSettingsProps)
               max="1"
               step="0.1"
               value={settings.toolbar_opacity}
-              onChange={handleToolbarOpacityChange}
+              onChange={handleOpacityChange}
               className="w-full"
             />
             <span className="text-sm text-muted-foreground w-12">
