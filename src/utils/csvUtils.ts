@@ -4,13 +4,13 @@ import Papa from 'papaparse';
 type Product = Tables<"products">;
 type ProductInsert = {
   name: string; // Required field
-  description?: string;
-  strain?: string;
-  stock?: number;
-  regular_price?: number;
-  shipping_price?: number;
-  primary_media_type?: string;
-  media?: any[];
+  description?: string | null;
+  strain?: string | null;
+  stock?: number | null;
+  regular_price?: number | null;
+  shipping_price?: number | null;
+  primary_media_type?: string | null;
+  media?: any[] | null;
 };
 
 export const parseCSV = (file: File): Promise<ProductInsert[]> => {
@@ -19,9 +19,9 @@ export const parseCSV = (file: File): Promise<ProductInsert[]> => {
       header: true,
       complete: (results) => {
         const products = results.data
-          .filter((row: any) => row.name) // Only include rows with a name
+          .filter((row: any) => row.name && typeof row.name === 'string') // Ensure name exists and is a string
           .map((row: any) => ({
-            name: row.name, // Required field
+            name: row.name.trim(), // Required field, ensure it's trimmed
             description: row.description || null,
             strain: row.strain || null,
             stock: row.stock ? parseInt(row.stock) : 0,
