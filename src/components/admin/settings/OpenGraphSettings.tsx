@@ -64,7 +64,7 @@ export function OpenGraphSettings({ settings, onSettingChange }: OpenGraphSettin
         .from('site_settings')
         .update({
           og_image: url,
-          og_image_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`
+          og_image_webp: `https://nzqdkelbytkvvwdgywja.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`
         })
         .eq('id', settings.id);
 
@@ -74,7 +74,7 @@ export function OpenGraphSettings({ settings, onSettingChange }: OpenGraphSettin
       }
 
       onSettingChange('og_image', url);
-      onSettingChange('og_image_webp', `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`);
+      onSettingChange('og_image_webp', `https://nzqdkelbytkvvwdgywja.supabase.co/storage/v1/object/public/media/sitesettings/og-image.webp`);
 
       toast.success('OG image uploaded successfully');
     } catch (error) {
