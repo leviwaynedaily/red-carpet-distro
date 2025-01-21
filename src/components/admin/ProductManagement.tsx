@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { AddProductDialog } from "./product-table/AddProductDialog";
-import { exportProducts } from "@/utils/csvUtils";
+import { downloadTemplate, exportProducts, parseCSV } from "@/utils/csvUtils";
 
 type Product = Tables<"products">;
 
@@ -46,15 +46,15 @@ export function ProductManagement() {
   ];
 
   const handleColumnToggle = (columnKey: string) => {
-    setVisibleColumns(current =>
+    setVisibleColumns((current) =>
       current.includes(columnKey)
-        ? current.filter(key => key !== columnKey)
+        ? current.filter((key) => key !== columnKey)
         : [...current, columnKey]
     );
   };
 
   const handleEditStart = async (product: Product & { categories?: string[] }) => {
-    console.log('ProductManagement: Starting edit for product:', product.id);
+    console.log("ProductManagement: Starting edit for product:", product.id);
     setEditingProduct(product.id);
     setEditValues({
       ...product,
@@ -63,15 +63,15 @@ export function ProductManagement() {
   };
 
   const handleEditSave = async () => {
-    console.log('ProductManagement: Saving product:', editingProduct);
+    console.log("ProductManagement: Saving product:", editingProduct);
     try {
       if (!editingProduct || !editValues.name) {
-        toast.error('Product name is required');
+        toast.error("Product name is required");
         return;
       }
 
       const { error: updateError } = await supabase
-        .from('products')
+        .from("products")
         .update({
           name: editValues.name,
           description: editValues.description,
@@ -79,35 +79,35 @@ export function ProductManagement() {
           stock: editValues.stock,
           regular_price: editValues.regular_price,
           shipping_price: editValues.shipping_price,
-          primary_media_type: 'image',
-          media: []
+          primary_media_type: "image",
+          media: [],
         })
-        .eq('id', editingProduct);
+        .eq("id", editingProduct);
 
       if (updateError) throw updateError;
 
       // Handle categories update
       if (editValues.categories) {
         const { error: deleteError } = await supabase
-          .from('product_categories')
+          .from("product_categories")
           .delete()
-          .eq('product_id', editingProduct);
+          .eq("product_id", editingProduct);
 
         if (deleteError) throw deleteError;
 
         const { data: categoriesData } = await supabase
-          .from('categories')
-          .select('id, name')
-          .in('name', editValues.categories);
+          .from("categories")
+          .select("id, name")
+          .in("name", editValues.categories);
 
         if (categoriesData) {
-          const categoryAssociations = categoriesData.map(category => ({
+          const categoryAssociations = categoriesData.map((category) => ({
             product_id: editingProduct,
-            category_id: category.id
+            category_id: category.id,
           }));
 
           const { error: insertError } = await supabase
-            .from('product_categories')
+            .from("product_categories")
             .insert(categoryAssociations);
 
           if (insertError) throw insertError;
@@ -115,139 +115,204 @@ export function ProductManagement() {
       }
 
       // Invalidate and refetch products after successful save
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.invalidateQueries({ queryKey: ['products', 'product_categories'] });
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      await queryClient.invalidateQueries({ queryKey: ["products", "product_categories"] });
 
       setEditingProduct(null);
       setEditValues({});
-      toast.success('Product updated successfully');
+      toast.success("Product updated successfully");
     } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error('Failed to update product');
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product");
     }
   };
 
   const handleEditCancel = () => {
-    console.log('ProductManagement: Canceling edit');
+    console.log("ProductManagement: Canceling edit");
     setEditingProduct(null);
     setEditValues({});
   };
 
   const handleEditChange = (values: Partial<Product> & { categories?: string[] }) => {
-    console.log('ProductManagement: Updating edit values:', values);
+    console.log("ProductManagement: Updating edit values:", values);
     setEditValues(values);
   };
 
   const handleDelete = async (id: string) => {
-    console.log('ProductManagement: Deleting product:', id);
+    console.log("ProductManagement: Deleting product:", id);
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
-      toast.success('Product deleted successfully');
+      toast.success("Product deleted successfully");
     } catch (error) {
-      console.error('Error deleting product:', error);
-      toast.error('Failed to delete product');
+      console.error("Error deleting product:", error);
+      toast.error("Failed to delete product");
     }
   };
 
   const handleImageUpload = async (productId: string, url: string) => {
-    console.log('ProductManagement: Uploading image for product:', productId);
+    console.log("ProductManagement: Uploading image for product:", productId);
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .update({ image_url: url })
-        .eq('id', productId);
+        .eq("id", productId);
 
       if (error) throw error;
-      toast.success('Image uploaded successfully');
+      toast.success("Image uploaded successfully");
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
     }
   };
 
   const handleVideoUpload = async (productId: string, url: string) => {
-    console.log('ProductManagement: Uploading video for product:', productId);
+    console.log("ProductManagement: Uploading video for product:", productId);
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .update({ video_url: url })
-        .eq('id', productId);
+        .eq("id", productId);
 
       if (error) throw error;
-      toast.success('Video uploaded successfully');
+      toast.success("Video uploaded successfully");
     } catch (error) {
-      console.error('Error uploading video:', error);
-      toast.error('Failed to upload video');
+      console.error("Error uploading video:", error);
+      toast.error("Failed to upload video");
     }
   };
 
-  const handleDeleteMedia = async (productId: string, type: 'image' | 'video') => {
-    console.log('ProductManagement: Deleting media for product:', productId, type);
+  const handleDeleteMedia = async (productId: string, type: "image" | "video") => {
+    console.log("ProductManagement: Deleting media for product:", productId, type);
     try {
-      const updateData = type === 'image' ? { image_url: null } : { video_url: null };
+      const updateData = type === "image" ? { image_url: null } : { video_url: null };
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .update(updateData)
-        .eq('id', productId);
+        .eq("id", productId);
 
       if (error) throw error;
       toast.success(`${type} deleted successfully`);
     } catch (error) {
-      console.error('Error deleting media:', error);
+      console.error("Error deleting media:", error);
       toast.error(`Failed to delete ${type}`);
     }
   };
 
-  const handleMediaClick = (type: 'image' | 'video', url: string) => {
-    console.log('ProductManagement: Media clicked:', type, url);
-    window.open(url, '_blank');
+  const handleMediaClick = (type: "image" | "video", url: string) => {
+    console.log("ProductManagement: Media clicked:", type, url);
+    window.open(url, "_blank");
   };
 
   const handleAddProduct = async (product: Partial<Product>) => {
     try {
       // Validate required fields
       if (!product.name) {
-        toast.error('Product name is required');
+        toast.error("Product name is required");
         return;
       }
 
+      // Force TS to see `name` as a string
       const { data, error } = await supabase
-        .from('products')
-        .insert([product])
+        .from("products")
+        .insert([
+          {
+            name: product.name as string,
+            description: product.description,
+            strain: product.strain,
+            stock: product.stock,
+            regular_price: product.regular_price,
+            shipping_price: product.shipping_price,
+            primary_media_type: "image",
+            media: [],
+          },
+        ])
         .select()
         .single();
 
       if (error) throw error;
 
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
       setShowAddDialog(false);
-      toast.success('Product added successfully');
+      toast.success("Product added successfully");
     } catch (error) {
-      console.error('Error adding product:', error);
-      toast.error('Failed to add product');
+      console.error("Error adding product:", error);
+      toast.error("Failed to add product");
     }
+  };
+
+  const handleImport = async () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const importedProducts = await parseCSV(file);
+        console.log("Importing products:", importedProducts);
+
+        for (const product of importedProducts) {
+          // Skip if there's no name
+          if (!product.name) {
+            console.error("Skipping product without name:", product);
+            continue;
+          }
+
+          const { error } = await supabase.from("products").insert([
+            {
+              name: product.name as string,
+              description: product.description,
+              strain: product.strain,
+              stock: product.stock,
+              regular_price: product.regular_price,
+              shipping_price: product.shipping_price,
+              primary_media_type: "image",
+              media: [],
+            },
+          ]);
+
+          if (error) {
+            console.error("Error importing product:", error);
+            throw error;
+          }
+        }
+
+        await queryClient.invalidateQueries({ queryKey: ["products"] });
+        toast.success("Products imported successfully");
+      } catch (error) {
+        console.error("Error importing products:", error);
+        toast.error("Failed to import products");
+      }
+    };
+    input.click();
   };
 
   const handleExport = () => {
     if (!products) return;
     exportProducts(products);
-    toast.success('Products exported successfully');
+    toast.success("Products exported successfully");
   };
 
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
-    key: 'name',
-    direction: 'asc'
+  const handleDownloadTemplate = () => {
+    downloadTemplate();
+    toast.success("Template downloaded successfully");
+  };
+
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" }>({
+    key: "name",
+    direction: "asc",
   });
 
   const handleSort = (key: string) => {
-    setSortConfig(current => ({
+    setSortConfig((current) => ({
       key,
-      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+      direction: current.key === key && current.direction === "asc" ? "desc" : "asc",
     }));
   };
 
@@ -265,8 +330,11 @@ export function ProductManagement() {
         onColumnToggle={handleColumnToggle}
         showColumnToggle={!isMobile}
         onAddProduct={() => setShowAddDialog(true)}
+        onImport={handleImport}
         onExport={handleExport}
+        onDownloadTemplate={handleDownloadTemplate}
       />
+
       {isMobile ? (
         <ProductMobileGrid
           products={products}
@@ -301,6 +369,7 @@ export function ProductManagement() {
           onSort={handleSort}
         />
       )}
+
       <AddProductDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
