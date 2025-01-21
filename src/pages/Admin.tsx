@@ -15,7 +15,7 @@ export default function Admin() {
   const [isLoading, setIsLoading] = useState(true);
   const [adminPassword, setAdminPassword] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
-  const [backgroundOpacity, setBackgroundOpacity] = useState(1);
+  const [backgroundOpacity, setBackgroundOpacity] = useState("1"); // Changed to string type
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,9 +49,10 @@ export default function Admin() {
         
         if (data) {
           setBackgroundColor(data.background_color || "#FFFFFF");
-          setBackgroundOpacity(data.background_opacity || 1);
+          // Convert the numeric opacity to string
+          setBackgroundOpacity(String(data.background_opacity || "1"));
           document.body.style.backgroundColor = data.background_color || "#FFFFFF";
-          document.body.style.opacity = data.background_opacity || 1;
+          document.body.style.opacity = String(data.background_opacity || "1");
         }
       } catch (error) {
         console.error("Error fetching background settings:", error);
