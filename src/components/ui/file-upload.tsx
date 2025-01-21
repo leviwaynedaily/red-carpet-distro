@@ -6,23 +6,29 @@ import { Loader2 } from "lucide-react";
 import { convertToWebP, isImageFile } from "@/utils/imageUtils";
 
 interface FileUploadProps {
-  onUploadComplete: (url: string) => void;
+  onUploadComplete?: (url: string) => void;
+  onUpload?: (url: string) => void;
+  onDelete?: () => void;
   accept?: string;
   bucket?: string;
   folderPath?: string;
   fileName?: string;
   className?: string;
   buttonContent?: React.ReactNode;
+  value?: string;
 }
 
 export function FileUpload({ 
-  onUploadComplete, 
+  onUploadComplete,
+  onUpload,
+  onDelete,
   accept = "image/*",
   bucket = "media",
   folderPath = "",
   fileName,
   className,
-  buttonContent = "Upload File"
+  buttonContent = "Upload File",
+  value
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -40,19 +46,17 @@ export function FileUpload({
         bucket
       });
       
-      // Create the final file path
       const fileExt = file.name.split('.').pop();
       const finalFileName = fileName 
         ? `${fileName}.${fileExt}`
         : `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
       
       const filePath = folderPath 
-        ? `${folderPath}/${finalFileName}`.replace(/\/+/g, '/') // Normalize path
+        ? `${folderPath}/${finalFileName}`.replace(/\/+/g, '/') 
         : finalFileName;
 
       console.log('📁 Uploading file to path:', filePath);
 
-      // First upload the original file directly to storage
       const { error: uploadError, data } = await supabase.storage
         .from(bucket)
         .upload(filePath, file, {
@@ -67,14 +71,12 @@ export function FileUpload({
 
       console.log('✅ Original file uploaded successfully:', data);
 
-      // Get the public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
 
       console.log('🔗 File public URL:', publicUrl);
 
-      // If it's an image, handle WebP conversion
       if (isImageFile(file)) {
         try {
           console.log('🔄 Starting WebP conversion');
@@ -83,7 +85,6 @@ export function FileUpload({
 
           console.log('📤 Uploading WebP version to:', webpPath);
 
-          // Upload WebP version
           const { error: webpError } = await supabase.storage
             .from(bucket)
             .upload(webpPath, webpBlob, {
@@ -94,17 +95,16 @@ export function FileUpload({
 
           if (webpError) {
             console.error('⚠️ WebP upload error:', webpError);
-            // Don't throw, continue with original file
           } else {
             console.log('✅ WebP version uploaded successfully');
           }
         } catch (webpError) {
           console.error('⚠️ WebP conversion failed:', webpError);
-          // Continue with original file if WebP conversion fails
         }
       }
 
-      onUploadComplete(publicUrl);
+      if (onUploadComplete) onUploadComplete(publicUrl);
+      if (onUpload) onUpload(publicUrl);
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('❌ Upload error:', error);
@@ -116,27 +116,38 @@ export function FileUpload({
 
   return (
     <div className={className}>
-      <Button
-        variant="outline"
-        className="relative"
-        disabled={isUploading}
-      >
-        {isUploading ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            Uploading...
-          </>
-        ) : (
-          buttonContent
-        )}
-        <input
-          type="file"
-          className="absolute inset-0 opacity-0 cursor-pointer"
-          onChange={handleFileChange}
-          accept={accept}
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          className="relative"
           disabled={isUploading}
-        />
-      </Button>
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Uploading...
+            </>
+          ) : (
+            buttonContent
+          )}
+          <input
+            type="file"
+            className="absolute inset-0 opacity-0 cursor-pointer"
+            onChange={handleFileChange}
+            accept={accept}
+            disabled={isUploading}
+          />
+        </Button>
+        {value && onDelete && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={onDelete}
+          >
+            Remove
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
