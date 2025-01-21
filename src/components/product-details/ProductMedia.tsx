@@ -124,7 +124,20 @@ export const ProductMedia = ({ imageUrl, videoUrl, productName, webpUrl }: Produ
               className="w-full h-full object-cover"
             />
           ) : (
-            renderImage()
+            <picture>
+              {webpUrl && !webpError && (
+                <source
+                  srcSet={webpUrl}
+                  type="image/webp"
+                  onError={handleWebPError}
+                />
+              )}
+              <img
+                src={imageUrl}
+                alt={productName}
+                className="w-full h-full object-contain"
+              />
+            </picture>
           )}
         </DialogContent>
       </Dialog>

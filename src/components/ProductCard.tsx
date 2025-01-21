@@ -132,7 +132,7 @@ export const ProductCard = ({
     return (
       <div className={imageContainerClasses[viewMode]}>
         <picture>
-          {media?.webp && !webpError && (
+          {media?.webp && (
             <source
               srcSet={media.webp}
               type="image/webp"
@@ -242,7 +242,7 @@ export const ProductCard = ({
             />
           ) : (
             <picture>
-              {media?.webp && !webpError && (
+              {media?.webp && (
                 <source
                   srcSet={media.webp}
                   type="image/webp"
