@@ -73,6 +73,7 @@ function isWelcomeInstructions(value: any): value is WelcomeInstructionsType {
 }
 
 export function SiteSettings() {
+
   const [settings, setSettings] = useState<SiteSettingsType>({
     id: "",
     logo_url: "",
@@ -112,7 +113,9 @@ export function SiteSettings() {
       title: "Welcome to Palmtree Smokes",
       subtitle: "Please take a moment to review our store guidelines:",
       guidelines: ""
-    }
+    },
+    background_color: "#FFFFFF",
+    background_opacity: 1.0
   });
 
   useEffect(() => {

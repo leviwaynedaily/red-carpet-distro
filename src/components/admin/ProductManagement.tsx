@@ -253,16 +253,16 @@ export function ProductManagement() {
 
           const { error } = await supabase
             .from('products')
-            .insert([{
+            .insert({
               name: product.name,
-              description: product.description,
-              strain: product.strain,
-              stock: product.stock,
-              regular_price: product.regular_price,
-              shipping_price: product.shipping_price,
+              description: product.description || null,
+              strain: product.strain || null,
+              stock: Number(product.stock) || 0,
+              regular_price: Number(product.regular_price) || 0,
+              shipping_price: Number(product.shipping_price) || 0,
               primary_media_type: 'image',
               media: []
-            }]);
+            });
 
           if (error) {
             console.error('Error importing product:', error);
