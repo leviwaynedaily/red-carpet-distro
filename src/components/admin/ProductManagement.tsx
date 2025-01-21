@@ -238,24 +238,15 @@ export function ProductManagement() {
 
       try {
         const products = await parseCSV(file);
-        // Validate that all products have required fields
-        const validProducts = products.filter(product => {
-          if (!product.name) {
-            console.error('Product missing required name field:', product);
-            return false;
-          }
-          return true;
-        });
+        
+        // Insert products one by one to ensure proper typing
+        for (const product of products) {
+          const { error } = await supabase
+            .from('products')
+            .insert(product);
 
-        if (validProducts.length === 0) {
-          throw new Error('No valid products found in CSV');
+          if (error) throw error;
         }
-
-        const { error } = await supabase
-          .from('products')
-          .insert(validProducts);
-
-        if (error) throw error;
 
         await queryClient.invalidateQueries({ queryKey: ['products'] });
         toast.success('Products imported successfully');

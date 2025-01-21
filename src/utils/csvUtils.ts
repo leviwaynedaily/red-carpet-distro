@@ -3,19 +3,21 @@ import Papa from 'papaparse';
 
 type Product = Tables<"products">;
 
-export const parseCSV = (file: File): Promise<Partial<Product>[]> => {
+export const parseCSV = (file: File): Promise<Product[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
       complete: (results) => {
-        const products = results.data.map(row => ({
-          name: row.name || '', // Ensure name is always present
-          description: row.description,
-          strain: row.strain,
-          stock: row.stock ? parseInt(row.stock) : 0,
-          regular_price: row.regular_price ? parseFloat(row.regular_price) : 0,
-          shipping_price: row.shipping_price ? parseFloat(row.shipping_price) : 0,
-        }));
+        const products = results.data
+          .filter((row: any) => row.name) // Only include rows with a name
+          .map((row: any) => ({
+            name: row.name, // Required field
+            description: row.description || null,
+            strain: row.strain || null,
+            stock: row.stock ? parseInt(row.stock) : 0,
+            regular_price: row.regular_price ? parseFloat(row.regular_price) : 0,
+            shipping_price: row.shipping_price ? parseFloat(row.shipping_price) : 0,
+          }));
         resolve(products);
       },
       error: (error) => {
@@ -37,7 +39,7 @@ export const exportProducts = (products: Product[]) => {
 export const downloadTemplate = () => {
   const template = [
     {
-      name: 'Product Name',
+      name: 'Product Name', // Required field
       description: 'Product Description',
       strain: 'Strain Name',
       stock: '0',
