@@ -2,6 +2,8 @@ import { Tables } from "@/integrations/supabase/types";
 import Papa from 'papaparse';
 
 type Product = Tables<"products">;
+
+// Define a type for product insertion that requires name
 type ProductInsert = {
   name: string; // Required field
   description?: string | null;
@@ -18,8 +20,16 @@ export const parseCSV = (file: File): Promise<ProductInsert[]> => {
     Papa.parse(file, {
       header: true,
       complete: (results) => {
+        console.log('CSV Parser: Raw results:', results.data);
+        
         const products = results.data
-          .filter((row: any) => row.name && typeof row.name === 'string') // Ensure name exists and is a string
+          .filter((row: any) => {
+            const hasName = row.name && typeof row.name === 'string';
+            if (!hasName) {
+              console.warn('CSV Parser: Skipping row without name:', row);
+            }
+            return hasName;
+          })
           .map((row: any) => ({
             name: row.name.trim(), // Required field, ensure it's trimmed
             description: row.description || null,
@@ -30,9 +40,12 @@ export const parseCSV = (file: File): Promise<ProductInsert[]> => {
             primary_media_type: 'image',
             media: []
           }));
+        
+        console.log('CSV Parser: Transformed products:', products);
         resolve(products);
       },
       error: (error) => {
+        console.error('CSV Parser: Error parsing file:', error);
         reject(error);
       }
     });

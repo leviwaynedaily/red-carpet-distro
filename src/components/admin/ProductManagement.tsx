@@ -245,34 +245,14 @@ export function ProductManagement() {
         const products = await parseCSV(file);
         console.log('ProductManagement: Importing products:', products);
         
-        // Filter out products without names and prepare them for insert
-        const validProducts = products
-          .filter(product => {
-            if (!product.name) {
-              console.warn('ProductManagement: Skipping product without name:', product);
-              return false;
-            }
-            return true;
-          })
-          .map(product => ({
-            name: product.name,
-            description: product.description || null,
-            strain: product.strain || null,
-            stock: Number(product.stock) || 0,
-            regular_price: Number(product.regular_price) || 0,
-            shipping_price: Number(product.shipping_price) || 0,
-            primary_media_type: 'image',
-            media: []
-          }));
-
-        if (validProducts.length === 0) {
+        if (products.length === 0) {
           toast.error('No valid products found in CSV. Each product must have a name.');
           return;
         }
 
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('products')
-          .insert(validProducts);
+          .insert(products);
 
         if (error) {
           console.error('ProductManagement: Error importing products:', error);
@@ -280,7 +260,7 @@ export function ProductManagement() {
         }
 
         await queryClient.invalidateQueries({ queryKey: ['products'] });
-        toast.success(`Successfully imported ${validProducts.length} products`);
+        toast.success(`Successfully imported ${products.length} products`);
       } catch (error) {
         console.error('ProductManagement: Error importing products:', error);
         toast.error('Failed to import products');
