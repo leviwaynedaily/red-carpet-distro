@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ProductMobileGrid } from "./product-table/ProductMobileGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Product = Tables<"products">;
 
@@ -16,6 +17,7 @@ export function ProductManagement() {
   const [editValues, setEditValues] = useState<Partial<Product> & { categories?: string[] }>({});
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
+  const queryClient = useQueryClient();
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
     "name",
     "strain",
@@ -103,6 +105,10 @@ export function ProductManagement() {
           if (insertError) throw insertError;
         }
       }
+
+      // Invalidate and refetch products after successful save
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['products', 'product_categories'] });
 
       setEditingProduct(null);
       setEditValues({});
