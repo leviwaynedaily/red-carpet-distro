@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, Plus, Settings2 } from "lucide-react";
+import { Download, Plus, Settings2, Upload } from "lucide-react";
 
 interface Column {
   key: string;
@@ -24,6 +24,8 @@ interface ProductTableFiltersProps {
   showColumnToggle?: boolean;
   onAddProduct: () => void;
   onExport: () => void;
+  onImport: () => void;
+  onDownloadTemplate: () => void;
 }
 
 export function ProductTableFilters({
@@ -35,6 +37,8 @@ export function ProductTableFilters({
   showColumnToggle = true,
   onAddProduct,
   onExport,
+  onImport,
+  onDownloadTemplate,
 }: ProductTableFiltersProps) {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -69,6 +73,14 @@ export function ProductTableFilters({
         )}
       </div>
       <div className="flex items-center space-x-2">
+        <Button onClick={onDownloadTemplate} variant="outline" size="sm">
+          <Download className="mr-2 h-4 w-4" />
+          Template
+        </Button>
+        <Button onClick={onImport} variant="outline" size="sm">
+          <Upload className="mr-2 h-4 w-4" />
+          Import
+        </Button>
         <Button onClick={onExport} variant="outline" size="sm">
           <Download className="mr-2 h-4 w-4" />
           Export
