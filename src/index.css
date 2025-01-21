@@ -111,6 +111,8 @@
     -webkit-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   #root {
@@ -119,6 +121,7 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: none;
     scroll-behavior: smooth;
+    padding-top: env(safe-area-inset-top);
   }
 
   /* Prevent pull-to-refresh on mobile */

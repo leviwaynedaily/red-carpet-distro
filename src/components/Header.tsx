@@ -19,6 +19,7 @@ interface HeaderProps {
 }
 
 export const Header = ({
+  isSticky,
   searchTerm,
   onSearchChange,
   categoryFilter,
@@ -155,7 +156,10 @@ export const Header = ({
   );
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full shadow-sm" style={headerStyle}>
+    <header 
+      className="fixed top-0 left-0 right-0 z-50 w-full shadow-sm pt-[env(safe-area-inset-top)]" 
+      style={headerStyle}
+    >
       <div className="w-full">
         <div className="flex items-center justify-center px-4 md:px-6 py-2 md:py-3 backdrop-blur-sm bg-white/10">
           <picture>
