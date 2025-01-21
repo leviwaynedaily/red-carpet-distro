@@ -50,7 +50,7 @@ export const ProductGrid = ({
           categories: product.product_categories
             ?.map(pc => {
               console.log('ProductGrid: Processing category for product:', product.id, pc);
-              return pc.category?.name;
+              return pc.categories?.name;
             })
             .filter(Boolean) || []
         };
