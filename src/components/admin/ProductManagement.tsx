@@ -205,6 +205,12 @@ export function ProductManagement() {
 
   const handleAddProduct = async (product: Partial<Product>) => {
     try {
+      // Validate required fields
+      if (!product.name) {
+        toast.error('Product name is required');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('products')
         .insert([product])
@@ -232,9 +238,22 @@ export function ProductManagement() {
 
       try {
         const products = await parseCSV(file);
+        // Validate that all products have required fields
+        const validProducts = products.filter(product => {
+          if (!product.name) {
+            console.error('Product missing required name field:', product);
+            return false;
+          }
+          return true;
+        });
+
+        if (validProducts.length === 0) {
+          throw new Error('No valid products found in CSV');
+        }
+
         const { error } = await supabase
           .from('products')
-          .insert(products);
+          .insert(validProducts);
 
         if (error) throw error;
 

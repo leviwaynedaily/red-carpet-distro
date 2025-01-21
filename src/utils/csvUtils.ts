@@ -1,104 +1,54 @@
-import { toast } from "sonner";
 import { Tables } from "@/integrations/supabase/types";
+import Papa from 'papaparse';
 
 type Product = Tables<"products">;
-type ProductWithCategories = Product & { categories?: string[] };
 
-const TEMPLATE_HEADERS = [
-  "name",
-  "description",
-  "strain",
-  "stock",
-  "regular_price",
-  "shipping_price",
-  "categories"
-];
-
-export const downloadTemplate = () => {
-  const csvContent = [
-    TEMPLATE_HEADERS.join(","),
-    'Example Product,Product Description,Hybrid,10,29.99,5.99,"Category1, Category2"'
-  ].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv" });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", "product_template.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-export const exportProducts = (products: ProductWithCategories[]) => {
-  const csvContent = [
-    TEMPLATE_HEADERS.join(","),
-    ...products.map((product) => {
-      return [
-        product.name,
-        product.description || "",
-        product.strain || "",
-        product.stock || 0,
-        product.regular_price || 0,
-        product.shipping_price || 0,
-        (product.categories || []).join(", ")
-      ]
-        .map((value) => `"${value}"`)
-        .join(",");
-    }),
-  ].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv" });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", "products.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-export const parseCSV = async (file: File): Promise<Partial<ProductWithCategories>[]> => {
+export const parseCSV = (file: File): Promise<Partial<Product>[]> => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        const lines = text.split("\n");
-        const headers = lines[0]
-          .split(",")
-          .map((header) => header.trim().toLowerCase().replace(/^"|"$/g, ""));
-
-        const products = lines
-          .slice(1)
-          .filter((line) => line.trim())
-          .map((line) => {
-            const values = line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
-            const product: Partial<ProductWithCategories> = {
-              name: values[headers.indexOf("name")],
-            };
-
-            headers.forEach((header, index) => {
-              if (header === "categories") {
-                product.categories = values[index]?.split(",").map((c) => c.trim()) || [];
-              } else if (["stock", "regular_price", "shipping_price"].includes(header)) {
-                const value = parseFloat(values[index]) || 0;
-                (product as any)[header] = value;
-              } else if (values[index]) {
-                (product as any)[header] = values[index];
-              }
-            });
-
-            return product;
-          });
-
+    Papa.parse(file, {
+      header: true,
+      complete: (results) => {
+        const products = results.data.map(row => ({
+          name: row.name || '', // Ensure name is always present
+          description: row.description,
+          strain: row.strain,
+          stock: row.stock ? parseInt(row.stock) : 0,
+          regular_price: row.regular_price ? parseFloat(row.regular_price) : 0,
+          shipping_price: row.shipping_price ? parseFloat(row.shipping_price) : 0,
+        }));
         resolve(products);
-      } catch (error) {
-        console.error("Error parsing CSV:", error);
+      },
+      error: (error) => {
         reject(error);
       }
-    };
-    reader.onerror = (error) => reject(error);
-    reader.readAsText(file);
+    });
   });
+};
+
+export const exportProducts = (products: Product[]) => {
+  const csv = Papa.unparse(products);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'products.csv';
+  link.click();
+};
+
+export const downloadTemplate = () => {
+  const template = [
+    {
+      name: 'Product Name',
+      description: 'Product Description',
+      strain: 'Strain Name',
+      stock: '0',
+      regular_price: '0.00',
+      shipping_price: '0.00'
+    }
+  ];
+  const csv = Papa.unparse(template);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'products_template.csv';
+  link.click();
 };
