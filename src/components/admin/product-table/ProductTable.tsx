@@ -6,7 +6,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { ProductTableRow } from "./ProductTableRow";
+import { ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type Product = Tables<"products">;
 
@@ -21,35 +25,79 @@ interface ProductTableProps {
   onEditCancel: () => void;
   onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
   onDelete: (id: string) => void;
+  onImageUpload: (productId: string, url: string) => void;
+  onVideoUpload: (productId: string, url: string) => void;
+  onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
+  onMediaClick: (type: 'image' | 'video', url: string) => void;
   sortConfig: { key: string; direction: 'asc' | 'desc' };
   onSort: (key: string) => void;
 }
 
 export function ProductTable({
   products,
+  visibleColumns,
   editingProduct,
   editValues,
   categories,
-  visibleColumns,
   onEditStart,
   onEditSave,
   onEditCancel,
   onEditChange,
   onDelete,
+  onImageUpload,
+  onVideoUpload,
+  onDeleteMedia,
+  onMediaClick,
   sortConfig,
   onSort,
 }: ProductTableProps) {
+  const COLUMNS = [
+    { key: "name", label: "Name", sortable: true },
+    { key: "strain", label: "Strain", sortable: true },
+    { key: "description", label: "Description", sortable: true },
+    { key: "image", label: "Image", sortable: false },
+    { key: "video_url", label: "Video", sortable: false },
+    { key: "categories", label: "Categories", sortable: false },
+    { key: "stock", label: "Stock", sortable: true },
+    { key: "regular_price", label: "Price", sortable: true },
+    { key: "shipping_price", label: "Shipping", sortable: true },
+  ];
+
+  // Fetch categories
+  const { data: fetchedCategories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            {visibleColumns.map((column) => (
-              <TableHead key={column} className="whitespace-nowrap">
-                {column.charAt(0).toUpperCase() + column.slice(1).replace("_", " ")}
+            {COLUMNS.filter(col => visibleColumns.includes(col.key)).map((column) => (
+              <TableHead key={column.key}>
+                {column.sortable ? (
+                  <Button
+                    variant="ghost"
+                    onClick={() => onSort(column.key)}
+                    className="h-8 flex items-center gap-1 hover:bg-transparent"
+                  >
+                    {column.label}
+                    <ArrowUpDown className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  column.label
+                )}
               </TableHead>
             ))}
-            <TableHead>Actions</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -60,16 +108,16 @@ export function ProductTable({
               visibleColumns={visibleColumns}
               isEditing={editingProduct === product.id}
               editValues={editValues}
-              categories={categories}
+              categories={categories || fetchedCategories}
               onEditStart={onEditStart}
               onEditSave={onEditSave}
               onEditCancel={onEditCancel}
               onEditChange={onEditChange}
               onDelete={onDelete}
-              onImageUpload={(productId, url) => console.log('Upload image:', productId, url)}
-              onVideoUpload={(productId, url) => console.log('Upload video:', productId, url)}
-              onDeleteMedia={(productId, type) => console.log('Delete media:', productId, type)}
-              onMediaClick={(type, url) => console.log('Media clicked:', type, url)}
+              onImageUpload={onImageUpload}
+              onVideoUpload={onVideoUpload}
+              onDeleteMedia={onDeleteMedia}
+              onMediaClick={onMediaClick}
             />
           ))}
         </TableBody>
