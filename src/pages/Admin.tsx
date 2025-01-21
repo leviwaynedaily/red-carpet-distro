@@ -14,6 +14,8 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [adminPassword, setAdminPassword] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
+  const [backgroundOpacity, setBackgroundOpacity] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +36,30 @@ export default function Admin() {
     fetchAdminPassword();
     checkAuthState();
   }, [adminPassword]);
+
+  useEffect(() => {
+    const fetchBackgroundSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("site_settings")
+          .select("background_color, background_opacity")
+          .single();
+
+        if (error) throw error;
+        
+        if (data) {
+          setBackgroundColor(data.background_color || "#FFFFFF");
+          setBackgroundOpacity(data.background_opacity || 1);
+          document.body.style.backgroundColor = data.background_color || "#FFFFFF";
+          document.body.style.opacity = data.background_opacity || 1;
+        }
+      } catch (error) {
+        console.error("Error fetching background settings:", error);
+      }
+    };
+
+    fetchBackgroundSettings();
+  }, []);
 
   const fetchAdminPassword = async () => {
     try {
@@ -64,7 +90,6 @@ export default function Admin() {
     
     if (password === adminPassword) {
       setIsAuthenticated(true);
-      // Store authentication state in localStorage
       localStorage.setItem('adminAuth', 'true');
       toast.success("Welcome to admin dashboard");
     } else {
@@ -74,14 +99,13 @@ export default function Admin() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    // Clear authentication state from localStorage
     localStorage.removeItem('adminAuth');
     toast.success("Logged out successfully");
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor, opacity: backgroundOpacity }}>
         <div className="text-center">
           <p>Loading...</p>
         </div>
@@ -91,7 +115,7 @@ export default function Admin() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor, opacity: backgroundOpacity }}>
         <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
           <div className="text-center">
             <h2 className="text-3xl font-bold">Admin Login</h2>
@@ -123,38 +147,40 @@ export default function Admin() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <div className="space-x-2">
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
-          <Button variant="outline" onClick={() => navigate("/")}>
-            Back to Site
-          </Button>
+    <div className="min-h-screen" style={{ backgroundColor, opacity: backgroundOpacity }}>
+      <div className="container mx-auto p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <div className="space-x-2">
+            <Button variant="outline" onClick={handleLogout}>
+              Logout
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/")}>
+              Back to Site
+            </Button>
+          </div>
         </div>
+
+        <Tabs defaultValue="products" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="categories">Categories</TabsTrigger>
+            <TabsTrigger value="settings">Site Settings</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="products" className="space-y-4">
+            <ProductManagement />
+          </TabsContent>
+
+          <TabsContent value="categories" className="space-y-4">
+            <CategoryManagement />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-4">
+            <SiteSettings />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs defaultValue="products" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
-          <TabsTrigger value="settings">Site Settings</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="products" className="space-y-4">
-          <ProductManagement />
-        </TabsContent>
-
-        <TabsContent value="categories" className="space-y-4">
-          <CategoryManagement />
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4">
-          <SiteSettings />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
