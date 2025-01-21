@@ -128,7 +128,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
                 />
                 <label
                   htmlFor="age-verify"
-                  className="text-xs sm:text-sm leading-tight sm:leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-left"
+                  className="text-xs sm:text-sm leading-tight sm:leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-left text-[#ef3122]"
                 >
                   I confirm that I am 21 years of age or older and agree to the Terms of Service and Privacy Policy.
                 </label>
@@ -146,7 +146,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
                   className="w-full text-sm"
                 />
               </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+              <Button type="submit" className="w-full bg-[#ef3122] hover:bg-[#ef3122]/90 text-white">
                 Next
               </Button>
               <p className="text-[10px] sm:text-xs text-center text-gray-500 mt-4">
@@ -171,7 +171,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
                 }} 
               />
               <form onSubmit={handleSubmit}>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 mt-6">
+                <Button type="submit" className="w-full bg-[#ef3122] hover:bg-[#ef3122]/90 text-white mt-6">
                   Enter Site
                 </Button>
               </form>
