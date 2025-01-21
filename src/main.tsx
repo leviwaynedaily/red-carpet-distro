@@ -41,6 +41,12 @@ window.addEventListener('appinstalled', () => {
   window.deferredPrompt = null;
 });
 
+// Ensure page starts at the top
+window.addEventListener('load', () => {
+  console.log('PWA: Scrolling to top on load');
+  window.scrollTo(0, 0);
+});
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     console.log('Attempting to register service worker...');
