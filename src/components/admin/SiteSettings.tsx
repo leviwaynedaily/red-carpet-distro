@@ -58,6 +58,8 @@ type SiteSettingsType = {
   toolbar_color: string;
   toolbar_opacity: number;
   welcome_instructions: WelcomeInstructionsType;
+  background_color: string;
+  background_opacity: number;
 };
 
 function isWelcomeInstructions(value: any): value is WelcomeInstructionsType {

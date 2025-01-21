@@ -123,6 +123,8 @@ export type Database = {
       site_settings: {
         Row: {
           admin_password: string | null
+          background_color: string | null
+          background_opacity: number | null
           created_at: string
           favicon_png_url: string | null
           favicon_url: string | null
@@ -167,6 +169,8 @@ export type Database = {
         }
         Insert: {
           admin_password?: string | null
+          background_color?: string | null
+          background_opacity?: number | null
           created_at?: string
           favicon_png_url?: string | null
           favicon_url?: string | null
@@ -211,6 +215,8 @@ export type Database = {
         }
         Update: {
           admin_password?: string | null
+          background_color?: string | null
+          background_opacity?: number | null
           created_at?: string
           favicon_png_url?: string | null
           favicon_url?: string | null
