@@ -7,6 +7,7 @@ import { convertToWebP } from "@/utils/imageUtils";
 
 interface OpenGraphSettingsProps {
   settings: {
+    id: string;
     og_image: string;
     og_image_webp?: string;
   };
