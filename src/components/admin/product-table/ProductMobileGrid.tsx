@@ -15,6 +15,10 @@ interface ProductMobileGridProps {
   editingProduct: string | null;
   editValues: Partial<Product> & { categories?: string[] };
   onDelete: (id: string) => void;
+  onImageUpload: (productId: string, url: string) => void;
+  onVideoUpload: (productId: string, url: string) => void;
+  onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
+  onMediaClick: (type: 'image' | 'video', url: string) => void;
 }
 
 export function ProductMobileGrid({
@@ -26,6 +30,10 @@ export function ProductMobileGrid({
   editingProduct,
   editValues,
   onDelete,
+  onImageUpload,
+  onVideoUpload,
+  onDeleteMedia,
+  onMediaClick,
 }: ProductMobileGridProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<(Product & { categories?: string[] }) | null>(null);
@@ -89,9 +97,9 @@ export function ProductMobileGrid({
           onEditChange={onEditChange}
           onSave={handleEditSave}
           onCancel={handleEditCancel}
-          onImageUpload={(productId, url) => console.log('Upload image:', productId, url)}
-          onVideoUpload={(productId, url) => console.log('Upload video:', productId, url)}
-          onDeleteMedia={(productId, type) => console.log('Delete media:', productId, type)}
+          onImageUpload={onImageUpload}
+          onVideoUpload={onVideoUpload}
+          onDeleteMedia={onDeleteMedia}
         />
       )}
     </>

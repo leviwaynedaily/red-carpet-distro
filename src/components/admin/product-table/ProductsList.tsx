@@ -142,6 +142,60 @@ export function ProductsList({ searchTerm, visibleColumns, categories }: Product
     }
   };
 
+  const handleImageUpload = async (productId: string, url: string) => {
+    console.log('ProductsList: Uploading image for product:', productId);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ image_url: url })
+        .eq('id', productId);
+
+      if (error) throw error;
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    }
+  };
+
+  const handleVideoUpload = async (productId: string, url: string) => {
+    console.log('ProductsList: Uploading video for product:', productId);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ video_url: url })
+        .eq('id', productId);
+
+      if (error) throw error;
+      toast.success('Video uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      toast.error('Failed to upload video');
+    }
+  };
+
+  const handleDeleteMedia = async (productId: string, type: 'image' | 'video') => {
+    console.log('ProductsList: Deleting media for product:', productId, type);
+    try {
+      const updateData = type === 'image' ? { image_url: null } : { video_url: null };
+      const { error } = await supabase
+        .from('products')
+        .update(updateData)
+        .eq('id', productId);
+
+      if (error) throw error;
+      toast.success(`${type} deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting media:', error);
+      toast.error(`Failed to delete ${type}`);
+    }
+  };
+
+  const handleMediaClick = (type: 'image' | 'video', url: string) => {
+    console.log('ProductsList: Media clicked:', type, url);
+    window.open(url, '_blank');
+  };
+
   return (
     <ProductTable
       products={filteredProducts}
@@ -161,10 +215,10 @@ export function ProductsList({ searchTerm, visibleColumns, categories }: Product
       }}
       onEditChange={setEditValues}
       onDelete={(id) => console.log('Delete product with id:', id)}
-      onImageUpload={(productId, url) => console.log('Upload image for product:', productId, url)}
-      onVideoUpload={(productId, url) => console.log('Upload video for product:', productId, url)}
-      onDeleteMedia={(productId, type) => console.log('Delete media for product:', productId, type)}
-      onMediaClick={(type, url) => console.log('Media clicked:', type, url)}
+      onImageUpload={handleImageUpload}
+      onVideoUpload={handleVideoUpload}
+      onDeleteMedia={handleDeleteMedia}
+      onMediaClick={handleMediaClick}
       sortConfig={{ key: "name", direction: "asc" }}
       onSort={(key) => console.log('Sort by:', key)}
     />
