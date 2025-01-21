@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProductInfoProps {
   name: string;
@@ -19,19 +20,21 @@ export const ProductInfo = ({
   shippingPrice,
   stock,
 }: ProductInfoProps) => {
+  const isMobile = useIsMobile();
+  
   return (
-    <div className="space-y-6">
+    <div className={`space-y-${isMobile ? '3' : '6'}`}>
       <div>
-        <h1 className="text-3xl font-bold mb-2">{name}</h1>
+        <h1 className={`${isMobile ? 'text-xl' : 'text-3xl'} font-bold mb-2`}>{name}</h1>
         {description && (
-          <p className="text-gray-600">{description}</p>
+          <p className="text-gray-600 text-sm">{description}</p>
         )}
       </div>
 
       {categories?.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {categories.map((category) => (
-            <Badge key={category} variant="secondary">
+            <Badge key={category} variant="secondary" className="text-xs">
               {category}
             </Badge>
           ))}
@@ -40,19 +43,19 @@ export const ProductInfo = ({
 
       {strain && (
         <div>
-          <h3 className="text-lg font-semibold mb-1">Strain</h3>
-          <p>{strain}</p>
+          <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold mb-1`}>Strain</h3>
+          <p className="text-sm">{strain}</p>
         </div>
       )}
 
       {(regularPrice !== undefined && regularPrice > 0) && (
         <div>
-          <h3 className="text-lg font-semibold mb-1">Price</h3>
-          <p className="text-2xl font-bold">
+          <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold mb-1`}>Price</h3>
+          <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
             ${regularPrice.toFixed(2)}
           </p>
           {(shippingPrice !== undefined && shippingPrice > 0) && (
-            <p className="text-sm text-gray-600">
+            <p className="text-xs text-gray-600">
               + ${shippingPrice.toFixed(2)} shipping
             </p>
           )}
@@ -61,8 +64,8 @@ export const ProductInfo = ({
 
       {(stock !== undefined && stock > 0) && (
         <div>
-          <h3 className="text-lg font-semibold mb-1">Stock</h3>
-          <p>{stock} available</p>
+          <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold mb-1`}>Stock</h3>
+          <p className="text-sm">{stock} available</p>
         </div>
       )}
     </div>

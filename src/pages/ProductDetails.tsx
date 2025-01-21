@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { ProductMedia } from "@/components/product-details/ProductMedia";
 import { ProductInfo } from "@/components/product-details/ProductInfo";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const { data: product, isLoading, error } = useQuery({
     queryKey: ['product', id],
@@ -31,7 +33,6 @@ export default function ProductDetails() {
         throw productError;
       }
 
-      // Transform the data to include categories and handle media
       const transformedProduct = {
         ...productData,
         categories: productData.product_categories
@@ -74,18 +75,18 @@ export default function ProductDetails() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className={`container mx-auto ${isMobile ? 'px-2 py-2' : 'px-4 py-8'} h-full overflow-hidden`}>
       <Button 
         variant="ghost" 
-        className="mb-6"
+        className={`${isMobile ? 'mb-2' : 'mb-6'}`}
         onClick={() => navigate(-1)}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back
       </Button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="md:sticky md:top-24">
+      <div className={`grid ${isMobile ? 'grid-rows-[auto_1fr] gap-2' : 'grid-cols-2 gap-8'} h-[calc(100vh-4rem)]`}>
+        <div className={`${isMobile ? 'h-[45vh]' : 'md:sticky md:top-24'} overflow-hidden`}>
           <ProductMedia
             imageUrl={product.image_url}
             videoUrl={product.video_url}
@@ -93,15 +94,17 @@ export default function ProductDetails() {
             webpUrl={product.media?.webp}
           />
         </div>
-        <ProductInfo
-          name={product.name}
-          description={product.description}
-          categories={product.categories}
-          strain={product.strain}
-          regularPrice={product.regular_price}
-          shippingPrice={product.shipping_price}
-          stock={product.stock}
-        />
+        <div className={`${isMobile ? 'h-[45vh]' : ''} overflow-y-auto`}>
+          <ProductInfo
+            name={product.name}
+            description={product.description}
+            categories={product.categories}
+            strain={product.strain}
+            regularPrice={product.regular_price}
+            shippingPrice={product.shipping_price}
+            stock={product.stock}
+          />
+        </div>
       </div>
     </div>
   );
