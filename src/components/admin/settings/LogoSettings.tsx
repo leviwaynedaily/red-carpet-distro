@@ -65,7 +65,7 @@ export function LogoSettings({ settings, onSettingChange }: LogoSettingsProps) {
         .from('site_settings')
         .update({
           logo_url: url,
-          logo_url_webp: `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.webp`
+          logo_url_webp: `https://nzqdkelbytkvvwdgywja.supabase.co/storage/v1/object/public/media/sitesettings/logo.webp`
         })
         .eq('id', settings.id);
 
@@ -75,7 +75,7 @@ export function LogoSettings({ settings, onSettingChange }: LogoSettingsProps) {
       }
 
       onSettingChange('logo_url', url);
-      onSettingChange('logo_url_webp', `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/logo.webp`);
+      onSettingChange('logo_url_webp', `https://nzqdkelbytkvvwdgywja.supabase.co/storage/v1/object/public/media/sitesettings/logo.webp`);
 
       toast.success('Logo uploaded successfully');
     } catch (error) {
@@ -159,9 +159,9 @@ export function LogoSettings({ settings, onSettingChange }: LogoSettingsProps) {
         throw webpError;
       }
 
-      const icoUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/favicon.ico`;
-      const pngUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/favicon.png`;
-      const webpUrl = `https://fwsdoiaodphgyeteafbq.supabase.co/storage/v1/object/public/media/sitesettings/favicon.webp`;
+      const icoUrl = `https://nzqdkelbytkvvwdgywja.supabase.co/storage/v1/object/public/media/sitesettings/favicon.ico`;
+      const pngUrl = `https://nzqdkelbytkvvwdgywja.supabase.co/storage/v1/object/public/media/sitesettings/favicon.png`;
+      const webpUrl = `https://nzqdkelbytkvvwdgywja.supabase.co/storage/v1/object/public/media/sitesettings/favicon.webp`;
 
       const { error: updateError } = await supabase
         .from('site_settings')
