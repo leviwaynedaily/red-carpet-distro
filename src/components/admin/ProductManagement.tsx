@@ -238,14 +238,27 @@ export function ProductManagement() {
 
       try {
         const products = await parseCSV(file);
+        console.log('Importing products:', products);
         
         // Insert products one by one to ensure proper typing
         for (const product of products) {
           const { error } = await supabase
             .from('products')
-            .insert(product);
+            .insert({
+              name: product.name,
+              description: product.description,
+              strain: product.strain,
+              stock: product.stock,
+              regular_price: product.regular_price,
+              shipping_price: product.shipping_price,
+              primary_media_type: 'image',
+              media: []
+            });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Error importing product:', error);
+            throw error;
+          }
         }
 
         await queryClient.invalidateQueries({ queryKey: ['products'] });

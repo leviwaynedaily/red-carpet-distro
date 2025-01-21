@@ -2,8 +2,9 @@ import { Tables } from "@/integrations/supabase/types";
 import Papa from 'papaparse';
 
 type Product = Tables<"products">;
+type ProductInsert = Omit<Product, 'id' | 'created_at' | 'updated_at' | 'media' | 'image_url' | 'video_url'>;
 
-export const parseCSV = (file: File): Promise<Product[]> => {
+export const parseCSV = (file: File): Promise<ProductInsert[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
@@ -17,6 +18,8 @@ export const parseCSV = (file: File): Promise<Product[]> => {
             stock: row.stock ? parseInt(row.stock) : 0,
             regular_price: row.regular_price ? parseFloat(row.regular_price) : 0,
             shipping_price: row.shipping_price ? parseFloat(row.shipping_price) : 0,
+            primary_media_type: 'image',
+            media: []
           }));
         resolve(products);
       },
