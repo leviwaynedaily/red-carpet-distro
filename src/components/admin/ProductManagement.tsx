@@ -65,7 +65,10 @@ export function ProductManagement() {
   const handleEditSave = async () => {
     console.log('ProductManagement: Saving product:', editingProduct);
     try {
-      if (!editingProduct) return;
+      if (!editingProduct || !editValues.name) {
+        toast.error('Product name is required');
+        return;
+      }
 
       const { error: updateError } = await supabase
         .from('products')
@@ -76,6 +79,8 @@ export function ProductManagement() {
           stock: editValues.stock,
           regular_price: editValues.regular_price,
           shipping_price: editValues.shipping_price,
+          primary_media_type: 'image',
+          media: []
         })
         .eq('id', editingProduct);
 
