@@ -165,7 +165,7 @@ export const Header = ({
                 srcSet={logoUrlWebp} 
                 type="image/webp" 
                 onError={(e) => {
-                  console.log('WebP logo failed to load, falling back to PNG');();
+                  console.log('WebP logo failed to load, falling back to PNG');
                 }}
               />
             )}
