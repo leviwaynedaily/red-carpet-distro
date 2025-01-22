@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Play, X, Image } from "lucide-react";
+import { Play, X, Image, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Toggle } from "@/components/ui/toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -46,10 +46,11 @@ export const ProductCard = ({
   const isMobile = useIsMobile();
   const [showMedia, setShowMedia] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
+  const [showVideo, setShowVideo] = useState(!!video && primary_media_type === 'video');
   const [imageError, setImageError] = useState(false);
   const [webpError, setWebpError] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
 
@@ -79,6 +80,20 @@ export const ProductCard = ({
   const handleWebPError = (e: React.SyntheticEvent<HTMLSourceElement, Event>) => {
     console.log('WebP image failed to load, falling back to PNG:', e);
     setWebpError(true);
+  };
+
+  const handleNext = () => {
+    if (video && image) {
+      setShowVideo(!showVideo);
+      setIsPlaying(!showVideo);
+    }
+  };
+
+  const handlePrev = () => {
+    if (video && image) {
+      setShowVideo(!showVideo);
+      setIsPlaying(!showVideo);
+    }
   };
 
   const cardClasses = {
@@ -220,16 +235,18 @@ export const ProductCard = ({
       >
         <SheetContent 
           side={isMobile ? "bottom" : "right"} 
-          className={`${isMobile ? 'h-[90vh]' : 'w-[90vw] max-w-[800px]'} p-0`}
+          className={`${isMobile ? 'h-[90vh]' : 'w-[90vw] max-w-[1200px]'} p-0`}
         >
           <div className="h-full overflow-auto">
             <div className={`grid ${isMobile ? 'grid-rows-[auto_1fr] gap-2' : 'grid-cols-2 gap-8'} h-full p-6`}>
-              <div className={`${isMobile ? 'h-[45vh]' : ''} overflow-hidden`}>
+              <div className={`${isMobile ? 'h-[45vh]' : 'h-[70vh]'} overflow-hidden`}>
                 <ProductMedia
                   imageUrl={image}
                   videoUrl={video}
                   productName={name}
                   webpUrl={media?.webp}
+                  autoPlayVideo={true}
+                  defaultShowVideo={!!video && primary_media_type === 'video'}
                 />
               </div>
               <div className={`${isMobile ? 'h-[45vh]' : ''} overflow-y-auto`}>
@@ -249,7 +266,7 @@ export const ProductCard = ({
       </Sheet>
 
       <Dialog open={showMedia} onOpenChange={setShowMedia}>
-        <DialogContent className="max-w-4xl w-full p-0">
+        <DialogContent className="max-w-6xl w-full p-0">
           <div className="absolute right-4 top-4 z-10 flex gap-2">
             {video && (
               <Toggle
@@ -270,30 +287,54 @@ export const ProductCard = ({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          {(video && showVideo) ? (
-            <video
-              src={video}
-              controls
-              autoPlay={isPlaying}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <picture>
-              {media?.webp && !webpError && (
-                <source
-                  srcSet={media.webp}
-                  type="image/webp"
-                  onError={handleWebPError}
-                />
-              )}
-              <img
-                src={image}
-                alt={name}
+          
+          <div className="relative">
+            {(video && showVideo) ? (
+              <video
+                src={video}
+                controls
+                autoPlay={true}
                 className="w-full h-full object-contain"
-                onError={handleImageError}
               />
-            </picture>
-          )}
+            ) : (
+              <picture>
+                {media?.webp && !webpError && (
+                  <source
+                    srcSet={media.webp}
+                    type="image/webp"
+                    onError={handleWebPError}
+                  />
+                )}
+                <img
+                  src={image}
+                  alt={name}
+                  className="w-full h-full object-contain"
+                  onError={handleImageError}
+                />
+              </picture>
+            )}
+            
+            {video && image && (
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="bg-white/90 hover:bg-white rounded-full"
+                  onClick={handlePrev}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="bg-white/90 hover:bg-white rounded-full"
+                  onClick={handleNext}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>

@@ -9,12 +9,21 @@ interface ProductMediaProps {
   videoUrl?: string;
   productName: string;
   webpUrl?: string;
+  autoPlayVideo?: boolean;
+  defaultShowVideo?: boolean;
 }
 
-export const ProductMedia = ({ imageUrl, videoUrl, productName, webpUrl }: ProductMediaProps) => {
+export const ProductMedia = ({ 
+  imageUrl, 
+  videoUrl, 
+  productName, 
+  webpUrl,
+  autoPlayVideo = false,
+  defaultShowVideo = false
+}: ProductMediaProps) => {
   const [showMedia, setShowMedia] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [showVideo, setShowVideo] = useState(defaultShowVideo);
+  const [isPlaying, setIsPlaying] = useState(autoPlayVideo);
   const [webpError, setWebpError] = useState(false);
 
   const handleDownload = async (url: string, type: 'image' | 'video') => {
@@ -44,25 +53,6 @@ export const ProductMedia = ({ imageUrl, videoUrl, productName, webpUrl }: Produ
     setWebpError(true);
   };
 
-  const renderImage = () => (
-    <picture>
-      {webpUrl && !webpError && (
-        <source
-          srcSet={webpUrl}
-          type="image/webp"
-          onError={handleWebPError}
-        />
-      )}
-      {imageUrl && (
-        <img
-          src={imageUrl}
-          alt={productName}
-          className="w-full h-full object-cover rounded-lg"
-        />
-      )}
-    </picture>
-  );
-
   return (
     <div className="space-y-4">
       <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
@@ -70,11 +60,26 @@ export const ProductMedia = ({ imageUrl, videoUrl, productName, webpUrl }: Produ
           <video
             src={videoUrl}
             controls
-            autoPlay={isPlaying}
+            autoPlay={autoPlayVideo}
             className="w-full h-full object-cover"
           />
         ) : (
-          renderImage()
+          <picture>
+            {webpUrl && !webpError && (
+              <source
+                srcSet={webpUrl}
+                type="image/webp"
+                onError={handleWebPError}
+              />
+            )}
+            {imageUrl && (
+              <img
+                src={imageUrl}
+                alt={productName}
+                className="w-full h-full object-cover"
+              />
+            )}
+          </picture>
         )}
       </div>
 
@@ -113,34 +118,6 @@ export const ProductMedia = ({ imageUrl, videoUrl, productName, webpUrl }: Produ
           )}
         </div>
       </div>
-
-      <Dialog open={showMedia} onOpenChange={setShowMedia}>
-        <DialogContent className="max-w-4xl w-full p-0">
-          {videoUrl && showVideo ? (
-            <video
-              src={videoUrl}
-              controls
-              autoPlay={isPlaying}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <picture>
-              {webpUrl && !webpError && (
-                <source
-                  srcSet={webpUrl}
-                  type="image/webp"
-                  onError={handleWebPError}
-                />
-              )}
-              <img
-                src={imageUrl}
-                alt={productName}
-                className="w-full h-full object-contain"
-              />
-            </picture>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
