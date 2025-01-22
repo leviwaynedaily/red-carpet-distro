@@ -179,6 +179,7 @@ export const ProductCard = ({
                     <video
                       src={item.url}
                       controls
+                      playsInline
                       autoPlay={isPlaying}
                       className="w-full h-[30vh] object-contain bg-black"
                     />
