@@ -66,16 +66,15 @@ export const testSupabaseConnection = async () => {
     console.log('Testing Supabase connection...');
     const { data, error } = await supabase
       .from('site_settings')
-      .select('id')
-      .limit(1)
-      .maybeSingle();
+      .select('storefront_password, admin_password')
+      .single();
 
     if (error) {
       console.error('Supabase connection test failed:', error);
       return false;
     }
 
-    console.log('Supabase connection test successful');
+    console.log('Supabase connection test successful, found passwords:', !!data?.storefront_password, !!data?.admin_password);
     return true;
   } catch (error) {
     console.error('Supabase connection test error:', error);
