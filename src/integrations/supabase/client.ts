@@ -23,16 +23,20 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       for (let i = 0; i < MAX_RETRIES; i++) {
         try {
           console.log(`Supabase: Attempt ${i + 1} to fetch ${url}`);
+          
+          // Add required headers for authentication
           const response = await fetch(url, {
             ...options,
             headers: {
               ...options?.headers,
               'apikey': SUPABASE_PUBLISHABLE_KEY,
-              'Authorization': `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+              'Authorization': `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+              'Content-Type': 'application/json'
             }
           });
 
           if (!response.ok) {
+            console.error(`Supabase: HTTP error! status: ${response.status}`);
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
@@ -64,7 +68,7 @@ export const testSupabaseConnection = async () => {
       .from('site_settings')
       .select('id')
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase connection test failed:', error);
