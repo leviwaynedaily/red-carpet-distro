@@ -8,7 +8,7 @@ import { Header } from "@/components/Header";
 const Index = () => {
   console.log('Index: Rendering Index component');
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("name-asc");
   const [isVerified, setIsVerified] = useState(() => {
     return localStorage.getItem('isAgeVerified') === 'true';
@@ -33,9 +33,9 @@ const Index = () => {
     setSearchTerm(value);
   };
 
-  const handleCategoryChange = (value: string) => {
-    console.log('Index: Category filter changed:', value);
-    setCategoryFilter(value);
+  const handleCategoryChange = (values: string[]) => {
+    console.log('Index: Category filter changed:', values);
+    setCategoryFilter(values);
   };
 
   const handleSortChange = (value: string) => {

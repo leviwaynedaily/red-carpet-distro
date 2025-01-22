@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface HeaderProps {
   isSticky: boolean;
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  categoryFilter: string;
-  onCategoryChange: (value: string) => void;
+  categoryFilter: string[];
+  onCategoryChange: (value: string[]) => void;
   sortBy: string;
   onSortChange: (value: string) => void;
   onLogoClick: () => void;
@@ -36,7 +37,7 @@ export const Header = ({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
   const [logoUrlWebp, setLogoUrlWebp] = useState('');
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ value: string; label: string }[]>([]);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -49,9 +50,6 @@ export const Header = ({
         
         if (error) {
           console.error('Error fetching header settings:', error);
-          if (error.message === 'Failed to fetch') {
-            console.error('Network error - please check your connection');
-          }
           return;
         }
         
@@ -82,7 +80,10 @@ export const Header = ({
 
         if (data) {
           console.log('Header: Fetched categories:', data);
-          setCategories(data);
+          setCategories(data.map(category => ({
+            value: category.name.toLowerCase(),
+            label: category.name
+          })));
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -117,22 +118,12 @@ export const Header = ({
   const FilterControls = () => (
     <>
       {categories.length > 0 && (
-        <Select value={categoryFilter} onValueChange={(value) => {
-          onCategoryChange(value);
-          if (isMobile) setIsSheetOpen(false);
-        }}>
-          <SelectTrigger className="w-full md:w-[150px] bg-white/80">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.name.toLowerCase()}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <MultiSelect
+          options={categories}
+          value={categoryFilter}
+          onChange={onCategoryChange}
+          placeholder="Select categories"
+        />
       )}
       <Select value={sortBy} onValueChange={(value) => {
         onSortChange(value);

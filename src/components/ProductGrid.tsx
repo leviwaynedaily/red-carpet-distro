@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 interface ProductGridProps {
   searchTerm: string;
-  categoryFilter: string;
+  categoryFilter: string[];
   sortBy: string;
 }
 
@@ -42,7 +42,6 @@ export const ProductGrid = ({
 
       console.log('ProductGrid: Raw products data:', productsData);
       
-      // Transform the data to match the expected format
       const transformedProducts = productsData.map(product => {
         console.log('ProductGrid: Transforming product:', product.id, product.name);
         return {
@@ -63,7 +62,6 @@ export const ProductGrid = ({
     refetchOnWindowFocus: false
   });
 
-  // Set up real-time subscription
   useEffect(() => {
     console.log('ProductGrid: Setting up real-time subscription');
     
@@ -72,13 +70,12 @@ export const ProductGrid = ({
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'products'
         },
         (payload) => {
           console.log('ProductGrid: Received real-time update:', payload);
-          // Invalidate and refetch queries when we receive an update
           queryClient.invalidateQueries({ queryKey: ['products', 'product_categories'] });
         }
       )
@@ -91,7 +88,6 @@ export const ProductGrid = ({
         },
         (payload) => {
           console.log('ProductGrid: Received product_categories update:', payload);
-          // Invalidate and refetch queries when we receive an update
           queryClient.invalidateQueries({ queryKey: ['products', 'product_categories'] });
         }
       )
@@ -99,7 +95,6 @@ export const ProductGrid = ({
         console.log('ProductGrid: Real-time subscription status:', status);
       });
 
-    // Cleanup subscription on unmount
     return () => {
       console.log('ProductGrid: Cleaning up real-time subscription');
       supabase.removeChannel(channel);
@@ -133,13 +128,14 @@ export const ProductGrid = ({
     );
   }
 
-  // Filter products based on search term and category
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesCategory = categoryFilter === 'all' || 
-      (product.categories && product.categories.includes(categoryFilter));
+    const matchesCategory = categoryFilter.length === 0 || 
+      (product.categories && product.categories.some(category => 
+        categoryFilter.includes(category.toLowerCase())
+      ));
 
     console.log('ProductGrid: Filtering product:', {
       productId: product.id,
@@ -153,7 +149,6 @@ export const ProductGrid = ({
     return matchesSearch && matchesCategory;
   });
 
-  // Sort products based on selected option
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case 'name-asc':
