@@ -49,6 +49,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
       
       console.log('Storefront settings data:', data);
       if (data?.storefront_password) {
+        console.log('Setting storefront password:', data.storefront_password);
         setStorefrontPassword(data.storefront_password);
       }
       setSettings(data);
@@ -60,7 +61,6 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
         description: "Unable to connect to the server. Please check your internet connection and try again.",
         variant: "destructive",
       });
-      // Set default values to prevent UI from breaking
       setSettings({
         logo_url: '/placeholder.svg',
         welcome_instructions: {
@@ -75,6 +75,8 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Handling submit with password:', password, 'Stored password:', storefrontPassword);
+    
     if (!isChecked) {
       toast({
         title: "Age Verification Required",
@@ -83,6 +85,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
       });
       return;
     }
+
     if (!storefrontPassword) {
       toast({
         title: "Access Unavailable",
@@ -91,7 +94,9 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
       });
       return;
     }
+
     if (password !== storefrontPassword) {
+      console.log('Password mismatch. Entered:', password, 'Expected:', storefrontPassword);
       toast({
         title: "Invalid Password",
         description: "Please enter the correct password to access the site.",
@@ -99,6 +104,7 @@ export const AgeVerification = ({ onVerified }: AgeVerificationProps) => {
       });
       return;
     }
+
     if (step === 'verification') {
       setStep('instructions');
     } else {
