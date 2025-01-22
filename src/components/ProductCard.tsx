@@ -159,17 +159,6 @@ export const ProductCard = ({
   const renderMediaContent = () => {
     return (
       <div className="flex flex-col h-full">
-        <div className="absolute right-4 top-4 z-50 flex gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="bg-white/90 hover:bg-white rounded-full"
-            onClick={handleClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        
         <div className="flex-none">
           <Carousel className="w-full">
             <CarouselContent>
@@ -182,7 +171,7 @@ export const ProductCard = ({
                         controls
                         playsInline
                         autoPlay={isPlaying}
-                        className="max-h-[50vh] w-auto" // Increased from 30vh to 50vh
+                        className="max-h-[50vh] w-auto"
                       />
                     </div>
                   ) : (
@@ -197,7 +186,7 @@ export const ProductCard = ({
                       <img
                         src={item.url}
                         alt={name}
-                        className="max-h-[50vh] w-auto" // Increased from 30vh to 50vh
+                        className="max-h-[50vh] w-auto"
                         onError={handleImageError}
                       />
                     </picture>
