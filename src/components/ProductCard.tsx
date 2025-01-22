@@ -165,7 +165,7 @@ export const ProductCard = ({
               {mediaItems.map((item, index) => (
                 <CarouselItem key={index} className="flex justify-center items-center">
                   {item.type === 'video' ? (
-                    <div className="w-full flex justify-center">
+                    <div className="w-full flex justify-center mt-14"> {/* Added mt-14 to move video down */}
                       <video
                         src={item.url}
                         controls
@@ -175,7 +175,7 @@ export const ProductCard = ({
                       />
                     </div>
                   ) : (
-                    <picture className="flex justify-center">
+                    <picture className="flex justify-center mt-14"> {/* Added mt-14 to move image down */}
                       {item.webp && !webpError && (
                         <source
                           srcSet={item.webp}
