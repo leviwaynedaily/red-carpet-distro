@@ -46,7 +46,7 @@ export const ProductCard = ({
   const isMobile = useIsMobile();
   const [showMedia, setShowMedia] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showVideo, setShowVideo] = useState(!!video && primary_media_type === 'video');
+  const [showVideo, setShowVideo] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [webpError, setWebpError] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -245,8 +245,8 @@ export const ProductCard = ({
                   videoUrl={video}
                   productName={name}
                   webpUrl={media?.webp}
-                  autoPlayVideo={true}
-                  defaultShowVideo={!!video && primary_media_type === 'video'}
+                  autoPlayVideo={false}
+                  defaultShowVideo={false}
                 />
               </div>
               <div className={`${isMobile ? 'h-[45vh]' : ''} overflow-y-auto`}>
