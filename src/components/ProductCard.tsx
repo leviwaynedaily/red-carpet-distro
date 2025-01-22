@@ -137,6 +137,25 @@ export const ProductCard = ({
     }).format(price);
   };
 
+  const renderPricing = () => {
+    return (
+      <div className="space-y-1">
+        {regular_price !== undefined && regular_price > 0 && (
+          <div className="text-sm">
+            <span className="mr-1">📍</span>
+            <span>In Town: {formatPrice(regular_price)}</span>
+          </div>
+        )}
+        {shipping_price !== undefined && shipping_price > 0 && (
+          <div className="text-sm">
+            <span className="mr-1">🚚</span>
+            <span>Shipping: {formatPrice(shipping_price)}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderMediaContent = () => {
     return (
       <div className="relative">
@@ -210,14 +229,9 @@ export const ProductCard = ({
             </div>
           )}
           <div className="space-y-4">
-            {regular_price !== undefined && regular_price !== null && regular_price > 0 && (
-              <div className="text-lg font-medium">
-                {formatPrice(regular_price)}
-              </div>
-            )}
-            {shipping_price !== undefined && shipping_price !== null && shipping_price > 0 && (
-              <div className="text-sm text-gray-600">
-                + {formatPrice(shipping_price)} shipping
+            {(regular_price !== undefined || shipping_price !== undefined) && (
+              <div className="space-y-2">
+                {renderPricing()}
               </div>
             )}
             {stock !== undefined && stock !== null && stock > 0 && (
@@ -325,19 +339,10 @@ export const ProductCard = ({
               <span>Strain: {strain}</span>
             </div>
           )}
-          <div className="mt-2 space-y-1">
-            {regular_price !== undefined && regular_price !== null && regular_price > 0 && (
-              <div className="text-sm font-medium">
-                {formatPrice(regular_price)}
-              </div>
-            )}
-            {shipping_price !== undefined && shipping_price !== null && shipping_price > 0 && (
-              <div className="text-xs text-gray-600">
-                + {formatPrice(shipping_price)} shipping
-              </div>
-            )}
+          <div className="mt-2">
+            {renderPricing()}
             {stock !== undefined && stock !== null && stock > 0 && (
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-gray-600 mt-1">
                 {stock} in stock
               </div>
             )}
