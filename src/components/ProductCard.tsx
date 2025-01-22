@@ -139,13 +139,13 @@ export const ProductCard = ({
     return (
       <div className="space-y-1">
         {regular_price !== undefined && regular_price > 0 && (
-          <div className="text-sm">
+          <div className="text-[10px] sm:text-sm whitespace-nowrap">
             <span className="mr-1">📍</span>
             <span>In Town: {formatPrice(regular_price)}</span>
           </div>
         )}
         {shipping_price !== undefined && shipping_price > 0 && (
-          <div className="text-sm">
+          <div className="text-[10px] sm:text-sm whitespace-nowrap">
             <span className="mr-1">🚚</span>
             <span>Shipping: {formatPrice(shipping_price)}</span>
           </div>
