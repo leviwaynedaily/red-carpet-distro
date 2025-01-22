@@ -55,12 +55,10 @@ export const ProductCard = ({
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
   const mediaItems = [];
   
-  // Add video to media items if it exists
   if (video) {
     mediaItems.push({ type: 'video', url: video });
   }
   
-  // Add image to media items if it exists
   if (image) {
     mediaItems.push({ type: 'image', url: image, webp: media?.webp });
   }
@@ -156,6 +154,40 @@ export const ProductCard = ({
     );
   };
 
+  const renderImage = () => {
+    if (!image && !media?.webp) {
+      return (
+        <div className={`${imageContainerClasses[viewMode]} flex items-center justify-center`}>
+          <div className="text-center p-4 w-full h-full flex flex-col items-center justify-center bg-gray-100">
+            <Image className="h-8 w-8 mb-2 text-gray-400" />
+            <p className="text-sm text-gray-500">Image coming soon</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={imageContainerClasses[viewMode]}>
+        <picture>
+          {media?.webp && !webpError && (
+            <source
+              srcSet={media.webp}
+              type="image/webp"
+              onError={handleWebPError}
+            />
+          )}
+          <img
+            src={image}
+            alt={name}
+            className={imageClasses[viewMode]}
+            loading="lazy"
+            onError={handleImageError}
+          />
+        </picture>
+      </div>
+    );
+  };
+
   const renderMediaContent = () => {
     return (
       <div className="flex flex-col h-full">
@@ -165,7 +197,7 @@ export const ProductCard = ({
               {mediaItems.map((item, index) => (
                 <CarouselItem key={index} className="flex justify-center items-center">
                   {item.type === 'video' ? (
-                    <div className="w-full flex justify-center mt-14"> {/* Added mt-14 to move video down */}
+                    <div className="w-full flex justify-center mt-14">
                       <video
                         src={item.url}
                         controls
@@ -175,7 +207,7 @@ export const ProductCard = ({
                       />
                     </div>
                   ) : (
-                    <picture className="flex justify-center mt-14"> {/* Added mt-14 to move image down */}
+                    <picture className="flex justify-center mt-14">
                       {item.webp && !webpError && (
                         <source
                           srcSet={item.webp}
@@ -257,50 +289,6 @@ export const ProductCard = ({
             </div>
           </div>
         </div>
-      </div>
-    );
-  };
-
-  const renderImage = () => {
-    if (!image && !media?.webp) {
-      return (
-        <div className={`${imageContainerClasses[viewMode]} flex items-center justify-center`}>
-          <div className="text-center p-4 w-full h-full flex flex-col items-center justify-center bg-gray-100">
-            <Image className="h-8 w-8 mb-2 text-gray-400" />
-            <p className="text-sm text-gray-500">Image coming soon</p>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className={imageContainerClasses[viewMode]}>
-        <picture>
-          {media?.webp && (
-            <source
-              srcSet={media.webp}
-              type="image/webp"
-              onError={handleWebPError}
-            />
-          )}
-          <img
-            src={image}
-            alt={name}
-            className={imageClasses[viewMode]}
-            loading="lazy"
-            onError={handleImageError}
-          />
-        </picture>
-        {video && (
-          <div className="absolute bottom-2 right-2">
-            <video
-              src={video}
-              className="w-24 h-16 object-cover rounded"
-              muted
-              playsInline
-            />
-          </div>
-        )}
       </div>
     );
   };
