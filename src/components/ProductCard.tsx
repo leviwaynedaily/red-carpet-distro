@@ -174,17 +174,19 @@ export const ProductCard = ({
           <Carousel className="w-full">
             <CarouselContent>
               {mediaItems.map((item, index) => (
-                <CarouselItem key={index}>
+                <CarouselItem key={index} className="flex justify-center items-center">
                   {item.type === 'video' ? (
-                    <video
-                      src={item.url}
-                      controls
-                      playsInline
-                      autoPlay={isPlaying}
-                      className="w-full h-[30vh] object-contain bg-black"
-                    />
+                    <div className="w-full flex justify-center">
+                      <video
+                        src={item.url}
+                        controls
+                        playsInline
+                        autoPlay={isPlaying}
+                        className="max-h-[30vh] w-auto"
+                      />
+                    </div>
                   ) : (
-                    <picture>
+                    <picture className="flex justify-center">
                       {item.webp && !webpError && (
                         <source
                           srcSet={item.webp}
@@ -195,7 +197,7 @@ export const ProductCard = ({
                       <img
                         src={item.url}
                         alt={name}
-                        className="w-full h-[30vh] object-contain bg-black"
+                        className="max-h-[30vh] w-auto"
                         onError={handleImageError}
                       />
                     </picture>
