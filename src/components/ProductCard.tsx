@@ -2,9 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Play, X, Image, Download } from "lucide-react";
+import { X, Image, Download } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Toggle } from "@/components/ui/toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Carousel,
@@ -49,7 +48,6 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   const isMobile = useIsMobile();
   const [showMedia, setShowMedia] = useState(false);
-  const [showVideo, setShowVideo] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [webpError, setWebpError] = useState(false);
@@ -70,16 +68,10 @@ export const ProductCard = ({
   useEffect(() => {
     if (showMedia && video) {
       setIsPlaying(true);
-      setShowVideo(true);
     } else {
       setIsPlaying(false);
     }
   }, [showMedia, video]);
-
-  const handleMediaClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowMedia(true);
-  };
 
   const handleClose = () => {
     setShowMedia(false);
@@ -304,15 +296,13 @@ export const ProductCard = ({
         <CardHeader className="p-0 relative">
           {renderImage()}
           {video && (
-            <div className="absolute bottom-2 right-2 flex gap-2">
-              <Button
-                size="icon"
-                variant="secondary"
-                className="rounded-full w-6 h-6"
-                onClick={handleMediaClick}
-              >
-                <Play className="h-3 w-3" />
-              </Button>
+            <div className="absolute bottom-2 right-2">
+              <video
+                src={video}
+                className="w-24 h-16 object-cover rounded"
+                muted
+                playsInline
+              />
             </div>
           )}
         </CardHeader>
