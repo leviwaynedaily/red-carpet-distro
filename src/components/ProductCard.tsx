@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Play, X, Image } from "lucide-react";
+import { Play, X, Image, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Toggle } from "@/components/ui/toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -42,7 +42,7 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   const isMobile = useIsMobile();
   const [showMedia, setShowMedia] = useState(false);
-  const [showVideo, setShowVideo] = useState(!!video && primary_media_type === 'video');
+  const [showVideo, setShowVideo] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [webpError, setWebpError] = useState(false);
@@ -50,12 +50,13 @@ export const ProductCard = ({
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
 
   useEffect(() => {
-    if (showMedia && video && showVideo) {
+    if (showMedia && video) {
       setIsPlaying(true);
+      setShowVideo(true);
     } else {
       setIsPlaying(false);
     }
-  }, [showMedia, video, showVideo]);
+  }, [showMedia, video]);
 
   const handleMediaClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -67,9 +68,21 @@ export const ProductCard = ({
     setIsPlaying(false);
   };
 
-  const toggleMediaType = () => {
-    setShowVideo(!showVideo);
-    setIsPlaying(!showVideo);
+  const handleDownload = async (url: string, type: 'image' | 'video') => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `${name}-${type}.${type === 'image' ? 'png' : 'mp4'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+    }
   };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -153,14 +166,14 @@ export const ProductCard = ({
       <div className="relative">
         <div className="absolute right-4 top-4 z-50 flex gap-2">
           {video && (
-            <Toggle
-              pressed={showVideo}
-              onPressedChange={toggleMediaType}
+            <Button
+              variant="ghost"
               size="sm"
               className="bg-white/90 hover:bg-white rounded-full"
+              onClick={() => setShowVideo(!showVideo)}
             >
-              {showVideo ? <Play className="h-4 w-4" /> : <Image className="h-4 w-4" />}
-            </Toggle>
+              {showVideo ? <Image className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
           )}
           <Button
             variant="ghost"
@@ -216,7 +229,7 @@ export const ProductCard = ({
               <span>Strain: {strain}</span>
             </div>
           )}
-          <div className="space-y-1">
+          <div className="space-y-4">
             {regular_price !== undefined && regular_price !== null && regular_price > 0 && (
               <div className="text-lg font-medium">
                 {formatPrice(regular_price)}
@@ -232,6 +245,28 @@ export const ProductCard = ({
                 {stock} in stock
               </div>
             )}
+            <div className="flex gap-2">
+              {video && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDownload(video, 'video')}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Video
+                </Button>
+              )}
+              {image && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDownload(image, 'image')}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Image
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -246,7 +281,7 @@ export const ProductCard = ({
       >
         <CardHeader className="p-0 relative">
           {renderImage()}
-          {video && primary_media_type === 'video' && (
+          {video && (
             <div className="absolute bottom-2 right-2 flex gap-2">
               <Button
                 size="icon"
