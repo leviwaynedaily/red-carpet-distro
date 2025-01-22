@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Play, X, Image } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -299,19 +298,14 @@ export const ProductCard = ({
         </CardContent>
       </Card>
 
-      {isMobile ? (
-        <Sheet open={showMedia} onOpenChange={setShowMedia}>
-          <SheetContent side="bottom" className="h-[90vh] p-0">
-            {renderMediaContent()}
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <Dialog open={showMedia} onOpenChange={setShowMedia}>
-          <DialogContent className="max-w-4xl w-[95vw] p-0">
-            {renderMediaContent()}
-          </DialogContent>
-        </Dialog>
-      )}
+      <Sheet open={showMedia} onOpenChange={setShowMedia}>
+        <SheetContent 
+          side={isMobile ? "bottom" : "right"} 
+          className={isMobile ? "h-[90vh] p-0" : "w-[90vw] max-w-4xl p-0"}
+        >
+          {renderMediaContent()}
+        </SheetContent>
+      </Sheet>
     </>
   );
 };
