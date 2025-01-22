@@ -38,6 +38,7 @@ export const Header = ({
   const [logoUrl, setLogoUrl] = useState('');
   const [logoUrlWebp, setLogoUrlWebp] = useState('');
   const [categories, setCategories] = useState<{ value: string; label: string }[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -68,6 +69,7 @@ export const Header = ({
     };
 
     const fetchCategories = async () => {
+      setIsLoadingCategories(true);
       try {
         const { data, error } = await supabase
           .from('categories')
@@ -75,18 +77,22 @@ export const Header = ({
           .order('name');
 
         if (error) {
-          throw error;
+          console.error('Error fetching categories:', error);
+          return;
         }
 
         if (data) {
           console.log('Header: Fetched categories:', data);
-          setCategories(data.map(category => ({
+          const formattedCategories = data.map(category => ({
             value: category.name.toLowerCase(),
             label: category.name
-          })));
+          }));
+          setCategories(formattedCategories);
         }
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('Error in fetchCategories:', error);
+      } finally {
+        setIsLoadingCategories(false);
       }
     };
 
@@ -117,7 +123,7 @@ export const Header = ({
 
   const FilterControls = () => (
     <>
-      {categories.length > 0 && (
+      {!isLoadingCategories && categories.length > 0 && (
         <MultiSelect
           options={categories}
           value={categoryFilter}
@@ -159,8 +165,7 @@ export const Header = ({
                 srcSet={logoUrlWebp} 
                 type="image/webp" 
                 onError={(e) => {
-                  console.log('WebP logo failed to load, falling back to PNG');
-                  e.currentTarget.remove();
+                  console.log('WebP logo failed to load, falling back to PNG');();
                 }}
               />
             )}
