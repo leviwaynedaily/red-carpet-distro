@@ -132,15 +132,18 @@ export const ProductGrid = ({
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
+    // Ensure product.categories is always an array before filtering
+    const productCategories = Array.isArray(product.categories) ? product.categories : [];
+    
     const matchesCategory = categoryFilter.length === 0 || 
-      (Array.isArray(product.categories) && product.categories.some(category => 
-        categoryFilter.includes(category.toLowerCase())
-      ));
+      productCategories.some(category => 
+        category && categoryFilter.includes(category.toLowerCase())
+      );
 
     console.log('ProductGrid: Filtering product:', {
       productId: product.id,
       productName: product.name,
-      productCategories: product.categories,
+      productCategories,
       categoryFilter,
       matchesSearch,
       matchesCategory
