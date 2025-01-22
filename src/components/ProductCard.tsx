@@ -182,7 +182,7 @@ export const ProductCard = ({
                         controls
                         playsInline
                         autoPlay={isPlaying}
-                        className="max-h-[30vh] w-auto"
+                        className="max-h-[50vh] w-auto" // Increased from 30vh to 50vh
                       />
                     </div>
                   ) : (
@@ -197,7 +197,7 @@ export const ProductCard = ({
                       <img
                         src={item.url}
                         alt={name}
-                        className="max-h-[30vh] w-auto"
+                        className="max-h-[50vh] w-auto" // Increased from 30vh to 50vh
                         onError={handleImageError}
                       />
                     </picture>
