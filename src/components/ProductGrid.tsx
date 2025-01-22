@@ -43,15 +43,15 @@ export const ProductGrid = ({
       console.log('ProductGrid: Raw products data:', productsData);
       
       const transformedProducts = productsData.map(product => {
-        console.log('ProductGrid: Transforming product:', product.id, product.name);
+        const categories = product.product_categories
+          ?.map(pc => pc.categories?.name)
+          .filter(Boolean) || [];
+          
+        console.log('ProductGrid: Transformed categories for product:', product.id, categories);
+        
         return {
           ...product,
-          categories: product.product_categories
-            ?.map(pc => {
-              console.log('ProductGrid: Processing category for product:', product.id, pc);
-              return pc.categories?.name;
-            })
-            .filter(Boolean) || []
+          categories
         };
       });
       
@@ -133,7 +133,7 @@ export const ProductGrid = ({
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesCategory = categoryFilter.length === 0 || 
-      (product.categories && product.categories.some(category => 
+      (Array.isArray(product.categories) && product.categories.some(category => 
         categoryFilter.includes(category.toLowerCase())
       ));
 
