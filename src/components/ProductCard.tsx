@@ -158,7 +158,7 @@ export const ProductCard = ({
 
   const renderMediaContent = () => {
     return (
-      <div className="relative">
+      <div className="flex flex-col h-full">
         <div className="absolute right-4 top-4 z-50 flex gap-2">
           <Button
             variant="ghost"
@@ -170,100 +170,98 @@ export const ProductCard = ({
           </Button>
         </div>
         
-        <div className="flex flex-col h-full">
-          <div className="flex-none">
-            <Carousel className="w-full max-h-[40vh]">
-              <CarouselContent>
-                {mediaItems.map((item, index) => (
-                  <CarouselItem key={index}>
-                    {item.type === 'video' ? (
-                      <video
-                        src={item.url}
-                        controls
-                        autoPlay={isPlaying}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <picture>
-                        {item.webp && !webpError && (
-                          <source
-                            srcSet={item.webp}
-                            type="image/webp"
-                            onError={handleWebPError}
-                          />
-                        )}
-                        <img
-                          src={item.url}
-                          alt={name}
-                          className="w-full h-full object-contain"
-                          onError={handleImageError}
+        <div className="flex-none">
+          <Carousel className="w-full">
+            <CarouselContent>
+              {mediaItems.map((item, index) => (
+                <CarouselItem key={index}>
+                  {item.type === 'video' ? (
+                    <video
+                      src={item.url}
+                      controls
+                      autoPlay={isPlaying}
+                      className="w-full h-[30vh] object-contain bg-black"
+                    />
+                  ) : (
+                    <picture>
+                      {item.webp && !webpError && (
+                        <source
+                          srcSet={item.webp}
+                          type="image/webp"
+                          onError={handleWebPError}
                         />
-                      </picture>
-                    )}
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {mediaItems.length > 1 && (
-                <>
-                  <CarouselPrevious className="left-2" />
-                  <CarouselNext className="right-2" />
-                </>
-              )}
-            </Carousel>
-          </div>
+                      )}
+                      <img
+                        src={item.url}
+                        alt={name}
+                        className="w-full h-[30vh] object-contain bg-black"
+                        onError={handleImageError}
+                      />
+                    </picture>
+                  )}
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            {mediaItems.length > 1 && (
+              <>
+                <CarouselPrevious className="left-2" />
+                <CarouselNext className="right-2" />
+              </>
+            )}
+          </Carousel>
+        </div>
 
-          <div className="flex-1 overflow-y-auto p-6">
-            {validCategories.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-2">
-                {validCategories.map((category) => (
-                  <Badge key={category} variant="secondary" className="text-xs">
-                    {category.trim()}
-                  </Badge>
-                ))}
+        <div className="flex-1 overflow-y-auto p-6 bg-white">
+          {validCategories.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {validCategories.map((category) => (
+                <Badge key={category} variant="secondary" className="text-xs">
+                  {category.trim()}
+                </Badge>
+              ))}
+            </div>
+          )}
+          <h3 className="text-xl font-semibold mb-2">{name}</h3>
+          {description && (
+            <p className="text-sm text-gray-600 mb-4">{description}</p>
+          )}
+          {strain && (
+            <div className="flex gap-2 text-sm text-gray-600 mb-4">
+              <span>Strain: {strain}</span>
+            </div>
+          )}
+          <div className="space-y-4">
+            {(regular_price !== undefined || shipping_price !== undefined) && (
+              <div className="space-y-2">
+                {renderPricing()}
               </div>
             )}
-            <h3 className="text-xl font-semibold mb-2">{name}</h3>
-            {description && (
-              <p className="text-sm text-gray-600 mb-4">{description}</p>
-            )}
-            {strain && (
-              <div className="flex gap-2 text-sm text-gray-600 mb-4">
-                <span>Strain: {strain}</span>
+            {stock !== undefined && stock !== null && stock > 0 && (
+              <div className="text-sm text-gray-600">
+                {stock} in stock
               </div>
             )}
-            <div className="space-y-4">
-              {(regular_price !== undefined || shipping_price !== undefined) && (
-                <div className="space-y-2">
-                  {renderPricing()}
-                </div>
+            <div className="flex gap-2">
+              {video && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDownload(video, 'video')}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Video
+                </Button>
               )}
-              {stock !== undefined && stock !== null && stock > 0 && (
-                <div className="text-sm text-gray-600">
-                  {stock} in stock
-                </div>
+              {image && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDownload(image, 'image')}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Image
+                </Button>
               )}
-              <div className="flex gap-2">
-                {video && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDownload(video, 'video')}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Video
-                  </Button>
-                )}
-                {image && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDownload(image, 'image')}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Image
-                  </Button>
-                )}
-              </div>
             </div>
           </div>
         </div>
