@@ -235,11 +235,11 @@ export const ProductCard = ({
       >
         <SheetContent 
           side={isMobile ? "bottom" : "right"} 
-          className={`${isMobile ? 'h-[90vh]' : 'w-[90vw] max-w-[1200px]'} p-0`}
+          className={`${isMobile ? 'h-[90vh]' : 'w-[95vw] max-w-[1600px]'} p-0`}
         >
           <div className="h-full overflow-auto">
             <div className={`grid ${isMobile ? 'grid-rows-[auto_1fr] gap-2' : 'grid-cols-2 gap-8'} h-full p-6`}>
-              <div className={`${isMobile ? 'h-[45vh]' : 'h-[70vh]'} overflow-hidden`}>
+              <div className={`${isMobile ? 'h-[45vh]' : 'h-[80vh]'} overflow-hidden`}>
                 <ProductMedia
                   imageUrl={image}
                   videoUrl={video}
