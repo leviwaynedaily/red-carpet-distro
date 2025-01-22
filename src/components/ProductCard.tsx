@@ -279,7 +279,7 @@ export const ProductCard = ({
             />
           ) : (
             <picture>
-              {media?.webp && (
+              {media?.webp && !webpError && (
                 <source
                   srcSet={media.webp}
                   type="image/webp"
