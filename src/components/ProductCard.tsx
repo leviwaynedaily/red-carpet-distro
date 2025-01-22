@@ -1,14 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Play, X, Image } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Toggle } from "@/components/ui/toggle";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { ProductInfo } from "@/components/product-details/ProductInfo";
-import { ProductMedia } from "@/components/product-details/ProductMedia";
 
 interface ProductCardProps {
   id: string;
@@ -43,13 +40,13 @@ export const ProductCard = ({
   primary_media_type,
   media,
 }: ProductCardProps) => {
-  const isMobile = useIsMobile();
+  console.log('ProductCard: Rendering with media:', media);
+  const navigate = useNavigate();
   const [showMedia, setShowMedia] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [webpError, setWebpError] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
 
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
 
@@ -115,7 +112,8 @@ export const ProductCard = ({
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (!target.closest('button')) {
-      setShowDetails(true);
+      console.log('ProductCard: Navigating to product details:', id);
+      navigate(`/products/${id}`);
     }
   };
 
@@ -213,41 +211,6 @@ export const ProductCard = ({
         </CardContent>
       </Card>
 
-      <Sheet 
-        open={showDetails} 
-        onOpenChange={setShowDetails}
-        modal={true}
-      >
-        <SheetContent 
-          side={isMobile ? "bottom" : "right"} 
-          className={`${isMobile ? 'h-[90vh]' : 'w-[90vw] max-w-[800px]'} p-0`}
-        >
-          <div className="h-full overflow-auto">
-            <div className={`grid ${isMobile ? 'grid-rows-[auto_1fr] gap-2' : 'grid-cols-2 gap-8'} h-full p-6`}>
-              <div className={`${isMobile ? 'h-[45vh]' : ''} overflow-hidden`}>
-                <ProductMedia
-                  imageUrl={image}
-                  videoUrl={video}
-                  productName={name}
-                  webpUrl={media?.webp}
-                />
-              </div>
-              <div className={`${isMobile ? 'h-[45vh]' : ''} overflow-y-auto`}>
-                <ProductInfo
-                  name={name}
-                  description={description}
-                  categories={categories}
-                  strain={strain}
-                  regularPrice={regular_price}
-                  shippingPrice={shipping_price}
-                  stock={stock}
-                />
-              </div>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-
       <Dialog open={showMedia} onOpenChange={setShowMedia}>
         <DialogContent className="max-w-4xl w-full p-0">
           <div className="absolute right-4 top-4 z-10 flex gap-2">
@@ -279,7 +242,7 @@ export const ProductCard = ({
             />
           ) : (
             <picture>
-              {media?.webp && !webpError && (
+              {media?.webp && (
                 <source
                   srcSet={media.webp}
                   type="image/webp"
