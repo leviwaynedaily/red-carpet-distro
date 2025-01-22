@@ -335,8 +335,13 @@ export const ProductCard = ({
       <Sheet open={showMedia} onOpenChange={setShowMedia}>
         <SheetContent 
           side={isMobile ? "bottom" : "right"} 
-          className={isMobile ? "h-[90vh] p-0" : "w-[90vw] max-w-4xl p-0"}
+          className={isMobile ? "h-[90vh] p-0 rounded-t-[1rem] overflow-hidden" : "w-[90vw] max-w-4xl p-0"}
         >
+          {isMobile && (
+            <div className="w-full flex justify-center pt-2 pb-1">
+              <div className="w-12 h-1.5 rounded-full bg-gray-300" />
+            </div>
+          )}
           {renderMediaContent()}
         </SheetContent>
       </Sheet>
