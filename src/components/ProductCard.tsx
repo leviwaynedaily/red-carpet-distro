@@ -291,6 +291,16 @@ export const ProductCard = ({
             onError={handleImageError}
           />
         </picture>
+        {video && (
+          <div className="absolute bottom-2 right-2">
+            <video
+              src={video}
+              className="w-24 h-16 object-cover rounded"
+              muted
+              playsInline
+            />
+          </div>
+        )}
       </div>
     );
   };
@@ -303,16 +313,6 @@ export const ProductCard = ({
       >
         <CardHeader className="p-0 relative">
           {renderImage()}
-          {video && (
-            <div className="absolute bottom-2 right-2">
-              <video
-                src={video}
-                className="w-24 h-16 object-cover rounded"
-                muted
-                playsInline
-              />
-            </div>
-          )}
         </CardHeader>
         <CardContent className={contentClasses[viewMode]}>
           {validCategories.length > 0 && (
