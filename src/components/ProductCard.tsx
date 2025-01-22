@@ -6,6 +6,13 @@ import { Play, X, Image, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Toggle } from "@/components/ui/toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface ProductCardProps {
   id: string;
@@ -48,6 +55,17 @@ export const ProductCard = ({
   const [webpError, setWebpError] = useState(false);
 
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
+  const mediaItems = [];
+  
+  // Add video to media items if it exists
+  if (video) {
+    mediaItems.push({ type: 'video', url: video });
+  }
+  
+  // Add image to media items if it exists
+  if (image) {
+    mediaItems.push({ type: 'image', url: image, webp: media?.webp });
+  }
 
   useEffect(() => {
     if (showMedia && video) {
@@ -127,54 +145,10 @@ export const ProductCard = ({
     }).format(price);
   };
 
-  const renderImage = () => {
-    if (!image && !media?.webp) {
-      return (
-        <div className={`${imageContainerClasses[viewMode]} flex items-center justify-center`}>
-          <div className="text-center p-4 w-full h-full flex flex-col items-center justify-center bg-gray-100">
-            <Image className="h-8 w-8 mb-2 text-gray-400" />
-            <p className="text-sm text-gray-500">Image coming soon</p>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className={imageContainerClasses[viewMode]}>
-        <picture>
-          {media?.webp && (
-            <source
-              srcSet={media.webp}
-              type="image/webp"
-              onError={handleWebPError}
-            />
-          )}
-          <img
-            src={image}
-            alt={name}
-            className={imageClasses[viewMode]}
-            loading="lazy"
-            onError={handleImageError}
-          />
-        </picture>
-      </div>
-    );
-  };
-
   const renderMediaContent = () => {
     return (
       <div className="relative">
         <div className="absolute right-4 top-4 z-50 flex gap-2">
-          {video && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="bg-white/90 hover:bg-white rounded-full"
-              onClick={() => setShowVideo(!showVideo)}
-            >
-              {showVideo ? <Image className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="icon"
@@ -184,32 +158,46 @@ export const ProductCard = ({
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="max-h-[70vh] overflow-hidden">
-          {(video && showVideo) ? (
-            <video
-              src={video}
-              controls
-              autoPlay={isPlaying}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <picture>
-              {media?.webp && (
-                <source
-                  srcSet={media.webp}
-                  type="image/webp"
-                  onError={handleWebPError}
-                />
-              )}
-              <img
-                src={image}
-                alt={name}
-                className="w-full h-full object-contain"
-                onError={handleImageError}
-              />
-            </picture>
+        
+        <Carousel className="w-full max-h-[70vh]">
+          <CarouselContent>
+            {mediaItems.map((item, index) => (
+              <CarouselItem key={index}>
+                {item.type === 'video' ? (
+                  <video
+                    src={item.url}
+                    controls
+                    autoPlay={isPlaying}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <picture>
+                    {item.webp && !webpError && (
+                      <source
+                        srcSet={item.webp}
+                        type="image/webp"
+                        onError={handleWebPError}
+                      />
+                    )}
+                    <img
+                      src={item.url}
+                      alt={name}
+                      className="w-full h-full object-contain"
+                      onError={handleImageError}
+                    />
+                  </picture>
+                )}
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          {mediaItems.length > 1 && (
+            <>
+              <CarouselPrevious className="left-2" />
+              <CarouselNext className="right-2" />
+            </>
           )}
-        </div>
+        </Carousel>
+
         <div className="p-6">
           {validCategories.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
@@ -269,6 +257,40 @@ export const ProductCard = ({
             </div>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  const renderImage = () => {
+    if (!image && !media?.webp) {
+      return (
+        <div className={`${imageContainerClasses[viewMode]} flex items-center justify-center`}>
+          <div className="text-center p-4 w-full h-full flex flex-col items-center justify-center bg-gray-100">
+            <Image className="h-8 w-8 mb-2 text-gray-400" />
+            <p className="text-sm text-gray-500">Image coming soon</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={imageContainerClasses[viewMode]}>
+        <picture>
+          {media?.webp && (
+            <source
+              srcSet={media.webp}
+              type="image/webp"
+              onError={handleWebPError}
+            />
+          )}
+          <img
+            src={image}
+            alt={name}
+            className={imageClasses[viewMode]}
+            loading="lazy"
+            onError={handleImageError}
+          />
+        </picture>
       </div>
     );
   };
