@@ -188,111 +188,6 @@ export const ProductCard = ({
     );
   };
 
-  const renderMediaContent = () => {
-    return (
-      <div className="flex flex-col h-full">
-        <div className="flex-none">
-          <Carousel className="w-full">
-            <CarouselContent>
-              {mediaItems.map((item, index) => (
-                <CarouselItem key={index} className="flex justify-center items-center">
-                  {item.type === 'video' ? (
-                    <div className="w-full flex justify-center mt-14">
-                      <video
-                        src={item.url}
-                        controls
-                        playsInline
-                        autoPlay={isPlaying}
-                        className="max-h-[50vh] w-auto"
-                      />
-                    </div>
-                  ) : (
-                    <picture className="flex justify-center mt-14">
-                      {item.webp && !webpError && (
-                        <source
-                          srcSet={item.webp}
-                          type="image/webp"
-                          onError={handleWebPError}
-                        />
-                      )}
-                      <img
-                        src={item.url}
-                        alt={name}
-                        className="max-h-[50vh] w-auto"
-                        onError={handleImageError}
-                      />
-                    </picture>
-                  )}
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {mediaItems.length > 1 && (
-              <>
-                <CarouselPrevious className="left-2" />
-                <CarouselNext className="right-2" />
-              </>
-            )}
-          </Carousel>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 bg-white">
-          {validCategories.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {validCategories.map((category) => (
-                <Badge key={category} variant="secondary" className="text-xs">
-                  {category.trim()}
-                </Badge>
-              ))}
-            </div>
-          )}
-          <h3 className="text-xl font-semibold mb-2">{name}</h3>
-          {description && (
-            <p className="text-sm text-gray-600 mb-4">{description}</p>
-          )}
-          {strain && (
-            <div className="flex gap-2 text-sm text-gray-600 mb-4">
-              <span>Strain: {strain}</span>
-            </div>
-          )}
-          <div className="space-y-4">
-            {(regular_price !== undefined || shipping_price !== undefined) && (
-              <div className="space-y-2">
-                {renderPricing()}
-              </div>
-            )}
-            {stock !== undefined && stock !== null && stock > 0 && (
-              <div className="text-sm text-gray-600">
-                {stock} in stock
-              </div>
-            )}
-            <div className="flex gap-2">
-              {video && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDownload(video, 'video')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Video
-                </Button>
-              )}
-              {image && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDownload(image, 'image')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Image
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
       <Card 
@@ -335,14 +230,113 @@ export const ProductCard = ({
       <Sheet open={showMedia} onOpenChange={setShowMedia}>
         <SheetContent 
           side={isMobile ? "bottom" : "right"} 
-          className={isMobile ? "h-[90vh] p-0 rounded-t-[1rem] overflow-hidden" : "w-[90vw] max-w-4xl p-0"}
+          className={isMobile ? "h-[85vh] p-0 rounded-t-[1rem] overflow-hidden" : "w-[90vw] max-w-4xl p-0"}
         >
           {isMobile && (
             <div className="w-full flex justify-center pt-2 pb-1">
               <div className="w-12 h-1.5 rounded-full bg-gray-300" />
             </div>
           )}
-          {renderMediaContent()}
+          <div className="flex flex-col h-full">
+            <div className="flex-none">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {mediaItems.map((item, index) => (
+                    <CarouselItem key={index} className="flex justify-center items-center">
+                      {item.type === 'video' ? (
+                        <div className="w-full flex justify-center mt-8">
+                          <video
+                            src={item.url}
+                            controls
+                            playsInline
+                            autoPlay={isPlaying}
+                            className="max-h-[40vh] w-auto"
+                          />
+                        </div>
+                      ) : (
+                        <picture className="flex justify-center mt-8">
+                          {item.webp && !webpError && (
+                            <source
+                              srcSet={item.webp}
+                              type="image/webp"
+                              onError={handleWebPError}
+                            />
+                          )}
+                          <img
+                            src={item.url}
+                            alt={name}
+                            className="max-h-[40vh] w-auto"
+                            onError={handleImageError}
+                          />
+                        </picture>
+                      )}
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {mediaItems.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-2" />
+                    <CarouselNext className="right-2" />
+                  </>
+                )}
+              </Carousel>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 bg-white">
+              {validCategories.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {validCategories.map((category) => (
+                    <Badge key={category} variant="secondary" className="text-xs">
+                      {category.trim()}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <h3 className="text-lg font-semibold mb-2">{name}</h3>
+              {description && (
+                <p className="text-sm text-gray-600 mb-4">{description}</p>
+              )}
+              {strain && (
+                <div className="flex gap-2 text-sm text-gray-600 mb-4">
+                  <span>Strain: {strain}</span>
+                </div>
+              )}
+              <div className="space-y-4">
+                {(regular_price !== undefined || shipping_price !== undefined) && (
+                  <div className="space-y-2">
+                    {renderPricing()}
+                  </div>
+                )}
+                {stock !== undefined && stock !== null && stock > 0 && (
+                  <div className="text-sm text-gray-600">
+                    {stock} in stock
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  {video && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownload(video, 'video')}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Video
+                    </Button>
+                  )}
+                  {image && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownload(image, 'image')}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Image
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
     </>
