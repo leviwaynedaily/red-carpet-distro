@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
 
 type Product = Tables<"products">;
 
@@ -30,6 +31,14 @@ export interface ProductTableCellProps {
   onDeleteMedia: (productId: string, type: "image" | "video") => void;
   onMediaClick: (type: "image" | "video", url: string) => void;
 }
+
+// Add timestamp to URLs to prevent caching
+const addVersionToUrl = (url: string) => {
+  if (!url) return url;
+  const timestamp = new Date().getTime();
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${timestamp}`;
+};
 
 export function ProductTableCell({
   column,
@@ -115,9 +124,9 @@ export function ProductTableCell({
             {product.image_url && (
               <div className="relative group">
                 <img
-                  src={product.image_url}
+                  src={addVersionToUrl(product.image_url)}
                   alt={product.name}
-                  className="w-12 h-12 object-cover rounded-md cursor-pointer"
+                  className="h-12 w-12 object-cover rounded-lg cursor-pointer"
                   onClick={() => onMediaClick?.("image", product.image_url!)}
                 />
                 {isEditing && (
@@ -151,17 +160,19 @@ export function ProductTableCell({
                 {product.image_url ? (
                   <div className="relative">
                     <img
-                      src={product.image_url}
+                      src={addVersionToUrl(product.image_url)}
                       alt={`${product.name} preview`}
-                      className="w-12 h-12 object-cover rounded-md cursor-pointer"
+                      className="h-12 w-12 object-cover rounded-lg cursor-pointer"
                       onClick={() => onMediaClick?.("video", product.video_url!)}
                     />
-                    <Play className="absolute inset-0 m-auto h-6 w-6 text-white" />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center">
+                      <Play className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                 ) : (
                   <video
-                    src={product.video_url}
-                    className="w-12 h-12 object-cover rounded-md cursor-pointer"
+                    src={addVersionToUrl(product.video_url)}
+                    className="h-12 w-12 object-cover rounded-lg cursor-pointer"
                     onClick={() => onMediaClick?.("video", product.video_url!)}
                   />
                 )}

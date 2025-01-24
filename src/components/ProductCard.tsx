@@ -70,12 +70,24 @@ export const ProductCard = ({
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
   const mediaItems = [];
   
+  // Add timestamp to URLs to prevent caching
+  const addVersionToUrl = (url: string) => {
+    if (!url) return url;
+    const timestamp = new Date().getTime();
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${timestamp}`;
+  };
+  
   if (video) {
-    mediaItems.push({ type: 'video', url: video });
+    mediaItems.push({ type: 'video', url: addVersionToUrl(video) });
   }
   
   if (image) {
-    mediaItems.push({ type: 'image', url: image, webp: media?.webp });
+    mediaItems.push({ 
+      type: 'image', 
+      url: addVersionToUrl(image), 
+      webp: media?.webp ? addVersionToUrl(media.webp) : undefined 
+    });
   }
 
   useEffect(() => {
@@ -93,7 +105,9 @@ export const ProductCard = ({
 
   const handleDownload = async (url: string, type: 'image' | 'video') => {
     try {
-      const response = await fetch(url);
+      // Remove version parameter for downloads
+      const cleanUrl = url.split('?')[0];
+      const response = await fetch(cleanUrl);
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -186,13 +200,13 @@ export const ProductCard = ({
         <picture>
           {media?.webp && !webpError && (
             <source
-              srcSet={media.webp}
+              srcSet={addVersionToUrl(media.webp)}
               type="image/webp"
               onError={handleWebPError}
             />
           )}
           <img
-            src={image}
+            src={addVersionToUrl(image)}
             alt={name}
             className={imageClasses[viewMode]}
             loading="lazy"

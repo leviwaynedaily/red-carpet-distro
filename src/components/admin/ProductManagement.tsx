@@ -445,8 +445,8 @@ export function ProductManagement() {
           onEditCancel={handleEditCancel}
           onEditChange={handleEditChange}
           onDelete={handleDelete}
-          onMediaUpload={handleMediaUpload}
-          onDeleteMedia={handleDeleteMedia}
+          // Removing onMediaUpload since it's not in ProductTableProps
+          onDeleteMedia={handleDeleteMedia} 
           onMediaClick={handleMediaClick}
           sortConfig={sortConfig}
           onSort={handleSort}
