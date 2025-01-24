@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Download, Plus, Settings2, Upload } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Column {
   key: string;
@@ -40,6 +41,8 @@ export function ProductTableFilters({
   onImport,
   onDownloadTemplate,
 }: ProductTableFiltersProps) {
+  const isMobile = useIsMobile();
+
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex flex-1 items-center space-x-2">
@@ -73,18 +76,22 @@ export function ProductTableFilters({
         )}
       </div>
       <div className="flex items-center space-x-2">
-        <Button onClick={onDownloadTemplate} variant="outline" size="sm">
-          <Download className="mr-2 h-4 w-4" />
-          Template
-        </Button>
-        <Button onClick={onImport} variant="outline" size="sm">
-          <Upload className="mr-2 h-4 w-4" />
-          Import
-        </Button>
-        <Button onClick={onExport} variant="outline" size="sm">
-          <Download className="mr-2 h-4 w-4" />
-          Export
-        </Button>
+        {!isMobile && (
+          <>
+            <Button onClick={onDownloadTemplate} variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Template
+            </Button>
+            <Button onClick={onImport} variant="outline" size="sm">
+              <Upload className="mr-2 h-4 w-4" />
+              Import
+            </Button>
+            <Button onClick={onExport} variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+          </>
+        )}
         <Button onClick={onAddProduct} size="sm">
           <Plus className="mr-2 h-4 w-4" />
           Add Product

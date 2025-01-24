@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { LogOut, Home } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -17,6 +19,7 @@ export default function Admin() {
   const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
   const [backgroundOpacity, setBackgroundOpacity] = useState("1"); // Changed to string type
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Check for stored authentication state when component mounts
@@ -153,11 +156,23 @@ export default function Admin() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <div className="space-x-2">
-            <Button variant="outline" onClick={handleLogout}>
-              Logout
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              size={isMobile ? "icon" : "default"}
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+              {!isMobile && <span className="ml-2">Logout</span>}
             </Button>
-            <Button variant="outline" onClick={() => navigate("/")}>
-              Back to Site
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/")}
+              size={isMobile ? "icon" : "default"}
+              title="Back to Site"
+            >
+              <Home className="h-4 w-4" />
+              {!isMobile && <span className="ml-2">Back to Site</span>}
             </Button>
           </div>
         </div>

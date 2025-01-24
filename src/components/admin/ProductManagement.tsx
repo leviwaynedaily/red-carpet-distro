@@ -21,14 +21,12 @@ export function ProductManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [isAddingSaving, setIsAddingSaving] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
     "name",
     "strain",
-    "description",
     "image",
     "video_url",
-    "categories",
-    "stock",
     "regular_price",
     "shipping_price",
   ]);
@@ -141,12 +139,26 @@ export function ProductManagement() {
   const handleDelete = async (id: string) => {
     console.log("ProductManagement: Deleting product:", id);
     try {
+      // First delete associated categories
+      const { error: categoryError } = await supabase
+        .from("product_categories")
+        .delete()
+        .eq("product_id", id);
+
+      if (categoryError) throw categoryError;
+
+      // Then delete the product
       const { error } = await supabase
         .from("products")
         .delete()
         .eq("id", id);
 
       if (error) throw error;
+
+      // Invalidate queries to refresh the UI
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      await queryClient.invalidateQueries({ queryKey: ["product_categories"] });
+
       toast.success("Product deleted successfully");
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -154,35 +166,93 @@ export function ProductManagement() {
     }
   };
 
-  const handleImageUpload = async (productId: string, url: string) => {
-    console.log("ProductManagement: Uploading image for product:", productId);
+  const handleMediaUpload = async (productId: string, file: File) => {
+    console.log("ProductManagement: Uploading media for product:", productId);
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({ image_url: url })
-        .eq("id", productId);
+      const fileType = file.type.split('/')[0]; // 'image' or 'video'
+      
+      if (fileType !== 'image' && fileType !== 'video') {
+        toast.error('Please upload only image or video files');
+        return;
+      }
 
-      if (error) throw error;
-      toast.success("Image uploaded successfully");
+      if (fileType === 'video') {
+        // Create video element to generate thumbnail
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(file);
+        
+        // Wait for video metadata to load
+        await new Promise((resolve) => {
+          video.onloadedmetadata = resolve;
+        });
+
+        // Create canvas and draw video frame
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(video, 0, 0);
+
+        // Convert canvas to blob
+        const thumbnailBlob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((blob) => resolve(blob!), 'image/webp', 0.8);
+        });
+
+        // Upload video and thumbnail to storage
+        const videoPath = `videos/${Date.now()}-${file.name}`;
+        const thumbnailPath = `images/${Date.now()}-thumbnail.webp`;
+
+        const { error: videoError, data: videoData } = await supabase.storage
+          .from('media')
+          .upload(videoPath, file);
+
+        if (videoError) throw videoError;
+
+        const { error: thumbnailError, data: thumbnailData } = await supabase.storage
+          .from('media')
+          .upload(thumbnailPath, thumbnailBlob);
+
+        if (thumbnailError) throw thumbnailError;
+
+        // Get public URLs
+        const videoUrl = supabase.storage.from('media').getPublicUrl(videoPath).data.publicUrl;
+        const thumbnailUrl = supabase.storage.from('media').getPublicUrl(thumbnailPath).data.publicUrl;
+
+        // Update product with both URLs
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({
+            video_url: videoUrl,
+            image_url: thumbnailUrl
+          })
+          .eq('id', productId);
+
+        if (updateError) throw updateError;
+        toast.success('Video uploaded with thumbnail');
+      } else {
+        // Handle image upload
+        const path = `images/${Date.now()}-${file.name}`;
+        const { error: uploadError, data } = await supabase.storage
+          .from('media')
+          .upload(path, file);
+
+        if (uploadError) throw uploadError;
+
+        const imageUrl = supabase.storage.from('media').getPublicUrl(path).data.publicUrl;
+
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ image_url: imageUrl })
+          .eq('id', productId);
+
+        if (updateError) throw updateError;
+        toast.success('Image uploaded successfully');
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
     } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("Failed to upload image");
-    }
-  };
-
-  const handleVideoUpload = async (productId: string, url: string) => {
-    console.log("ProductManagement: Uploading video for product:", productId);
-    try {
-      const { error } = await supabase
-        .from("products")
-        .update({ video_url: url })
-        .eq("id", productId);
-
-      if (error) throw error;
-      toast.success("Video uploaded successfully");
-    } catch (error) {
-      console.error("Error uploading video:", error);
-      toast.error("Failed to upload video");
+      console.error('Error uploading media:', error);
+      toast.error('Failed to upload media');
     }
   };
 
@@ -196,6 +266,7 @@ export function ProductManagement() {
         .eq("id", productId);
 
       if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success(`${type} deleted successfully`);
     } catch (error) {
       console.error("Error deleting media:", error);
@@ -208,12 +279,14 @@ export function ProductManagement() {
     window.open(url, "_blank");
   };
 
-  const handleAddProduct = async (product: Partial<Product>) => {
+  const handleAddProduct = async (product: Partial<Product>): Promise<boolean> => {
+    console.log("Starting product add:", product);
+    setIsAddingSaving(true);
     try {
       // Validate required fields
       if (!product.name) {
         toast.error("Product name is required");
-        return;
+        return false;
       }
 
       // Force TS to see `name` as a string
@@ -224,9 +297,11 @@ export function ProductManagement() {
             name: product.name as string,
             description: product.description,
             strain: product.strain,
-            stock: product.stock,
-            regular_price: product.regular_price,
-            shipping_price: product.shipping_price,
+            stock: product.stock || 0,
+            regular_price: product.regular_price || 0,
+            shipping_price: product.shipping_price || 0,
+            image_url: product.image_url,
+            video_url: product.video_url,
             primary_media_type: "image",
             media: [],
           },
@@ -234,14 +309,24 @@ export function ProductManagement() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
 
+      console.log("Product added successfully:", data);
       await queryClient.invalidateQueries({ queryKey: ["products"] });
+      
+      // Only close dialog and show success after everything is complete
       setShowAddDialog(false);
       toast.success("Product added successfully");
+      return true;
     } catch (error) {
       console.error("Error adding product:", error);
       toast.error("Failed to add product");
+      return false;
+    } finally {
+      setIsAddingSaving(false);
     }
   };
 
@@ -345,8 +430,7 @@ export function ProductManagement() {
           editingProduct={editingProduct}
           editValues={editValues}
           onDelete={handleDelete}
-          onImageUpload={handleImageUpload}
-          onVideoUpload={handleVideoUpload}
+          onMediaUpload={handleMediaUpload}
           onDeleteMedia={handleDeleteMedia}
           onMediaClick={handleMediaClick}
         />
@@ -361,8 +445,7 @@ export function ProductManagement() {
           onEditCancel={handleEditCancel}
           onEditChange={handleEditChange}
           onDelete={handleDelete}
-          onImageUpload={handleImageUpload}
-          onVideoUpload={handleVideoUpload}
+          onMediaUpload={handleMediaUpload}
           onDeleteMedia={handleDeleteMedia}
           onMediaClick={handleMediaClick}
           sortConfig={sortConfig}
@@ -374,6 +457,7 @@ export function ProductManagement() {
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         onSave={handleAddProduct}
+        isSaving={isAddingSaving}
       />
     </div>
   );

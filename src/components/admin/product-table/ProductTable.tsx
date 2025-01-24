@@ -25,10 +25,9 @@ interface ProductTableProps {
   onEditCancel: () => void;
   onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
   onDelete: (id: string) => void;
-  onImageUpload: (productId: string, url: string) => void;
-  onVideoUpload: (productId: string, url: string) => void;
-  onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
-  onMediaClick: (type: 'image' | 'video', url: string) => void;
+  onMediaUpload: (productId: string, file: File) => Promise<void>;
+  onDeleteMedia: (productId: string, type: "image" | "video") => void;
+  onMediaClick: (type: "image" | "video", url: string) => void;
   sortConfig: { key: string; direction: 'asc' | 'desc' };
   onSort: (key: string) => void;
 }
@@ -44,8 +43,7 @@ export function ProductTable({
   onEditCancel,
   onEditChange,
   onDelete,
-  onImageUpload,
-  onVideoUpload,
+  onMediaUpload,
   onDeleteMedia,
   onMediaClick,
   sortConfig,
@@ -109,13 +107,12 @@ export function ProductTable({
               isEditing={editingProduct === product.id}
               editValues={editValues}
               categories={categories || fetchedCategories}
-              onEditStart={onEditStart}
+              onEditStart={async (product) => await onEditStart(product)}
               onEditSave={onEditSave}
               onEditCancel={onEditCancel}
               onEditChange={onEditChange}
               onDelete={onDelete}
-              onImageUpload={onImageUpload}
-              onVideoUpload={onVideoUpload}
+              onMediaUpload={onMediaUpload}
               onDeleteMedia={onDeleteMedia}
               onMediaClick={onMediaClick}
             />

@@ -5,23 +5,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
 import { FileUpload } from "@/components/ui/file-upload";
-import { Upload, Trash2, Loader2 } from "lucide-react";
+import { Upload, Trash2, Loader2, Play } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 type Product = Tables<"products">;
 
-interface ProductEditDialogProps {
+export interface ProductEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: Product;
+  product: Product & { categories: string[] };
   editValues: Partial<Product> & { categories?: string[] };
-  categories?: { id: string; name: string; }[];
   onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
   onSave: () => void;
   onCancel: () => void;
-  onImageUpload: (productId: string, url: string) => void;
-  onVideoUpload: (productId: string, url: string) => void;
-  onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
+  onMediaUpload: (productId: string, file: File) => Promise<void>;
+  onDeleteMedia: (productId: string, type: "image" | "video") => void;
   isSaving?: boolean;
 }
 
@@ -30,12 +28,10 @@ export function ProductEditDialog({
   onOpenChange,
   product,
   editValues,
-  categories = [],
   onEditChange,
   onSave,
   onCancel,
-  onImageUpload,
-  onVideoUpload,
+  onMediaUpload,
   onDeleteMedia,
   isSaving = false,
 }: ProductEditDialogProps) {
@@ -86,18 +82,18 @@ export function ProductEditDialog({
           <div className="grid gap-2">
             <Label>Categories</Label>
             <div className="grid grid-cols-2 gap-2 border rounded-md p-4">
-              {categories.map((category) => (
-                <div key={category.id} className="flex items-center space-x-2">
+              {product.categories.map((category) => (
+                <div key={category} className="flex items-center space-x-2">
                   <Checkbox
-                    id={category.id}
-                    checked={editValues.categories?.includes(category.name)}
-                    onCheckedChange={() => handleCategoryToggle(category.name)}
+                    id={category}
+                    checked={editValues.categories?.includes(category)}
+                    onCheckedChange={() => handleCategoryToggle(category)}
                   />
                   <label
-                    htmlFor={category.id}
+                    htmlFor={category}
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {category.name}
+                    {category}
                   </label>
                 </div>
               ))}
@@ -117,9 +113,9 @@ export function ProductEditDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label>Image</Label>
-            <div className="flex items-center gap-2">
-              {product.image_url ? (
+            <Label>Media</Label>
+            <div className="flex flex-col gap-4">
+              {product.image_url && (
                 <div className="flex items-center gap-2">
                   <img
                     src={product.image_url}
@@ -135,28 +131,24 @@ export function ProductEditDialog({
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-              ) : null}
-              <FileUpload
-                onUploadComplete={(url) => onImageUpload(product.id, url)}
-                accept="image/*"
-                bucket="media"
-                folderPath={`products/${product.id}`}
-                fileName="image"
-                className="w-8"
-                buttonContent={<Upload className="h-4 w-4" />}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Video</Label>
-            <div className="flex items-center gap-2">
-              {product.video_url ? (
+              )}
+              {product.video_url && (
                 <div className="flex items-center gap-2">
-                  <video
-                    src={product.video_url}
-                    className="w-16 h-16 object-cover rounded-md"
-                  />
+                  {product.image_url ? (
+                    <div className="relative">
+                      <img
+                        src={product.image_url}
+                        alt={`${product.name} preview`}
+                        className="w-16 h-16 object-cover rounded-md"
+                      />
+                      <Play className="absolute inset-0 m-auto h-6 w-6 text-white" />
+                    </div>
+                  ) : (
+                    <video
+                      src={product.video_url}
+                      className="w-16 h-16 object-cover rounded-md"
+                    />
+                  )}
                   <Button
                     variant="destructive"
                     size="icon"
@@ -166,16 +158,16 @@ export function ProductEditDialog({
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-              ) : null}
+              )}
               <FileUpload
-                onUploadComplete={(url) => onVideoUpload(product.id, url)}
-                accept="video/*"
+                onUploadComplete={(file) => onMediaUpload(product.id, file)}
+                accept="image/*,video/*"
                 bucket="media"
-                folderPath={`products/${product.id}`}
-                fileName="video"
-                className="w-8"
-                buttonContent={<Upload className="h-4 w-4" />}
+                className="w-full"
               />
+              <p className="text-sm text-muted-foreground">
+                Upload an image or video. Videos will automatically generate a thumbnail.
+              </p>
             </div>
           </div>
 

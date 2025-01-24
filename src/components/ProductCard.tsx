@@ -5,6 +5,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { X, Image, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Carousel,
   CarouselContent,
@@ -51,6 +53,19 @@ export const ProductCard = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [webpError, setWebpError] = useState(false);
+
+  const { data: siteSettings } = useQuery({
+    queryKey: ['site_settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('show_downloads')
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const validCategories = categories?.filter(category => category && category.trim() !== '') || [];
   const mediaItems = [];
@@ -191,50 +206,77 @@ export const ProductCard = ({
   const renderMediaContent = () => {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex-none">
-          <Carousel className="w-full">
-            <CarouselContent>
-              {mediaItems.map((item, index) => (
-                <CarouselItem key={index} className="flex justify-center items-center">
-                  {item.type === 'video' ? (
-                    <div className="w-full flex justify-center mt-14">
+        <div className="relative">
+          {mediaItems.length > 1 ? (
+            <Carousel className="w-full">
+              <CarouselContent>
+                {mediaItems.map((item, index) => (
+                  <CarouselItem key={index}>
+                    {item.type === 'video' ? (
                       <video
                         src={item.url}
-                        controls
+                        className="max-h-[50vh] w-auto mx-auto rounded-lg"
+                        autoPlay
                         playsInline
-                        autoPlay={isPlaying}
-                        className="max-h-[50vh] w-auto"
+                        loop
+                        muted
                       />
-                    </div>
-                  ) : (
-                    <picture className="flex justify-center mt-14">
-                      {item.webp && !webpError && (
-                        <source
-                          srcSet={item.webp}
-                          type="image/webp"
-                          onError={handleWebPError}
+                    ) : (
+                      <picture>
+                        {item.webp && !webpError && (
+                          <source
+                            srcSet={item.webp}
+                            type="image/webp"
+                            onError={handleWebPError}
+                          />
+                        )}
+                        <img
+                          src={item.url}
+                          alt={name}
+                          className="max-h-[50vh] w-auto mx-auto rounded-lg"
+                          onError={handleImageError}
                         />
-                      )}
-                      <img
-                        src={item.url}
-                        alt={name}
-                        className="max-h-[50vh] w-auto"
-                        onError={handleImageError}
+                      </picture>
+                    )}
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          ) : (
+            mediaItems.map((item, index) => (
+              <div key={index} className="flex justify-center">
+                {item.type === 'video' ? (
+                  <video
+                    src={item.url}
+                    className="max-h-[50vh] w-auto rounded-lg"
+                    autoPlay
+                    playsInline
+                    loop
+                    muted
+                  />
+                ) : (
+                  <picture>
+                    {item.webp && !webpError && (
+                      <source
+                        srcSet={item.webp}
+                        type="image/webp"
+                        onError={handleWebPError}
                       />
-                    </picture>
-                  )}
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {mediaItems.length > 1 && (
-              <>
-                <CarouselPrevious className="left-2" />
-                <CarouselNext className="right-2" />
-              </>
-            )}
-          </Carousel>
+                    )}
+                    <img
+                      src={item.url}
+                      alt={name}
+                      className="max-h-[50vh] w-auto rounded-lg"
+                      onError={handleImageError}
+                    />
+                  </picture>
+                )}
+              </div>
+            ))
+          )}
         </div>
-
         <div className="flex-1 overflow-y-auto p-6 bg-white">
           {validCategories.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
@@ -265,28 +307,30 @@ export const ProductCard = ({
                 {stock} in stock
               </div>
             )}
-            <div className="flex gap-2">
-              {video && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDownload(video, 'video')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Video
-                </Button>
-              )}
-              {image && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDownload(image, 'image')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Image
-                </Button>
-              )}
-            </div>
+            {siteSettings?.show_downloads && (
+              <div className="flex gap-2">
+                {video && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownload(video, 'video')}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Video
+                  </Button>
+                )}
+                {image && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownload(image, 'image')}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Image
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -332,19 +376,33 @@ export const ProductCard = ({
         </CardContent>
       </Card>
 
-      <Sheet open={showMedia} onOpenChange={setShowMedia}>
-        <SheetContent 
-          side={isMobile ? "bottom" : "right"} 
-          className={isMobile ? "h-[90vh] p-0 rounded-t-[1rem] overflow-hidden" : "w-[90vw] max-w-4xl p-0"}
-        >
-          {isMobile && (
-            <div className="w-full flex justify-center pt-2 pb-1">
-              <div className="w-12 h-1.5 rounded-full bg-gray-300" />
+      {isMobile ? (
+        <Sheet open={showMedia} onOpenChange={setShowMedia}>
+          <SheetContent
+            side="bottom"
+            className="h-[85vh] p-0"
+            draggable
+          >
+            <div className="h-full touch-pan-y">
+              <div className="w-full flex justify-center py-2 bg-white border-b">
+                <div className="w-12 h-1 rounded-full bg-gray-300" />
+              </div>
+              <div className="h-[calc(100%-32px)] overflow-auto">
+                {renderMediaContent()}
+              </div>
             </div>
-          )}
-          {renderMediaContent()}
-        </SheetContent>
-      </Sheet>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Sheet open={showMedia} onOpenChange={setShowMedia}>
+          <SheetContent 
+            side="right" 
+            className="w-[90vw] max-w-4xl p-0 max-h-[85vh]"
+          >
+            {renderMediaContent()}
+          </SheetContent>
+        </Sheet>
+      )}
     </>
   );
 };

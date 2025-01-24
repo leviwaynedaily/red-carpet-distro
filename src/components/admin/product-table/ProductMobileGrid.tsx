@@ -15,10 +15,9 @@ interface ProductMobileGridProps {
   editingProduct: string | null;
   editValues: Partial<Product> & { categories?: string[] };
   onDelete: (id: string) => void;
-  onImageUpload: (productId: string, url: string) => void;
-  onVideoUpload: (productId: string, url: string) => void;
-  onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
-  onMediaClick: (type: 'image' | 'video', url: string) => void;
+  onMediaUpload: (productId: string, file: File) => Promise<void>;
+  onDeleteMedia: (productId: string, type: "image" | "video") => void;
+  onMediaClick: (type: "image" | "video", url: string) => void;
 }
 
 export function ProductMobileGrid({
@@ -30,8 +29,7 @@ export function ProductMobileGrid({
   editingProduct,
   editValues,
   onDelete,
-  onImageUpload,
-  onVideoUpload,
+  onMediaUpload,
   onDeleteMedia,
   onMediaClick,
 }: ProductMobileGridProps) {
@@ -97,8 +95,7 @@ export function ProductMobileGrid({
           onEditChange={onEditChange}
           onSave={handleEditSave}
           onCancel={handleEditCancel}
-          onImageUpload={onImageUpload}
-          onVideoUpload={onVideoUpload}
+          onMediaUpload={onMediaUpload}
           onDeleteMedia={onDeleteMedia}
         />
       )}

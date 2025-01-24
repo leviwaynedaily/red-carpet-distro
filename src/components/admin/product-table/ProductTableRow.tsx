@@ -12,36 +12,32 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 type Product = Tables<"products">;
 
-interface ProductTableRowProps {
-  product: Product & { categories?: string[] };
-  visibleColumns: string[];
-  isEditing: boolean;
+export interface ProductTableRowProps {
+  key: string;
+  product: Product & { categories: string[] };
+  editingProduct: string | null;
   editValues: Partial<Product> & { categories?: string[] };
-  categories?: { id: string; name: string; }[];
-  onEditStart: (product: Product & { categories?: string[] }) => void;
-  onEditSave: () => void;
+  visibleColumns: string[];
+  onEditStart: (product: Product & { categories: string[] }) => Promise<void>;
   onEditCancel: () => void;
   onEditChange: (values: Partial<Product> & { categories?: string[] }) => void;
   onDelete: (id: string) => void;
-  onImageUpload: (productId: string, url: string) => void;
-  onVideoUpload: (productId: string, url: string) => void;
-  onDeleteMedia: (productId: string, type: 'image' | 'video') => void;
-  onMediaClick: (type: 'image' | 'video', url: string) => void;
+  onMediaUpload: (productId: string, file: File) => Promise<void>;
+  onDeleteMedia: (productId: string, type: "image" | "video") => void;
+  onMediaClick: (type: "image" | "video", url: string) => void;
 }
 
 export function ProductTableRow({
   product,
   visibleColumns,
-  isEditing,
+  editingProduct,
   editValues,
   categories,
   onEditStart,
-  onEditSave,
   onEditCancel,
   onEditChange,
   onDelete,
-  onImageUpload,
-  onVideoUpload,
+  onMediaUpload,
   onDeleteMedia,
   onMediaClick,
 }: ProductTableRowProps) {
@@ -129,13 +125,12 @@ export function ProductTableRow({
             onEditChange={onEditChange}
             onMediaClick={onMediaClick}
             onDeleteMedia={onDeleteMedia}
-            onImageUpload={onImageUpload}
-            onVideoUpload={onVideoUpload}
+            onMediaUpload={onMediaUpload}
           />
         ))}
         <ProductTableActions
           productId={product.id}
-          isEditing={isEditing}
+          isEditing={editingProduct === product.id}
           onEdit={handleEdit}
           onSave={handleSave}
           onCancel={handleCancel}
@@ -152,8 +147,7 @@ export function ProductTableRow({
             onEditChange={onEditChange}
             onSave={handleSave}
             onCancel={handleCancel}
-            onImageUpload={onImageUpload}
-            onVideoUpload={onVideoUpload}
+            onMediaUpload={onMediaUpload}
             onDeleteMedia={onDeleteMedia}
             isSaving={isSaving}
           />
@@ -163,12 +157,10 @@ export function ProductTableRow({
             onOpenChange={setShowEditDialog}
             product={product}
             editValues={editValues}
-            categories={categories}
             onEditChange={onEditChange}
             onSave={handleSave}
             onCancel={handleCancel}
-            onImageUpload={onImageUpload}
-            onVideoUpload={onVideoUpload}
+            onMediaUpload={onMediaUpload}
             onDeleteMedia={onDeleteMedia}
             isSaving={isSaving}
           />
